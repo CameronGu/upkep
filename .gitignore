@@ -1,0 +1,35 @@
+# upKep .gitignore
+
+# State files (user-specific, not version controlled)
+~/.auto_maintainer_state
+.auto_maintainer_state
+
+# Logs (runtime data, not version controlled)
+logs/
+*.log
+
+# Build artifacts
+scripts/update_all.sh
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp 
