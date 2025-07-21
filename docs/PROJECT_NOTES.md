@@ -13,7 +13,7 @@ by CameronGu
 **upKep** is a modular, system-wide Linux maintenance and update manager designed to automate essential system upkeep tasks, including APT, Snap, and Flatpak updates, as well as cleanup operations. It combines:
 
 * **A modular and test-driven architecture** for maintainability.
-* **State tracking** to prevent redundant operations (stored in `~/.auto_maintainer_state`).
+* **State tracking** to prevent redundant operations (stored in `~/.upkep_state`).
 * **Clear CLI output and logging**, with visually styled summaries.
 * **A future-proof design**, evolving toward dynamic module loading and modern CLI packaging.
 
@@ -37,7 +37,7 @@ by CameronGu
 * **Testing:** Modular test cases for ASCII art, state logic, interval checks, flags, and formatting.
 * **Documentation:** Found under `docs/` (PRD, CHANGELOG, DESIGN, README).
 * **Execution:** Managed with a `Makefile` for `run`, `build`, `test`, and `clean` operations.
-* **State Management:** User-specific state stored in `~/.auto_maintainer_state` (not version controlled).
+* **State Management:** User-specific state stored in `~/.upkep_state` (not version controlled).
 
 ---
 
@@ -52,8 +52,8 @@ run:
 	bash scripts/main.sh
 
 build:
-	cat scripts/modules/*.sh scripts/main.sh > scripts/update_all.sh
-	chmod +x scripts/update_all.sh
+	cat scripts/modules/*.sh scripts/main.sh > scripts/upkep.sh
+	chmod +x scripts/upkep.sh
 
 test:
 	bash tests/test_runner.sh
@@ -85,7 +85,7 @@ upKep/
 │   │   ├── snap_update.sh     # Snap operations
 │   │   ├── flatpak_update.sh  # Flatpak operations
 │   │   └── cleanup.sh         # Cleanup operations
-│   └── update_all.sh          # Concatenated single-file version
+│   └── upkep.sh               # Concatenated single-file version
 ├── tests/
 │   ├── test_runner.sh         # Test execution
 │   ├── test_cases/            # Individual test modules
@@ -101,7 +101,7 @@ upKep/
 
 ## **6. State Management**
 
-**State File Location**: `~/.auto_maintainer_state` (user's home directory)
+**State File Location**: `~/.upkep_state` (user's home directory)
 
 **State Variables**:
 - `UPDATE_LAST_RUN`: Timestamp of last update operations
@@ -205,7 +205,7 @@ The **upKep roadmap** prioritizes modularity, dynamic runtime behavior, and mode
 ## **9. Key Decisions**
 
 ### **9.1 State Management**
-- **Decision**: Store state in user's home directory (`~/.auto_maintainer_state`)
+- **Decision**: Store state in user's home directory (`~/.upkep_state`)
 - **Rationale**: System-wide tool that should persist across installations
 - **Implication**: State is user-specific and not version controlled
 

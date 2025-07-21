@@ -1,5 +1,5 @@
 #!/bin/bash
-# visual_check.sh - Manual visual verification of Auto-Maintainer UI elements
+# visual_check.sh - Manual visual verification of upKep Linux Maintainer UI elements
 
 BASE_DIR="$(dirname "$0")/../scripts/modules"
 source "$BASE_DIR/utils.sh"

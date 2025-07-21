@@ -1,7 +1,7 @@
 #!/bin/bash
 # test_state.sh - Test state file logic
 
-STATE_FILE="/tmp/test_auto_maintainer_state"
+STATE_FILE="/tmp/test_upkep_state"
 export STATE_FILE
 
 # Load required modules

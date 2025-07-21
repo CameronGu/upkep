@@ -1,5 +1,5 @@
 #!/bin/bash
-# main.sh - Main entry point for Auto-Maintainer
+# main.sh - Main entry point for upKep Linux Maintainer
 
 BASE_DIR="$(dirname "$0")"
 source "$BASE_DIR/modules/utils.sh"

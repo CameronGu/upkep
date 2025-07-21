@@ -9,7 +9,7 @@ ascii_title_old() {
     echo "  ██╔══██║██║   ██║   ██║   ██║   ██║     ██║╚██╔╝██║██╔══██║██║██║╚██╗██║"
     echo "  ██║  ██║╚██████╔╝   ██║   ╚██████╔╝     ██║ ╚═╝ ██║██║  ██║██║██║ ╚████║"
     echo "  ╚═╝  ╚═╝ ╚═════╝    ╚═╝    ╚═════╝      ╚═╝     ╚═╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝"
-    echo -e "                               ${WHITE}- Auto-Maintainer${RESET}"
+    echo -e "                               ${WHITE}- Linux Maintainer${RESET}"
     echo
 }
 

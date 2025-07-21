@@ -1,15 +1,15 @@
 # upKep .gitignore
 
 # State files (user-specific, not version controlled)
-~/.auto_maintainer_state
-.auto_maintainer_state
+~/.upkep_state
+.upkep_state
 
 # Logs (runtime data, not version controlled)
 logs/
 *.log
 
 # Build artifacts
-scripts/update_all.sh
+scripts/upkep.sh
 
 # Python cache
 __pycache__/

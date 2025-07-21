@@ -58,7 +58,7 @@ Linux system maintenance involves managing multiple package managers (APT, Snap,
 
 #### FR-3: State Management
 - **FR-3.1**: Track last run timestamps for each operation type
-- **FR-3.2**: Store state in user's home directory (`~/.auto_maintainer_state`)
+- **FR-3.2**: Store state in user's home directory (`~/.upkep_state`)
 - **FR-3.3**: Display time since last operations
 - **FR-3.4**: Support interval-based execution (future enhancement)
 
@@ -115,7 +115,7 @@ upKep/
 │   │   ├── snap_update.sh     # Snap operations
 │   │   ├── flatpak_update.sh  # Flatpak operations
 │   │   └── cleanup.sh         # Cleanup operations
-│   └── update_all.sh          # Concatenated single-file version
+│   └── upkep.sh               # Concatenated single-file version
 ├── tests/
 │   ├── test_runner.sh         # Test execution
 │   ├── test_cases/            # Individual test modules
@@ -129,7 +129,7 @@ upKep/
 
 ### 5.2 State Management
 
-**State File Location**: `~/.auto_maintainer_state`
+**State File Location**: `~/.upkep_state`
 **State Variables**:
 - `UPDATE_LAST_RUN`: Timestamp of last update operations
 - `CLEANUP_LAST_RUN`: Timestamp of last cleanup operations
@@ -158,7 +158,7 @@ run_<module_name>() {
 
 ### 6.1 Command-Line Interface
 
-**Primary Command**: `upkep` or `make run`
+**Primary Command**: `upkep` (built version) or `make run` (development)
 
 **Output Structure**:
 1. ASCII art title and branding
@@ -215,7 +215,7 @@ run_<module_name>() {
 ### 8.1 Build Process
 
 **Development**: `make run` (executes main.sh)
-**Production**: `make build` (creates single-file version)
+**Production**: `make build` (creates upkep.sh single-file version)
 **Testing**: `make test` (runs test suite)
 **Cleanup**: `make clean` (removes logs)
 

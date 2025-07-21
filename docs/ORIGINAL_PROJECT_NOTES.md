@@ -3,7 +3,7 @@
 **Current State Description**
 
 **Purpose:**
-`upKep` is a Linux system maintenance script that automates routine package updates and cleanup tasks. It centralizes updates across APT, Snap, and Flatpak package managers, while tracking the last execution times to avoid unnecessary operations. It is designed to be run periodically or manually, ensuring that the system stays current without user intervention unless required. The current script is available in the project files as **`update_all.sh`**.
+`upKep` is a Linux system maintenance script that automates routine package updates and cleanup tasks. It centralizes updates across APT, Snap, and Flatpak package managers, while tracking the last execution times to avoid unnecessary operations. It is designed to be run periodically or manually, ensuring that the system stays current without user intervention unless required. The current script is available in the project files as **`upkep.sh`**.
 
 ---
 
@@ -11,7 +11,7 @@
 
 1. **State Tracking:**
 
-   * Maintains a hidden state file (`~/.auto_maintainer_state`) recording timestamps of the last update, cleanup, and script execution.
+   * Maintains a hidden state file (`~/.upkep_state`) recording timestamps of the last update, cleanup, and script execution.
    * Uses these timestamps to determine whether to skip or perform updates and cleanup based on predefined intervals (7 days for updates, 30 days for cleanup).
 
 2. **Update Management:**
@@ -64,8 +64,8 @@
 
 **Project Definition: upKep**
 
-`upKep` is a Linux maintenance utility designed to automate core system upKep tasks across multiple package managers. It reduces manual intervention by batching updates for APT, Snap, and Flatpak, while periodically cleaning unused packages and caches. The tool maintains an internal state file (`~/.auto_maintainer_state`) to track the last execution of updates and cleanup, applying defined intervals (7 days for updates, 30 days for cleanup) to determine when actions are required. Users can override these intervals with the `--force` option or view the current maintenance status with `--status`.
+`upKep` is a Linux maintenance utility designed to automate core system upKep tasks across multiple package managers. It reduces manual intervention by batching updates for APT, Snap, and Flatpak, while periodically cleaning unused packages and caches. The tool maintains an internal state file (`~/.upkep_state`) to track the last execution of updates and cleanup, applying defined intervals (7 days for updates, 30 days for cleanup) to determine when actions are required. Users can override these intervals with the `--force` option or view the current maintenance status with `--status`.
 
 The script delivers structured, color-coded output for clarity, including real-time progress indicators and a summary of results. It is designed for Debian/Ubuntu-based systems and assumes `sudo` access for privileged operations. While it offers no built-in scheduling, it is well-suited for use with cron or systemd timers.
 
-The current implementation of **`upKep`** is contained in the project file **`update_all.sh`**, which represents version 3.1 of the script. Future iterations could expand support to other package managers, introduce advanced logging, or integrate with system monitoring tools.
+The current implementation of **`upKep`** is contained in the project file **`upkep.sh`**, which represents version 3.1 of the script. Future iterations could expand support to other package managers, introduce advanced logging, or integrate with system monitoring tools.

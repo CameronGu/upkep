@@ -1,11 +1,11 @@
-# Makefile for Auto-Maintainer project
+# Makefile for upKep Linux Maintainer
 
 run:
 	bash scripts/main.sh
 
 build:
-	cat scripts/modules/*.sh scripts/main.sh > scripts/update_all.sh
-	chmod +x scripts/update_all.sh
+	cat scripts/modules/*.sh scripts/main.sh > scripts/upkep.sh
+	chmod +x scripts/upkep.sh
 
 test:
 	bash tests/test_runner.sh

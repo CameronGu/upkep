@@ -1,6 +1,6 @@
 #!/bin/bash
 # state.sh - State management functions
-STATE_FILE="$HOME/.auto_maintainer_state"
+STATE_FILE="$HOME/.upkep_state"
 
 load_state() {
     if [[ ! -f "$STATE_FILE" ]]; then

@@ -1,11 +1,11 @@
 #!/bin/bash
-# test_runner.sh - Main test runner for Auto-Maintainer
+# test_runner.sh - Main test runner for upKep Linux Maintainer
 
 BASE_DIR="$(dirname "$0")/.."
 MODULES_DIR="$BASE_DIR/scripts/modules"
 TEST_DIR="$(dirname "$0")/test_cases"
 
-echo "==== Auto-Maintainer Test Runner ===="
+echo "==== upKep Linux Maintainer Test Runner ===="
 echo "Running all test cases in $TEST_DIR"
 echo
 
