@@ -1,0 +1,419 @@
+# upKep - Linux System Maintenance Tool
+## Product Requirements Document (PRD)
+
+## 1. Executive Summary
+
+**upKep** is a modular, system-wide Linux maintenance and update manager designed to automate essential system upkeep tasks. It provides a unified command-line interface for managing APT, Snap, and Flatpak updates, along with system cleanup operations.
+
+### Key Features
+- **Unified Maintenance**: Single command to run all system maintenance tasks
+- **State Tracking**: Prevents redundant operations through intelligent state management
+- **Interval-Based Execution**: Configurable intervals to prevent excessive updates
+- **Modular Architecture**: Extensible design for custom maintenance modules
+- **Visual Feedback**: Rich CLI output with styled summaries and progress indicators
+- **Test-Driven Development**: Comprehensive test suite for reliability
+
+## 2. Problem Statement
+
+Linux system maintenance involves managing multiple package managers (APT, Snap, Flatpak) and cleanup routines, which requires:
+- Remembering multiple commands
+- Manual tracking of when updates were last run
+- Time-consuming repetitive tasks
+- Risk of forgetting essential maintenance steps
+- Potential for excessive updates that waste system resources
+
+**upKep** solves these problems by providing a single, intelligent interface that automates and tracks all maintenance operations with configurable intervals.
+
+## 3. Target Users
+
+### Primary Users
+- **Linux System Administrators**: Managing multiple systems efficiently
+- **Power Users**: Wanting automated system maintenance
+- **Developers**: Focused on development, not system upkeep
+
+### Secondary Users
+- **Home Users**: Seeking simplified Linux maintenance
+- **DevOps Engineers**: Automating system maintenance in CI/CD pipelines
+
+## 4. Core Requirements
+
+### 4.1 Functional Requirements
+
+#### FR-1: Package Manager Updates
+- **FR-1.1**: Execute APT updates (`apt update && apt upgrade -y`)
+- **FR-1.2**: Execute Snap updates (`snap refresh`)
+- **FR-1.3**: Execute Flatpak updates (`flatpak update`)
+- **FR-1.4**: Handle update failures gracefully with error reporting
+- **FR-1.5**: Support additional package managers through modular system
+
+#### FR-2: System Cleanup
+- **FR-2.1**: Remove unused packages (`apt autoremove -y`)
+- **FR-2.2**: Clean package cache (`apt clean`)
+- **FR-2.3**: Extensible for additional cleanup operations
+- **FR-2.4**: Support custom cleanup modules and scripts
+
+#### FR-3: State Management
+- **FR-3.1**: Track last run timestamps for each operation type
+- **FR-3.2**: Store state in user's home directory (`~/.upkep/state.json`)
+- **FR-3.3**: Display time since last operations
+- **FR-3.4**: Support interval-based execution to prevent excessive updates
+- **FR-3.5**: Enhanced state tracking with detailed execution metrics
+- **FR-3.6**: State validation and recovery mechanisms
+
+#### FR-4: Interval Management
+- **FR-4.1**: Configurable update interval (default: 7 days)
+- **FR-4.2**: Configurable cleanup interval (default: 3 days)
+- **FR-4.3**: Skip operations when within configured intervals
+- **FR-4.4**: Display clear skip messages with interval information
+- **FR-4.5**: Per-module and per-category interval configuration
+- **FR-4.6**: Dynamic interval adjustment based on system state
+
+#### FR-5: User Interface
+- **FR-5.1**: Provide visual progress indicators during operations
+- **FR-5.2**: Display styled summary boxes for each operation
+- **FR-5.3**: Show comprehensive final summary with status indicators
+- **FR-5.4**: Support ASCII art branding and clear section headers
+- **FR-5.5**: Color-coded status display (green=success, red=failed, yellow=skipped)
+- **FR-5.6**: Interactive CLI with subcommands and options
+- **FR-5.7**: Multiple output formats (table, JSON, YAML)
+
+#### FR-6: Logging
+- **FR-6.1**: Log all operations to `~/.upkep/logs/upkep.log`
+- **FR-6.2**: Maintain individual module logs in `~/.upkep/logs/modules/`
+- **FR-6.3**: Include timestamps and operation results
+- **FR-6.4**: Structured logging with multiple log levels
+- **FR-6.5**: Log rotation and size management
+- **FR-6.6**: Audit logging for compliance requirements
+
+#### FR-7: Modular Architecture
+- **FR-7.1**: Dynamic module loading and discovery from core and user directories
+- **FR-7.2**: Simple module interface requiring only `run_<module_name>()` function
+- **FR-7.3**: State reflection system for capturing module patterns and examples
+- **FR-7.4**: AI prompt generation based on current system state
+- **FR-7.5**: Basic module validation and testing
+- **FR-7.6**: Optional module sharing via simple mechanisms (GitHub Gist, etc.)
+
+#### FR-8: Configuration Management
+- **FR-8.1**: YAML-based configuration files for global and module-specific settings
+- **FR-8.2**: Environment-specific configuration support
+- **FR-8.3**: Basic configuration validation
+- **FR-8.4**: Interactive configuration management
+- **FR-8.5**: Configuration migration tools
+- **FR-8.6**: Secure configuration storage
+
+#### FR-9: CLI Interface
+- **FR-9.1**: Intuitive subcommand structure (`upkep run`, `upkep status`, `upkep config`)
+- **FR-9.2**: Comprehensive help and documentation
+- **FR-9.3**: Interactive module creation with guided prompts
+- **FR-9.4**: AI prompt generation for module development
+- **FR-9.5**: Module validation and testing commands
+- **FR-9.6**: Dry-run and simulation modes
+
+#### FR-10: Error Handling and Recovery
+- **FR-10.1**: Graceful degradation when modules fail
+- **FR-10.2**: Automatic retry mechanisms for transient failures
+- **FR-10.3**: Rollback capabilities for failed operations
+- **FR-10.4**: Comprehensive error reporting and diagnostics
+- **FR-10.5**: Error classification and handling strategies
+- **FR-10.6**: State recovery from corrupted files
+
+### 4.2 Non-Functional Requirements
+
+#### NFR-1: Performance
+- **NFR-1.1**: Complete all operations within reasonable time limits
+- **NFR-1.2**: Provide real-time progress feedback with spinning indicators
+- **NFR-1.3**: Minimize system resource usage during operations
+- **NFR-1.4**: Support parallel execution of independent modules
+- **NFR-1.5**: Efficient module loading and caching
+- **NFR-1.6**: Resource monitoring and throttling
+
+#### NFR-2: Reliability
+- **NFR-2.1**: Handle network failures gracefully
+- **NFR-2.2**: Continue operation if individual modules fail
+- **NFR-2.3**: Provide clear error messages and status reporting
+- **NFR-2.4**: Maintain backward compatibility with existing state files
+- **NFR-2.5**: Robust state validation and recovery
+- **NFR-2.6**: Comprehensive testing and validation
+
+#### NFR-3: Usability
+- **NFR-3.1**: Simple, intuitive command-line interface
+- **NFR-3.2**: Clear visual feedback and status indicators
+- **NFR-3.3**: Comprehensive help and documentation
+- **NFR-3.4**: Interactive configuration and setup
+- **NFR-3.5**: Consistent behavior across different environments
+- **NFR-3.6**: Accessibility features for different user needs
+
+#### NFR-4: Maintainability
+- **NFR-4.1**: Modular architecture for easy extension
+- **NFR-4.2**: Comprehensive test coverage
+- **NFR-4.3**: Clear code documentation and structure
+- **NFR-4.4**: Standardized module development guidelines
+- **NFR-4.5**: Automated testing and validation
+- **NFR-4.6**: Version control and release management
+
+#### NFR-5: Security
+- **NFR-5.1**: Basic module validation for shared modules
+- **NFR-5.2**: Secure configuration storage
+- **NFR-5.3**: Permission and access control
+- **NFR-5.4**: Basic audit logging
+- **NFR-5.5**: Simple security scanning for shared modules
+- **NFR-5.6**: User-driven security practices
+
+#### NFR-6: Scalability
+- **NFR-6.1**: Support for reasonable number of modules (10-20 user modules)
+- **NFR-6.2**: Efficient resource management
+- **NFR-6.3**: Configurable execution limits
+- **NFR-6.4**: Basic performance monitoring
+- **NFR-6.5**: Simple caching strategies
+- **NFR-6.6**: Resource-aware execution
+
+#### NFR-7: Extensibility
+- **NFR-7.1**: Simple module creation and loading
+- **NFR-7.2**: AI-assisted module development
+- **NFR-7.3**: Basic integration with external tools
+- **NFR-7.4**: User-driven module development
+- **NFR-7.5**: Optional module sharing
+- **NFR-7.6**: Documentation and examples for module creation
+
+#### NFR-8: Compatibility
+- **NFR-8.1**: Backward compatibility with existing configurations
+- **NFR-8.2**: Cross-platform support (Linux, macOS, Windows)
+- **NFR-8.3**: Support for different shell environments
+- **NFR-8.4**: Integration with various package managers
+- **NFR-8.5**: Compatibility with different Linux distributions
+- **NFR-8.6**: Migration tools for version upgrades
+
+## 5. Technical Architecture
+
+### 5.1 Current Architecture
+
+```
+upKep/
+├── scripts/
+│   ├── main.sh                 # Main entry point with interval logic
+│   ├── upkep.sh               # Concatenated single-file version
+│   ├── modules/
+│   │   ├── utils.sh           # Utility functions and visual formatting
+│   │   ├── ascii_art.sh       # Visual branding and ASCII art
+│   │   ├── state.sh           # State management and persistence
+│   │   ├── apt_update.sh      # APT operations
+│   │   ├── snap_update.sh     # Snap operations
+│   │   ├── flatpak_update.sh  # Flatpak operations
+│   │   └── cleanup.sh         # Cleanup operations
+│   └── helpers/
+│       └── ascii_to_echo.sh   # ASCII art conversion utilities
+├── tests/
+│   ├── test_runner.sh         # Test execution framework
+│   ├── test_cases/            # Individual test modules
+│   ├── mocks/                 # Mock implementations for testing
+│   └── visual_check.sh        # Visual output verification
+├── logs/                      # Runtime logs (gitignored)
+├── docs/                      # Documentation
+├── examples/                  # Usage examples
+└── Makefile                   # Build and execution management
+```
+
+### 5.2 Enhanced Modular Architecture (Phase 1+)
+
+```
+upKep/
+├── scripts/
+│   ├── main.sh                 # Main entry point with CLI interface
+│   ├── upkep.sh               # Concatenated single-file version
+│   ├── core/
+│   │   ├── config.sh          # Configuration management
+│   │   ├── module_loader.sh   # Dynamic module loading
+│   │   ├── state.sh           # Enhanced state management
+│   │   ├── cli.sh             # CLI interface and subcommands
+│   │   ├── prompt_generator.sh # AI prompt generation
+│   │   └── utils.sh           # Core utility functions
+│   ├── modules/
+│   │   ├── core/              # Built-in modules
+│   │   │   ├── apt_update.sh  # APT operations
+│   │   │   ├── snap_update.sh # Snap operations
+│   │   │   ├── flatpak_update.sh # Flatpak operations
+│   │   │   └── cleanup.sh     # Cleanup operations
+│   │   └── user/              # User-installed modules (optional)
+│   └── helpers/               # Utility scripts
+├── config/
+│   ├── schemas/               # JSON schemas for validation
+│   │   ├── module.schema.json # Module metadata schema
+│   │   └── config.schema.json # Configuration schema
+│   └── templates/             # Module templates
+├── tests/
+│   ├── test_runner.sh         # Enhanced test framework
+│   ├── test_cases/            # Individual test modules
+│   ├── integration/           # Integration tests
+│   └── mocks/                 # Mock implementations
+├── docs/
+│   ├── api/                   # API documentation
+│   ├── modules/               # Module development guide
+│   └── examples/              # Usage examples
+└── examples/
+    ├── modules/               # Example user modules
+    └── configurations/        # Example configurations
+```
+
+## 6. Development Workflow
+
+### 6.1 Build Process
+
+**Development**: `make run` (executes main.sh)
+**Production**: `make build` (creates upkep.sh single-file version)
+**Testing**: `make test` (runs test suite)
+**Cleanup**: `make clean` (removes logs)
+
+### 6.2 Module Development
+
+1. Create new module in `scripts/modules/`
+2. Implement required interface
+3. Add tests in `tests/test_cases/`
+4. Update main.sh to include new module
+5. Verify functionality and update documentation
+
+### 6.3 Version Control
+
+**Ignored Files**:
+- State files (`~/.upkep_state`)
+- Log files (`logs/`)
+- Build artifacts (`scripts/upkep.sh`)
+- IDE and OS-specific files
+
+## 7. Future Roadmap
+
+### 7.1 Phase 1: Dynamic Module System (Immediate - 2-3 weeks)
+
+#### 7.1.1 Dynamic Module Loading
+- **Module Discovery**: Auto-discover modules from `scripts/modules/core/` and `~/.upkep/modules/`
+- **Runtime Loading**: Replace static sourcing with dynamic module loading at runtime
+- **Module Registry**: In-memory registry tracking discovered modules and metadata
+- **Backward Compatibility**: Maintain compatibility with existing modules during transition
+
+#### 7.1.2 State Reflection System
+- **Dynamic State Capture**: Maintain `~/.upkep/state.json` with current project state
+- **Module Metadata**: Track module names, descriptions, categories, functions, and patterns
+- **Pattern Recognition**: Identify common patterns across existing modules
+- **Real-time Updates**: Update state file when modules are added, removed, or modified
+
+#### 7.1.3 Module Creation Tools
+- **Interactive Module Creator**: Guided module creation with prompts and templates
+- **Template System**: Pre-built templates for common module types
+- **AI Prompt Generator**: Dynamic prompt generation based on current system state
+- **Module Validation**: Basic validation of module structure and interface compliance
+
+### 7.2 Phase 2: Enhanced User Experience (Short-term - 1-2 months)
+
+#### 7.2.1 Simplified Module Interface
+- **Minimal Interface**: Require only `run_<module_name>()` function
+- **Optional Functions**: Support for `get_<module_name>_status()` and `validate_<module_name>()`
+- **Status Variables**: Standardized status variable pattern (`<MODULE>_STATUS`, `<MODULE>_MESSAGE`)
+- **Error Handling**: Consistent error handling patterns across modules
+
+#### 7.2.2 Optional Module Sharing
+- **Simple Sharing**: GitHub Gist or similar for sharing modules
+- **Basic Discovery**: Browse and install shared modules
+- **No Complex Repository**: Avoid elaborate approval processes or quality gates
+- **User-Driven Growth**: Let useful modules spread organically
+
+#### 7.2.3 Configuration Management
+- **YAML Configuration**: Simple YAML-based configuration for modules
+- **Module-Specific Settings**: Per-module configuration options
+- **Environment Support**: Support for different environments (dev, staging, prod)
+- **Configuration Migration**: Tools for upgrading configuration formats
+
+### 7.3 Phase 3: Advanced Features (Medium-term - 2-3 months)
+
+#### 7.3.1 Enhanced Module Capabilities
+- **Module Dependencies**: Support for module interdependencies
+- **Parallel Execution**: Run independent modules concurrently
+- **Resource Monitoring**: Track resource usage during module execution
+- **Performance Optimization**: Caching and optimization for frequently used modules
+
+#### 7.3.2 CLI Enhancements
+- **Subcommand Structure**: Intuitive subcommands (`upkep run`, `upkep status`, `upkep config`)
+- **Interactive Mode**: Guided configuration and operation selection
+- **Multiple Output Formats**: Support for table, JSON, and YAML output
+- **Command Completion**: Shell completion for commands and options
+
+#### 7.3.3 Error Handling and Recovery
+- **Graceful Degradation**: Continue operation when individual modules fail
+- **Automatic Retry**: Configurable retry mechanisms for transient failures
+- **State Recovery**: Recover from corrupted state files
+- **Comprehensive Logging**: Structured logging with multiple levels
+
+### 7.4 Phase 4: Enterprise Features (Long-term - 3-6 months)
+
+#### 7.4.1 Multi-System Management
+- **Remote Execution**: Execute operations across multiple systems
+- **Centralized Control**: Simple API for remote management
+- **Configuration Drift Detection**: Identify configuration differences
+- **Basic Monitoring**: Simple metrics collection and reporting
+
+#### 7.4.2 Security and Compliance
+- **Module Validation**: Basic security scanning for shared modules
+- **Permission Management**: Granular access controls
+- **Audit Logging**: Basic audit trails for compliance
+- **Secure Configuration**: Encrypted storage for sensitive settings
+
+## 8. Success Metrics
+
+### 8.1 Technical Metrics
+- **Test Coverage**: >95% for all modules and core functionality
+- **Performance**: Complete operations within 5 minutes for full system execution
+- **Reliability**: <1% failure rate for standard operations
+- **Maintainability**: <100 lines per module, <500 lines per core component
+- **Module Load Time**: <100ms per module
+- **Configuration Parsing**: <50ms for standard configurations
+- **Memory Usage**: <50MB for full execution
+- **Module Compatibility**: 100% backward compatibility with existing modules
+- **State Recovery**: 100% success rate for corrupted state file recovery
+- **Error Recovery**: >95% success rate for automatic error recovery
+
+### 8.2 User Experience Metrics
+- **Ease of Use**: Single command execution with intuitive subcommands
+- **Feedback Quality**: Clear status indicators and progress feedback
+- **Error Handling**: Informative error messages with actionable guidance
+- **Documentation**: Comprehensive and up-to-date documentation
+- **Configuration Time**: <5 minutes for initial setup
+- **Learning Curve**: New users productive within 30 minutes
+- **User Satisfaction**: >90% satisfaction rate in user surveys
+- **Support Requests**: <5% of users require support for basic operations
+
+### 8.3 Community Metrics
+- **Third-Party Modules**: Target 50+ community-contributed modules
+- **Adoption Rate**: 10,000+ installations across different platforms
+- **Contributor Growth**: 20+ active contributors to core and modules
+- **Documentation Coverage**: 100% API documentation and examples
+- **Issue Resolution**: <24 hours for critical issues, <7 days for feature requests
+- **Module Repository**: 100+ modules available in community repository
+- **Community Engagement**: Active discussions and collaboration
+- **Code Quality**: >90% of community modules pass quality checks
+
+## 9. Constraints and Assumptions
+
+### 9.1 Technical Constraints
+- **Platform**: Linux systems with APT package manager
+- **Dependencies**: Bash shell, standard Unix utilities
+- **Permissions**: Requires sudo for package operations
+- **Network**: Internet connectivity for updates
+
+### 9.2 Design Assumptions
+- Users have basic command-line familiarity
+- System administrators have sudo privileges
+- Package managers are properly configured
+- Log files should not be version controlled
+- State files are user-specific and should not be shared
+
+## 10. Risk Assessment
+
+### 10.1 Technical Risks
+- **Package Manager Changes**: APT/Snap/Flatpak API changes
+- **Permission Issues**: Sudo requirements and security policies
+- **Network Failures**: Update operations requiring internet connectivity
+- **State Corruption**: State file corruption or permission issues
+
+### 10.2 Mitigation Strategies
+- **Comprehensive Testing**: Regular testing against different distributions
+- **Error Handling**: Graceful degradation and clear error reporting
+- **State Validation**: Robust state file validation and recovery
+- **Documentation**: Clear troubleshooting guides and error resolution 

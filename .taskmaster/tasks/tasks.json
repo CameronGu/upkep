@@ -1,0 +1,216 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Initialize Project Repository and Directory Structure",
+        "description": "Set up the upKep project repository with the prescribed modular directory structure, including scripts, modules, core, helpers, config, tests, docs, and examples directories.",
+        "details": "Use Git for version control. Create the directory structure as specified in the PRD. Add a .gitignore file to exclude logs, state files, and build artifacts. Initialize a Makefile for build, test, and clean commands. Use shellcheck for linting shell scripts (latest version).",
+        "testStrategy": "Verify directory structure, .gitignore, and Makefile presence. Run 'make run', 'make build', 'make test', and 'make clean' to ensure basic workflow is functional.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "Implement Core CLI Interface with Subcommands",
+        "description": "Develop the main CLI entry point (main.sh) supporting subcommands (run, status, config) and options.",
+        "details": "Use Bash 5.1+ for scripting. Implement CLI parsing with getopts or a modern Bash CLI helper (e.g., argbash or shflags). Ensure support for interactive and non-interactive modes. Provide comprehensive help output and error handling for unknown commands.",
+        "testStrategy": "Unit test CLI parsing for all subcommands and options. Validate help output and error handling for invalid input.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Develop Dynamic Module Loader System",
+        "description": "Create a dynamic module loader (module_loader.sh) to auto-discover and load modules from core and user directories at runtime.",
+        "details": "Implement module discovery using Bash globbing and source. Maintain an in-memory registry of loaded modules and metadata. Ensure backward compatibility with existing static modules. Support hot-reloading for development. Document module interface requirements.",
+        "testStrategy": "Test module discovery, loading, and registry population. Validate backward compatibility with legacy modules.",
+        "priority": "high",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Implement State Management and Persistence",
+        "description": "Develop state management (state.sh) to track last run timestamps, execution metrics, and support state validation and recovery.",
+        "details": "Store state in ~/.upkep/state.json using jq for JSON manipulation (latest stable version). Implement atomic writes and backup/restore for state file. Add validation and recovery logic for corrupted state. Track per-module and per-operation metrics.",
+        "testStrategy": "Test state read/write, validation, and recovery from corrupted files. Simulate concurrent access and verify atomicity.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Build Package Manager Update Modules (APT, Snap, Flatpak)",
+        "description": "Implement core modules for APT, Snap, and Flatpak updates with error handling and reporting.",
+        "details": "Create apt_update.sh, snap_update.sh, and flatpak_update.sh in modules/core/. Use robust error handling (set -euo pipefail). Capture and report errors with clear messages. Support dry-run mode. Ensure modules implement run_<module>() interface.",
+        "testStrategy": "Test each module for successful updates, error scenarios, and dry-run output. Mock package managers for CI testing.",
+        "priority": "high",
+        "dependencies": [
+          3,
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Develop System Cleanup Modules",
+        "description": "Implement cleanup modules for apt autoremove, apt clean, and extensible custom cleanup scripts.",
+        "details": "Create cleanup.sh in modules/core/. Support additional cleanup operations via user modules. Ensure interface compliance. Allow users to add custom scripts in modules/user/.",
+        "testStrategy": "Test cleanup operations, including custom user scripts. Validate error handling and reporting.",
+        "priority": "high",
+        "dependencies": [
+          3,
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Implement Interval and Execution Policy Management",
+        "description": "Add interval-based execution logic to skip operations within configured intervals and display skip messages.",
+        "details": "Store interval settings in YAML config (see Task 10). Use Bash date arithmetic for interval checks. Display clear skip messages with time remaining. Support per-module and per-category intervals. Allow dynamic adjustment based on system state.",
+        "testStrategy": "Test interval enforcement, skip logic, and dynamic adjustment. Validate correct messaging for skipped operations.",
+        "priority": "medium",
+        "dependencies": [
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Design Visual Feedback and Styled CLI Output",
+        "description": "Provide rich CLI output with progress indicators, styled summaries, ASCII art branding, and color-coded statuses.",
+        "details": "Use tput and ANSI escape codes for color and formatting. Implement progress spinners and summary boxes. Add ASCII art branding via ascii_art.sh. Support output formats: table (column), JSON, YAML (yq). Ensure accessibility (colorblind-friendly palettes).",
+        "testStrategy": "Visual inspection and automated snapshot tests for CLI output. Test accessibility with different terminal themes.",
+        "priority": "medium",
+        "dependencies": [
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Implement Comprehensive Logging System",
+        "description": "Develop structured logging to ~/.upkep/logs/upkep.log and per-module logs, with log rotation and multiple log levels.",
+        "details": "Use Bash functions for logging with levels (INFO, WARN, ERROR, AUDIT). Implement log rotation using logrotate or custom Bash logic. Include timestamps and operation results. Ensure logs are not world-readable. Support audit logging for compliance.",
+        "testStrategy": "Test log creation, rotation, and level filtering. Validate log content and permissions.",
+        "priority": "medium",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Develop YAML-Based Configuration Management",
+        "description": "Implement YAML configuration files for global and module-specific settings, with validation and migration tools.",
+        "details": "Use yq (latest version) for YAML parsing. Store configs in ~/.upkep/config.yaml. Support environment-specific configs. Implement interactive config management (dialog or whiptail). Provide migration scripts for config upgrades. Secure sensitive settings (chmod 600).",
+        "testStrategy": "Test config parsing, validation, and migration. Validate interactive config editing and environment switching.",
+        "priority": "medium",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 11,
+        "title": "Enable Modular Architecture and User Module Support",
+        "description": "Support dynamic loading, validation, and sharing of user-created modules with a simple interface and optional sharing mechanisms.",
+        "details": "Document module interface (run_<module_name>()). Implement module validation (structure, permissions). Provide guided module creation tool (dialog/whiptail). Support sharing via GitHub Gist (curl API). Add basic security scanning for shared modules (shellcheck, regex checks).",
+        "testStrategy": "Test user module loading, validation, and sharing. Validate security scanning and guided creation flow.",
+        "priority": "medium",
+        "dependencies": [
+          3,
+          10
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 12,
+        "title": "Implement Robust Error Handling and Recovery",
+        "description": "Add comprehensive error handling, retry mechanisms, rollback, and diagnostics for all operations and modules.",
+        "details": "Standardize error reporting across modules. Implement automatic retries for transient errors (with exponential backoff). Add rollback logic for failed operations (where feasible). Provide detailed diagnostics and error classification. Support state recovery from errors.",
+        "testStrategy": "Simulate failures and verify error handling, retries, and rollback. Check diagnostic output and state recovery.",
+        "priority": "high",
+        "dependencies": [
+          5,
+          6,
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 13,
+        "title": "Develop Test Suite and Continuous Integration",
+        "description": "Create a comprehensive test suite (unit, integration, visual) and set up CI for automated testing and code quality checks.",
+        "details": "Use Bats (Bash Automated Testing System, latest version) for unit/integration tests. Add visual output checks (compare snapshots). Integrate shellcheck and shfmt for linting/formatting. Set up GitHub Actions or GitLab CI for automated runs. Mock system commands for safe testing.",
+        "testStrategy": "Run all tests in CI. Validate coverage, linting, and visual output. Ensure tests pass on multiple Linux distros.",
+        "priority": "high",
+        "dependencies": [
+          5,
+          6,
+          8,
+          12
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "Write Documentation and Usage Examples",
+        "description": "Produce comprehensive documentation, including API docs, module development guides, and usage examples.",
+        "details": "Use Markdown for docs. Cover CLI usage, configuration, module creation, troubleshooting, and contribution guidelines. Provide example modules and configurations. Generate man pages with help2man. Ensure docs are accessible and up-to-date.",
+        "testStrategy": "Manual review and automated link checks. Validate examples by running them as tests.",
+        "priority": "medium",
+        "dependencies": [
+          2,
+          11
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 15,
+        "title": "Optimize Performance and Resource Management",
+        "description": "Implement performance optimizations, parallel execution of independent modules, and resource monitoring/throttling.",
+        "details": "Use Bash job control (&, wait) for parallel execution where safe. Monitor resource usage with /proc and ps. Throttle operations if system load is high. Cache module metadata for faster loading. Profile execution time and memory usage. Document performance metrics.",
+        "testStrategy": "Benchmark full runs, measure resource usage, and validate parallel execution. Test throttling under load.",
+        "priority": "medium",
+        "dependencies": [
+          3,
+          5,
+          6,
+          7
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-07-21T23:33:05.847Z",
+      "updated": "2025-07-21T23:33:05.847Z",
+      "description": "Tasks for master context"
+    }
+  }
+}
