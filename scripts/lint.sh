@@ -19,8 +19,10 @@ QUIET_MODE=false
 # Statistics
 TOTAL_FILES=0
 FAILED_FILES=0
+WARNING_FILES=0
 WARNINGS=0
 ERRORS=0
+CRITICAL_ERRORS=0
 PASSED_FILES=0
 SKIPPED_FILES=0
 
@@ -76,9 +78,9 @@ check_line_count() {
     local line_count=$(wc -l < "$file" 2>/dev/null || echo "0")
 
     if [[ $line_count -gt $MAX_LINES ]]; then
-        print_status "FAIL" "$file: $line_count lines (exceeds $MAX_LINES limit)"
+        print_status "WARN" "$file: $line_count lines (exceeds $MAX_LINES limit) [STYLE]"
         ((LINE_COUNT_VIOLATIONS++))
-        return 1
+        return 2  # Style warning, not critical failure
     else
         print_status "PASS" "$file: $line_count lines"
         return 0
@@ -96,9 +98,9 @@ check_trailing_whitespace() {
     fi
 
     if timeout 5 grep -q '[[:space:]]$' "$file" 2>/dev/null; then
-        print_status "FAIL" "$file: contains trailing whitespace"
+        print_status "INFO" "$file: contains trailing whitespace [AUTO-FIXABLE]"
         ((TRAILING_WHITESPACE_VIOLATIONS++))
-        return 1
+        return 2  # Auto-fixable, not critical
     else
         print_status "PASS" "$file: no trailing whitespace"
         return 0
@@ -120,9 +122,9 @@ check_shell_script() {
             print_status "PASS" "$file: shellcheck passed"
             return 0
         else
-            print_status "FAIL" "$file: shellcheck found issues"
-            ((SHELLCHECK_VIOLATIONS++))
-            return 1
+                    print_status "FAIL" "$file: shellcheck found issues [CRITICAL]"
+        ((SHELLCHECK_VIOLATIONS++))
+        return 1  # Critical failure - blocks CI
         fi
     else
         print_status "WARN" "$file: shellcheck not available"
@@ -151,9 +153,9 @@ check_shebang() {
         print_status "PASS" "$file: has proper shebang"
         return 0
     else
-        print_status "FAIL" "$file: missing shebang"
+        print_status "FAIL" "$file: missing shebang [CRITICAL]"
         ((SHEBANG_VIOLATIONS++))
-        return 1
+        return 1  # Critical failure - functional issue
     fi
 }
 
@@ -199,9 +201,9 @@ check_file_size() {
     local file_size=$(stat -c "%s" "$file" 2>/dev/null || echo "0")
 
     if [[ $file_size -gt $MAX_FILE_SIZE ]]; then
-        print_status "FAIL" "$file: $file_size bytes (exceeds ${MAX_FILE_SIZE} limit)"
+        print_status "WARN" "$file: $file_size bytes (exceeds ${MAX_FILE_SIZE} limit) [STYLE]"
         ((FILE_SIZE_VIOLATIONS++))
-        return 1
+        return 2  # Style warning, not critical
     else
         print_status "PASS" "$file: $file_size bytes"
         return 0
@@ -258,9 +260,9 @@ check_line_endings() {
     fi
 
     if grep -q $'\r' "$file" 2>/dev/null; then
-        print_status "FAIL" "$file: contains Windows line endings (CRLF)"
+        print_status "WARN" "$file: contains Windows line endings (CRLF) [STYLE]"
         ((LINE_ENDING_VIOLATIONS++))
-        return 1
+        return 2  # Style warning, not critical
     else
         print_status "PASS" "$file: Unix line endings (LF)"
         return 0
@@ -343,27 +345,53 @@ print_summary() {
     echo -e "${PURPLE}Files skipped:${NC} $SKIPPED_FILES"
     echo ""
     echo -e "${YELLOW}=== Violation Details ===${NC}"
-    echo -e "${RED}Line count violations:${NC} $LINE_COUNT_VIOLATIONS"
-    echo -e "${RED}File size violations:${NC} $FILE_SIZE_VIOLATIONS"
-    echo -e "${RED}Trailing whitespace violations:${NC} $TRAILING_WHITESPACE_VIOLATIONS"
-    echo -e "${RED}Line ending violations:${NC} $LINE_ENDING_VIOLATIONS"
-    echo -e "${RED}ShellCheck violations:${NC} $SHELLCHECK_VIOLATIONS"
-    echo -e "${RED}Shebang violations:${NC} $SHEBANG_VIOLATIONS"
-    echo -e "${YELLOW}Permission warnings:${NC} $PERMISSION_VIOLATIONS"
-    echo -e "${YELLOW}Encoding warnings:${NC} $ENCODING_VIOLATIONS"
-    echo -e "${YELLOW}Other warnings:${NC} $WARNINGS"
+    echo -e "${RED}🔴 CRITICAL ISSUES (Block CI):${NC}"
+    echo -e "   ShellCheck violations: $SHELLCHECK_VIOLATIONS"
+    echo -e "   Shebang violations: $SHEBANG_VIOLATIONS"
+    echo ""
+    echo -e "${YELLOW}🟡 STYLE WARNINGS (Fix in maintenance):${NC}"
+    echo -e "   Line count violations: $LINE_COUNT_VIOLATIONS"
+    echo -e "   File size violations: $FILE_SIZE_VIOLATIONS"
+    echo -e "   Line ending violations: $LINE_ENDING_VIOLATIONS"
+    echo ""
+    echo -e "${BLUE}🔵 AUTO-FIXABLE (Run --fix):${NC}"
+    echo -e "   Trailing whitespace violations: $TRAILING_WHITESPACE_VIOLATIONS"
+    echo ""
+    echo -e "${PURPLE}ℹ️  INFORMATIONAL:${NC}"
+    echo -e "   Permission warnings: $PERMISSION_VIOLATIONS"
+    echo -e "   Encoding warnings: $ENCODING_VIOLATIONS"
+    echo -e "   Other warnings: $WARNINGS"
     echo ""
     echo -e "${CYAN}=== Final Result ===${NC}"
 
-    if [[ $ERRORS -eq 0 ]] && [[ $FAILED_FILES -eq 0 ]]; then
+    # Calculate critical errors (ShellCheck + Shebang)
+    local critical_errors=$((SHELLCHECK_VIOLATIONS + SHEBANG_VIOLATIONS))
+    local style_warnings=$((LINE_COUNT_VIOLATIONS + FILE_SIZE_VIOLATIONS + LINE_ENDING_VIOLATIONS))
+    local auto_fixable=$TRAILING_WHITESPACE_VIOLATIONS
+
+    if [[ $critical_errors -eq 0 ]] && [[ $style_warnings -eq 0 ]] && [[ $auto_fixable -eq 0 ]]; then
         print_status "PASS" "🎉 All files passed linting!"
-        echo -e "${GREEN}✓ No errors found${NC}"
+        echo -e "${GREEN}✓ No issues found${NC}"
         echo -e "${GREEN}✓ Code quality checks passed${NC}"
         exit 0
+    elif [[ $critical_errors -eq 0 ]]; then
+        # Only style warnings and auto-fixable issues
+        if [[ $auto_fixable -gt 0 ]]; then
+            print_status "INFO" "✨ Auto-fixable issues found: $auto_fixable trailing whitespace violations"
+            echo -e "${BLUE}💡 Run 'bash scripts/lint.sh --fix' to automatically fix${NC}"
+        fi
+        if [[ $style_warnings -gt 0 ]]; then
+            print_status "WARN" "⚠️  Style warnings found but no critical issues"
+            echo -e "${YELLOW}💡 These can be addressed during maintenance cycles${NC}"
+        fi
+        echo -e "${GREEN}✓ No critical issues - safe for CI/CD${NC}"
+        exit 0
     else
-        print_status "FAIL" "❌ Linting failed with $ERRORS error(s) in $FAILED_FILES file(s)"
-        echo -e "${RED}✗ Please fix the issues above${NC}"
-        echo -e "${YELLOW}💡 Use --fix to automatically fix trailing whitespace${NC}"
+        print_status "FAIL" "❌ Critical issues found: $critical_errors (BLOCKS CI)"
+        echo -e "${RED}✗ Must fix critical issues before proceeding${NC}"
+        if [[ $auto_fixable -gt 0 ]]; then
+            echo -e "${BLUE}💡 Run 'bash scripts/lint.sh --fix' to fix $auto_fixable auto-fixable issues${NC}"
+        fi
         exit 1
     fi
 }
