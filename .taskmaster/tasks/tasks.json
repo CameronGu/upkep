@@ -28,7 +28,7 @@
             "id": 1,
             "title": "YAML Configuration System Implementation",
             "description": "Core YAML configuration system implemented in scripts/core/config.sh with schema definitions",
-            "status": "completed",
+            "status": "done",
             "dependencies": [],
             "details": "",
             "testStrategy": ""
@@ -37,7 +37,7 @@
             "id": 2,
             "title": "Basic YAML Parsing and yq Integration",
             "description": "Implemented grep-based parsing approach and yq integration for advanced YAML/JSON conversion",
-            "status": "completed",
+            "status": "done",
             "dependencies": [],
             "details": "",
             "testStrategy": ""
@@ -46,7 +46,7 @@
             "id": 3,
             "title": "Module-specific Configuration Support",
             "description": "Added support for module-specific configurations with validation using yamllint",
-            "status": "completed",
+            "status": "done",
             "dependencies": [],
             "details": "",
             "testStrategy": ""
@@ -55,7 +55,7 @@
             "id": 4,
             "title": "Export Functions for JSON/YAML Conversion",
             "description": "Implemented functions to convert between JSON and YAML formats",
-            "status": "completed",
+            "status": "done",
             "dependencies": [],
             "details": "",
             "testStrategy": ""
@@ -422,15 +422,106 @@
       {
         "id": 6,
         "title": "Design Visual Feedback and Styled CLI Output",
-        "description": "Provide rich CLI output with progress indicators, styled summaries, ASCII art branding, and color-coded statuses.",
-        "details": "Use tput and ANSI escape codes for color and formatting. Implement progress spinners and summary boxes. Add ASCII art branding via ascii_art.sh. Support output formats: table (column), JSON, YAML (yq). Ensure accessibility (colorblind-friendly palettes).",
-        "testStrategy": "Visual inspection and automated snapshot tests for CLI output. Test accessibility with different terminal themes.",
-        "priority": "medium",
+        "description": "Provide rich CLI output with progress indicators, styled summaries, ASCII art branding, and color-coded statuses based on the comprehensive UI Design Document.",
+        "status": "pending",
         "dependencies": [
           5
         ],
-        "status": "pending",
-        "subtasks": []
+        "priority": "medium",
+        "details": "Implement the Taskmaster-inspired visual design as specified in docs/DESIGN.md, including: terminal-first dark theme with semantic color palette, module overview tables with hierarchical display, execution summary boxes (success/warning/error variants), real-time progress indicators, enhanced ASCII branding and section headers, status icon system, and multi-format output support (human-readable, JSON, YAML). Use tput and ANSI escape codes for color and formatting. Follow the 4-phase implementation roadmap outlined in the design document. Ensure accessibility with colorblind-friendly palettes.",
+        "testStrategy": "Visual inspection and automated snapshot tests for CLI output. Test accessibility with different terminal themes. Verify implementation against the specifications in docs/DESIGN.md. Test all component variants and output formats.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement base styling system using tput and ANSI escape codes",
+            "description": "",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Create terminal-first dark theme with semantic color palette",
+            "description": "",
+            "status": "pending",
+            "dependencies": [],
+            "details": "<info added on 2025-07-22T20:48:19.454Z>\nImplement the terminal-first dark theme as specified in docs/DESIGN.md Section 2.1, using the following color palette:\n\nBase Colors:\n- PRIMARY_BG=\"#1a1a1a\" (Deep black background)\n- PRIMARY_FG=\"#f8f8f2\" (High-contrast white text)\n- ACCENT_CYAN=\"#8be9fd\" (Headers, section dividers)\n- ACCENT_MAGENTA=\"#bd93f9\" (Progress, emphasis)\n\nSemantic Status Colors:\n- SUCCESS_GREEN=\"#50fa7b\" (Completed tasks, successful operations)\n- WARNING_YELLOW=\"#f1fa8c\" (Skipped tasks, pending actions)\n- ERROR_RED=\"#ff5555\" (Failed operations, critical issues)\n- INFO_BLUE=\"#6272a4\" (Informational content, metadata)\n\nInclude colorblind-friendly alternatives as specified in Section 9.2 for accessibility, with appropriate contrast ratios and alternative visual indicators beyond color alone.\n\nUpdate scripts/modules/core/utils.sh with these enhanced color definitions, ensuring compatibility with both modern terminals supporting 24-bit color and legacy terminals with limited color support.\n</info added on 2025-07-22T20:48:19.454Z>",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Develop module overview tables with hierarchical display",
+            "description": "",
+            "status": "pending",
+            "dependencies": [],
+            "details": "<info added on 2025-07-22T20:48:46.916Z>\nImplement the Module Overview Table component that displays system maintenance status in a structured, hierarchical format. The table should:\n\n- Use box-drawing characters to create a visually appealing bordered table\n- Support hierarchical indentation with ├─ and └─ characters for nested operations\n- Include columns for Module, Last Run, Status, and Next Due information\n- Implement color-coded status indicators (green for success, yellow for due, red for failed)\n- Format timestamps in a time-relative manner (e.g., \"2 days ago\", \"Now\", \"5 days\")\n- Adapt to different terminal widths (80-140 characters) per responsive design requirements\n\nCreate the necessary drawing functions in scripts/modules/core/utils.sh that handle:\n- Table border generation with appropriate Unicode box-drawing characters\n- Dynamic column width calculation based on terminal size\n- Header and row formatting with proper alignment and padding\n- Status indicator colorization using terminal escape sequences\n- Support for nested module representation with proper indentation\n\nThe implementation should follow the example structure provided in the design document and conform to the component library specifications in Section 10.1.\n</info added on 2025-07-22T20:48:46.916Z>",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Implement execution summary boxes (success/warning/error variants)",
+            "description": "",
+            "status": "pending",
+            "dependencies": [],
+            "details": "<info added on 2025-07-22T20:49:02.338Z>\nImplement execution summary boxes for success, warning, and error states following the design specifications in docs/DESIGN.md Section 3.2. Create a draw_status_box() function in utils.sh that renders bordered boxes with:\n\n1. Success Box (Green):\n   - Title with operation name\n   - Success message with count of completed actions\n   - Execution time measurement\n   - Package/item details with version information\n   - Next scheduled run information\n\n2. Warning/Skip Box (Yellow):\n   - Skip reason clearly stated\n   - Configured interval information\n   - Override instructions for manual execution\n   - Status-aware formatting with warning emoji (⚠️)\n\n3. Error Box (Red):\n   - Error title and summary\n   - Detailed error message\n   - Troubleshooting suggestions\n   - Log file paths for further investigation\n   - Error code when available\n\nAll boxes should maintain consistent formatting with:\n- Color-coded borders and text based on status\n- Appropriate emoji indicators (✅, ⚠️, ❌)\n- Information presented in logical hierarchy\n- Proper spacing and alignment\n- Unicode box-drawing characters for borders\n\nThe function should accept parameters for box type, title, and content details to generate appropriate output based on execution context.\n</info added on 2025-07-22T20:49:02.338Z>",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Create real-time progress indicators and step-by-step feedback",
+            "description": "",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Enhance ASCII branding and section headers via ascii_art.sh",
+            "description": "",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "Implement status icon system with comprehensive mapping",
+            "description": "",
+            "status": "pending",
+            "dependencies": [],
+            "details": "<info added on 2025-07-22T20:49:15.994Z>\ndeclare -A STATUS_ICONS=(\n    [\"success\"]=\"✅\"\n    [\"failed\"]=\"❌\" \n    [\"warning\"]=\"⚠️\"\n    [\"pending\"]=\"⏳\"\n    [\"running\"]=\"🔄\"\n    [\"paused\"]=\"⏸️\"\n    [\"skip\"]=\"⏭️\"\n    [\"new\"]=\"📋\"\n    [\"timing\"]=\"⏱️\"\n    [\"stats\"]=\"📊\"\n    [\"suggestion\"]=\"💡\"\n    [\"action\"]=\"🎯\"\n    [\"config\"]=\"🔧\"\n    [\"package\"]=\"📦\"\n    [\"cleanup\"]=\"🗑️\"\n    [\"details\"]=\"🔍\"\n)\n\ndeclare -A STATUS_COLORS=(\n    [\"success\"]=\"green\"\n    [\"failed\"]=\"red\"\n    [\"warning\"]=\"yellow\"\n    [\"pending\"]=\"blue\"\n    [\"running\"]=\"cyan\"\n    [\"paused\"]=\"magenta\"\n    [\"skip\"]=\"white\"\n    [\"new\"]=\"blue\"\n    [\"timing\"]=\"cyan\"\n    [\"stats\"]=\"blue\"\n    [\"suggestion\"]=\"green\"\n    [\"action\"]=\"yellow\"\n    [\"config\"]=\"magenta\"\n    [\"package\"]=\"blue\"\n    [\"cleanup\"]=\"red\"\n    [\"details\"]=\"cyan\"\n)\n\n# Function to format status with icon, color and text\nformat_status() {\n    local status=\"$1\"\n    local message=\"${2:-}\"\n    local icon=\"${STATUS_ICONS[$status]:-}\"\n    local color=\"${STATUS_COLORS[$status]:-white}\"\n    \n    # Apply color using tput or ANSI escape codes\n    case \"$color\" in\n        \"green\")  color_code=$(tput setaf 2) ;;\n        \"red\")    color_code=$(tput setaf 1) ;;\n        \"yellow\") color_code=$(tput setaf 3) ;;\n        \"blue\")   color_code=$(tput setaf 4) ;;\n        \"cyan\")   color_code=$(tput setaf 6) ;;\n        \"magenta\") color_code=$(tput setaf 5) ;;\n        \"white\")  color_code=$(tput setaf 7) ;;\n        *)        color_code=$(tput setaf 7) ;;\n    esac\n    \n    reset_code=$(tput sgr0)\n    \n    # Format with consistent spacing\n    if [ -n \"$message\" ]; then\n        echo \"${color_code}${icon} ${message}${reset_code}\"\n    else\n        echo \"${color_code}${icon}${reset_code}\"\n    fi\n}\n</info added on 2025-07-22T20:49:15.994Z>",
+            "testStrategy": ""
+          },
+          {
+            "id": 8,
+            "title": "Add multi-format output support (human-readable, JSON, YAML)",
+            "description": "",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 9,
+            "title": "Ensure accessibility with colorblind-friendly palettes",
+            "description": "",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 10,
+            "title": "Follow the 4-phase implementation roadmap from docs/DESIGN.md",
+            "description": "",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          }
+        ]
       },
       {
         "id": 7,
@@ -978,7 +1069,7 @@
     ],
     "metadata": {
       "created": "2025-07-21T23:33:05.847Z",
-      "updated": "2025-07-22T19:38:36.791Z",
+      "updated": "2025-07-22T20:21:16.371Z",
       "description": "Tasks for master context"
     }
   }
