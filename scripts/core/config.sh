@@ -36,6 +36,8 @@ else
     exit 1
 fi
 
+
+
 # Validate configuration schema
 validate_config_schema() {
     local issues_found=0

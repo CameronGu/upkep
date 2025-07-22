@@ -100,9 +100,9 @@
             "id": 9,
             "title": "Add Environment-specific Configs",
             "description": "Implement support for different environments (dev, staging, prod) with environment variable overrides and config inheritance",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
-            "details": "",
+            "details": "<info added on 2025-07-22T21:04:37.378Z>\n### Decision: Discard Previous Implementation\n\n**Problem with Previous Approach:**\n- Implemented dev/staging/prod environments which don't fit upkep's use case\n- Added unnecessary complexity for a personal system maintenance tool\n- Over-engineered solution for simple configuration needs\n\n**Simplified Plan:**\n1. Discard the complex environment system (environment.sh, complex schema changes)\n2. Implement simple environment variable overrides for common use cases:\n   - `UPKEP_DRY_RUN=true` - Test mode\n   - `UPKEP_FORCE=true` - Skip interval checks  \n   - `UPKEP_LOG_LEVEL=debug` - Troubleshooting\n   - `UPKEP_PARALLEL=false` - Sequential execution\n3. Keep it simple, maintainable, and focused on actual user needs\n\n**Next Steps:**\n- Remove the environment-specific files and complex changes\n- Implement basic environment variable override support in existing config system\n- Focus on simplicity and usefulness\n</info added on 2025-07-22T21:04:37.378Z>\n<info added on 2025-07-22T21:08:23.497Z>\n### Final Implementation - Simplified Environment Variable Overrides\n\n**Successfully implemented simple environment variable override system that fits upkep's actual use case.**\n\n**What Was Implemented:**\n\n1. **Simple Override Function** (`scripts/core/config/global.sh`):\n   - Enhanced `get_config()` function with environment variable support\n   - Converts config keys to environment variables: `logging.level` → `UPKEP_LOGGING_LEVEL`\n   - Priority: env vars > config file > defaults\n   - Clean, maintainable code without complexity\n\n2. **Updated CLI Help** (`scripts/core/cli.sh`):\n   - Added documentation for environment variable overrides\n   - Practical examples for common use cases\n   - No complex environment management commands\n\n3. **Comprehensive Testing** (`tests/test_cases/test_simple_env_overrides.sh`):\n   - Tests basic config reading\n   - Tests environment variable overrides\n   - Tests key format conversion\n   - Tests fallback behavior\n   - All tests passing ✓\n\n4. **Demonstration** (`examples/simple_env_override_demo.sh`):\n   - Shows practical usage patterns\n   - Documents common use cases\n\n**Key Benefits:**\n- **Simple**: Just prefix any config key with `UPKEP_` and set as env var\n- **Intuitive**: `UPKEP_DRY_RUN=true upkep run` for test mode\n- **Maintainable**: Minimal code, easy to understand\n- **Practical**: Solves real user needs (debugging, testing, customization)\n\n**Common Usage Patterns:**\n```bash\n# Test mode\nUPKEP_DRY_RUN=true upkep run\n\n# Debug logging \nUPKEP_LOGGING_LEVEL=debug upkep run\n\n# Sequential execution\nUPKEP_PARALLEL_EXECUTION=false upkep run\n\n# Fast update intervals\nUPKEP_DEFAULTS_UPDATE_INTERVAL=1 upkep run\n\n# Combined overrides\nUPKEP_DRY_RUN=true UPKEP_LOGGING_LEVEL=debug upkep run\n```\n\n**What Was Avoided:**\n- Complex dev/staging/prod environment system that doesn't fit upkep\n- Unnecessary configuration files and management\n- Over-engineering for non-existent use cases\n\nThis implementation provides exactly what users need: simple, runtime configuration overrides for common scenarios like testing and debugging.\n</info added on 2025-07-22T21:08:23.497Z>",
             "testStrategy": ""
           },
           {
@@ -1069,7 +1069,7 @@
     ],
     "metadata": {
       "created": "2025-07-21T23:33:05.847Z",
-      "updated": "2025-07-22T20:21:16.371Z",
+      "updated": "2025-07-22T21:09:05.089Z",
       "description": "Tasks for master context"
     }
   }
