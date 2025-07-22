@@ -53,33 +53,146 @@
       "type": "object",
       "description": "Default settings for modules",
       "properties": {
-        "update_interval": {
-          "type": "integer",
-          "description": "Default update interval in days",
-          "minimum": 1,
-          "maximum": 365,
-          "default": 7
+        "categories": {
+          "type": "object",
+          "description": "Default intervals by category",
+          "properties": {
+            "package_managers": {
+              "type": "object",
+              "description": "Package manager update intervals",
+              "properties": {
+                "default_interval": {
+                  "type": "integer",
+                  "description": "Default interval in days for package managers",
+                  "minimum": 1,
+                  "maximum": 30,
+                  "default": 7
+                },
+                "min_interval": {
+                  "type": "integer",
+                  "description": "Minimum allowed interval in days",
+                  "minimum": 1,
+                  "maximum": 7,
+                  "default": 1
+                },
+                "max_interval": {
+                  "type": "integer",
+                  "description": "Maximum allowed interval in days",
+                  "minimum": 7,
+                  "maximum": 30,
+                  "default": 30
+                }
+              }
+            },
+            "system_cleanup": {
+              "type": "object",
+              "description": "System cleanup intervals",
+              "properties": {
+                "default_interval": {
+                  "type": "integer",
+                  "description": "Default interval in days for cleanup operations",
+                  "minimum": 1,
+                  "maximum": 14,
+                  "default": 3
+                },
+                "min_interval": {
+                  "type": "integer",
+                  "description": "Minimum allowed interval in days",
+                  "minimum": 1,
+                  "maximum": 3,
+                  "default": 1
+                },
+                "max_interval": {
+                  "type": "integer",
+                  "description": "Maximum allowed interval in days",
+                  "minimum": 3,
+                  "maximum": 14,
+                  "default": 14
+                }
+              }
+            },
+            "security": {
+              "type": "object",
+              "description": "Security operation intervals",
+              "properties": {
+                "default_interval": {
+                  "type": "integer",
+                  "description": "Default interval in days for security operations",
+                  "minimum": 1,
+                  "maximum": 7,
+                  "default": 3
+                },
+                "min_interval": {
+                  "type": "integer",
+                  "description": "Minimum allowed interval in days",
+                  "minimum": 1,
+                  "maximum": 3,
+                  "default": 1
+                },
+                "max_interval": {
+                  "type": "integer",
+                  "description": "Maximum allowed interval in days",
+                  "minimum": 3,
+                  "maximum": 7,
+                  "default": 7
+                }
+              }
+            },
+            "monitoring": {
+              "type": "object",
+              "description": "System monitoring intervals",
+              "properties": {
+                "default_interval": {
+                  "type": "integer",
+                  "description": "Default interval in days for monitoring operations",
+                  "minimum": 1,
+                  "maximum": 14,
+                  "default": 3
+                },
+                "min_interval": {
+                  "type": "integer",
+                  "description": "Minimum allowed interval in days",
+                  "minimum": 1,
+                  "maximum": 3,
+                  "default": 1
+                },
+                "max_interval": {
+                  "type": "integer",
+                  "description": "Maximum allowed interval in days",
+                  "minimum": 3,
+                  "maximum": 14,
+                  "default": 14
+                }
+              }
+            }
+          }
         },
-        "cleanup_interval": {
-          "type": "integer",
-          "description": "Default cleanup interval in days",
-          "minimum": 1,
-          "maximum": 365,
-          "default": 3
-        },
-        "security_interval": {
-          "type": "integer",
-          "description": "Default security check interval in days",
-          "minimum": 1,
-          "maximum": 365,
-          "default": 1
-        },
-        "backup_interval": {
-          "type": "integer",
-          "description": "Default backup interval in days",
-          "minimum": 1,
-          "maximum": 365,
-          "default": 7
+        "legacy": {
+          "type": "object",
+          "description": "Legacy interval settings for backward compatibility",
+          "properties": {
+            "update_interval": {
+              "type": "integer",
+              "description": "Legacy update interval in days (deprecated, use categories.package_managers.default_interval)",
+              "minimum": 1,
+              "maximum": 365,
+              "default": 7
+            },
+            "cleanup_interval": {
+              "type": "integer",
+              "description": "Legacy cleanup interval in days (deprecated, use categories.system_cleanup.default_interval)",
+              "minimum": 1,
+              "maximum": 365,
+              "default": 3
+            },
+            "security_interval": {
+              "type": "integer",
+              "description": "Legacy security interval in days (deprecated, use categories.security.default_interval)",
+              "minimum": 1,
+              "maximum": 365,
+              "default": 3
+            }
+          }
         }
       }
     },

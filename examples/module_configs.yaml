@@ -1,0 +1,240 @@
+# Example upKep Module Configurations
+# This file demonstrates recommended intervals for different module categories
+
+# Package Manager Modules
+modules:
+  apt_update:
+    enabled: true
+    category: package_managers
+    interval_days: 3
+    interval_override:
+      enabled: true
+      interval_days: 3
+      reason: "Security updates should be applied more frequently than other package managers"
+    timeout: 600
+    parallel: false
+    description: "Update APT packages and apply security patches"
+
+  snap_update:
+    enabled: true
+    category: package_managers
+    interval_days: 7
+    timeout: 300
+    parallel: false
+    description: "Update Snap packages"
+
+  flatpak_update:
+    enabled: true
+    category: package_managers
+    interval_days: 7
+    timeout: 300
+    parallel: false
+    description: "Update Flatpak packages"
+
+  dnf_update:
+    enabled: true
+    category: package_managers
+    interval_days: 3
+    interval_override:
+      enabled: true
+      interval_days: 3
+      reason: "RPM-based systems need frequent updates for security"
+    timeout: 600
+    parallel: false
+    description: "Update DNF packages (RPM-based systems)"
+
+# System Cleanup Modules
+  apt_cleanup:
+    enabled: true
+    category: system_cleanup
+    interval_days: 2
+    interval_override:
+      enabled: true
+      interval_days: 2
+      reason: "APT cleanup should run frequently to prevent disk space issues"
+    timeout: 300
+    parallel: false
+    description: "Remove old APT packages and clean cache"
+
+  log_cleanup:
+    enabled: true
+    category: system_cleanup
+    interval_days: 3
+    timeout: 180
+    parallel: false
+    description: "Clean old log files to prevent disk space issues"
+
+  temp_cleanup:
+    enabled: true
+    category: system_cleanup
+    interval_days: 1
+    interval_override:
+      enabled: true
+      interval_days: 1
+      reason: "Temporary files should be cleaned daily to maintain system performance"
+    timeout: 120
+    parallel: false
+    description: "Clean temporary files and directories"
+
+  cache_cleanup:
+    enabled: true
+    category: system_cleanup
+    interval_days: 3
+    timeout: 240
+    parallel: false
+    description: "Clean various system caches"
+
+  docker_cleanup:
+    enabled: true
+    category: system_cleanup
+    interval_days: 7
+    interval_override:
+      enabled: true
+      interval_days: 7
+      reason: "Docker cleanup is resource-intensive and should run less frequently"
+    timeout: 600
+    parallel: false
+    description: "Clean unused Docker images and containers"
+
+# Security Modules
+  security_updates:
+    enabled: true
+    category: security
+    interval_days: 1
+    interval_override:
+      enabled: true
+      interval_days: 1
+      reason: "Security updates are critical and should be checked daily"
+    timeout: 300
+    parallel: false
+    description: "Check and apply security updates"
+
+  vulnerability_scan:
+    enabled: true
+    category: security
+    interval_days: 3
+    timeout: 600
+    parallel: false
+    description: "Scan system for known vulnerabilities"
+
+  firewall_check:
+    enabled: true
+    category: security
+    interval_days: 2
+    interval_override:
+      enabled: true
+      interval_days: 2
+      reason: "Firewall configuration should be verified regularly"
+    timeout: 120
+    parallel: false
+    description: "Verify firewall configuration and rules"
+
+  ssl_cert_check:
+    enabled: true
+    category: security
+    interval_days: 7
+    interval_override:
+      enabled: true
+      interval_days: 7
+      reason: "SSL certificates don't change frequently"
+    timeout: 180
+    parallel: false
+    description: "Check SSL certificate expiration dates"
+
+# Monitoring Modules
+  system_health:
+    enabled: true
+    category: monitoring
+    interval_days: 2
+    interval_override:
+      enabled: true
+      interval_days: 2
+      reason: "System health should be monitored regularly"
+    timeout: 120
+    parallel: false
+    description: "Check overall system health and status"
+
+  performance_check:
+    enabled: true
+    category: monitoring
+    interval_days: 5
+    interval_override:
+      enabled: true
+      interval_days: 5
+      reason: "Performance metrics don't need daily collection"
+    timeout: 180
+    parallel: false
+    description: "Monitor system performance metrics"
+
+  resource_usage:
+    enabled: true
+    category: monitoring
+    interval_days: 3
+    timeout: 90
+    parallel: false
+    description: "Check disk space, memory, and CPU usage"
+
+  service_status:
+    enabled: true
+    category: monitoring
+    interval_days: 1
+    interval_override:
+      enabled: true
+      interval_days: 1
+      reason: "Critical services should be checked daily"
+    timeout: 60
+    parallel: false
+    description: "Check status of critical system services"
+
+  disk_space:
+    enabled: true
+    category: monitoring
+    interval_days: 2
+    interval_override:
+      enabled: true
+      interval_days: 2
+      reason: "Disk space should be monitored regularly to prevent issues"
+    timeout: 60
+    parallel: false
+    description: "Monitor disk space usage and alert on low space"
+
+# System Maintenance Modules
+  system_maintenance:
+    enabled: true
+    category: system_maintenance
+    interval_days: 7
+    timeout: 900
+    parallel: false
+    description: "General system maintenance tasks"
+
+# Global Configuration
+global:
+  log_level: info
+  notifications: true
+  dry_run: false
+  parallel_execution: true
+  max_parallel_modules: 4
+
+# Category Defaults
+defaults:
+  categories:
+    package_managers:
+      default_interval: 7
+      min_interval: 1
+      max_interval: 30
+    system_cleanup:
+      default_interval: 3
+      min_interval: 1
+      max_interval: 14
+    security:
+      default_interval: 3
+      min_interval: 1
+      max_interval: 7
+    monitoring:
+      default_interval: 3
+      min_interval: 1
+      max_interval: 14
+    system_maintenance:
+      default_interval: 7
+      min_interval: 1
+      max_interval: 30 

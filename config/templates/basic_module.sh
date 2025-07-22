@@ -22,6 +22,8 @@ MODULE_CATEGORY="{{MODULE_CATEGORY}}"
 {{MODULE_NAME_UPPER}}_ENABLED=true
 {{MODULE_NAME_UPPER}}_INTERVAL_DAYS=7
 {{MODULE_NAME_UPPER}}_TIMEOUT=300
+{{MODULE_NAME_UPPER}}_INTERVAL_OVERRIDE=false
+{{MODULE_NAME_UPPER}}_OVERRIDE_REASON=""
 
 # Load configuration
 load_{{MODULE_NAME}}_config() {
@@ -30,6 +32,9 @@ load_{{MODULE_NAME}}_config() {
         local enabled=$(grep "^enabled:" "${{MODULE_NAME_UPPER}}_CONFIG_FILE" | head -1 | sed 's/.*:[[:space:]]*//')
         local interval=$(grep "^interval_days:" "${{MODULE_NAME_UPPER}}_CONFIG_FILE" | head -1 | sed 's/.*:[[:space:]]*//')
         local timeout=$(grep "^timeout:" "${{MODULE_NAME_UPPER}}_CONFIG_FILE" | head -1 | sed 's/.*:[[:space:]]*//')
+        local override_enabled=$(grep "^interval_override:" -A 3 "${{MODULE_NAME_UPPER}}_CONFIG_FILE" | grep "enabled:" | head -1 | sed 's/.*:[[:space:]]*//')
+        local override_interval=$(grep "^interval_override:" -A 3 "${{MODULE_NAME_UPPER}}_CONFIG_FILE" | grep "interval_days:" | head -1 | sed 's/.*:[[:space:]]*//')
+        local override_reason=$(grep "^interval_override:" -A 3 "${{MODULE_NAME_UPPER}}_CONFIG_FILE" | grep "reason:" | head -1 | sed 's/.*:[[:space:]]*//')
 
         if [[ -n "$enabled" ]]; then
             {{MODULE_NAME_UPPER}}_ENABLED="$enabled"
@@ -39,6 +44,15 @@ load_{{MODULE_NAME}}_config() {
         fi
         if [[ -n "$timeout" ]]; then
             {{MODULE_NAME_UPPER}}_TIMEOUT="$timeout"
+        fi
+        if [[ -n "$override_enabled" ]]; then
+            {{MODULE_NAME_UPPER}}_INTERVAL_OVERRIDE="$override_enabled"
+        fi
+        if [[ -n "$override_interval" ]]; then
+            {{MODULE_NAME_UPPER}}_OVERRIDE_INTERVAL="$override_interval"
+        fi
+        if [[ -n "$override_reason" ]]; then
+            {{MODULE_NAME_UPPER}}_OVERRIDE_REASON="$override_reason"
         fi
     fi
 }
@@ -83,6 +97,10 @@ get_{{MODULE_NAME}}_status() {
     fi
     echo "Enabled: ${{MODULE_NAME_UPPER}}_ENABLED"
     echo "Interval: ${{MODULE_NAME_UPPER}}_INTERVAL_DAYS days"
+    if [[ "${{MODULE_NAME_UPPER}}_INTERVAL_OVERRIDE" == "true" ]]; then
+        echo "Interval Override: ${{MODULE_NAME_UPPER}}_OVERRIDE_INTERVAL days"
+        echo "Override Reason: ${{MODULE_NAME_UPPER}}_OVERRIDE_REASON"
+    fi
     echo "Timeout: ${{MODULE_NAME_UPPER}}_TIMEOUT seconds"
 }
 
