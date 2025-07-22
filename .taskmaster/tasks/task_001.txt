@@ -1,0 +1,11 @@
+# Task ID: 1
+# Title: Initialize Project Repository and Directory Structure
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Set up the upKep project repository with the prescribed modular directory structure, including scripts, modules, core, helpers, config, tests, docs, and examples directories.
+# Details:
+Use Git for version control. Create the directory structure as specified in the PRD. Add a .gitignore file to exclude logs, state files, and build artifacts. Initialize a Makefile for build, test, and clean commands. Use shellcheck for linting shell scripts (latest version).
+
+# Test Strategy:
+Verify directory structure, .gitignore, and Makefile presence. Run 'make run', 'make build', 'make test', and 'make clean' to ensure basic workflow is functional.

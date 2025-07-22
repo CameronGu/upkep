@@ -1,0 +1,11 @@
+# Task ID: 3
+# Title: Implement State Management and Persistence
+# Status: pending
+# Dependencies: 1
+# Priority: high
+# Description: Develop state management (state.sh) to track last run timestamps, execution metrics, and support state validation and recovery.
+# Details:
+Store state in ~/.upkep/state.json using jq for JSON manipulation (latest stable version). Implement atomic writes and backup/restore for state file. Add validation and recovery logic for corrupted state. Track per-module and per-operation metrics.
+
+# Test Strategy:
+Test state read/write, validation, and recovery from corrupted files. Simulate concurrent access and verify atomicity.

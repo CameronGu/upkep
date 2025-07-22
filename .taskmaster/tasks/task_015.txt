@@ -1,0 +1,11 @@
+# Task ID: 15
+# Title: Write Documentation and Usage Examples
+# Status: pending
+# Dependencies: 5, 11
+# Priority: medium
+# Description: Produce comprehensive documentation, including API docs, module development guides, and usage examples.
+# Details:
+Use Markdown for docs. Cover CLI usage, configuration, module creation, troubleshooting, and contribution guidelines. Provide example modules and configurations. Generate man pages with help2man. Ensure docs are accessible and up-to-date.
+
+# Test Strategy:
+Manual review and automated link checks. Validate examples by running them as tests.

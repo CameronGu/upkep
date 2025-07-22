@@ -9,127 +9,621 @@
         "testStrategy": "Verify directory structure, .gitignore, and Makefile presence. Run 'make run', 'make build', 'make test', and 'make clean' to ensure basic workflow is functional.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": []
       },
       {
         "id": 2,
-        "title": "Implement Core CLI Interface with Subcommands",
-        "description": "Develop the main CLI entry point (main.sh) supporting subcommands (run, status, config) and options.",
-        "details": "Use Bash 5.1+ for scripting. Implement CLI parsing with getopts or a modern Bash CLI helper (e.g., argbash or shflags). Ensure support for interactive and non-interactive modes. Provide comprehensive help output and error handling for unknown commands.",
-        "testStrategy": "Unit test CLI parsing for all subcommands and options. Validate help output and error handling for invalid input.",
-        "priority": "high",
+        "title": "Develop YAML-Based Configuration Management",
+        "description": "Implement YAML configuration files for global and module-specific settings, with validation and migration tools.",
+        "status": "in-progress",
         "dependencies": [
           1
         ],
-        "status": "pending",
-        "subtasks": []
+        "priority": "medium",
+        "details": "Use yq (latest version) for YAML parsing. Store configs in ~/.upkep/config.yaml. Support environment-specific configs. Implement interactive config management (dialog or whiptail). Provide migration scripts for config upgrades. Secure sensitive settings (chmod 600).",
+        "testStrategy": "Test config parsing, validation, and migration. Validate interactive config editing and environment switching. Ensure proper integration with main.sh and other modules.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "YAML Configuration System Implementation",
+            "description": "Core YAML configuration system implemented in scripts/core/config.sh with schema definitions",
+            "status": "completed",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Basic YAML Parsing and yq Integration",
+            "description": "Implemented grep-based parsing approach and yq integration for advanced YAML/JSON conversion",
+            "status": "completed",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Module-specific Configuration Support",
+            "description": "Added support for module-specific configurations with validation using yamllint",
+            "status": "completed",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Export Functions for JSON/YAML Conversion",
+            "description": "Implemented functions to convert between JSON and YAML formats",
+            "status": "completed",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Fix Integration with Main Application",
+            "description": "Update main.sh to source config.sh and use get_global_config/get_module_config functions instead of hardcoded values",
+            "status": "done",
+            "dependencies": [],
+            "details": "<info added on 2025-07-22T04:40:54.889Z>\nSuccessfully completed integration with main application:\n\n1. Updated main.sh to source config.sh at the beginning\n2. Added init_config() call to initialize the configuration system\n3. Replaced hardcoded UPDATE_INTERVAL_DAYS and CLEANUP_INTERVAL_DAYS with calls to get_global_config()\n4. Fixed module source paths to point to correct locations (scripts/modules/core/)\n5. Enhanced get_global_config() and get_module_config() functions to use yq for proper YAML parsing of nested keys\n6. Added comprehensive argument handling with --help, --version, --config, --status, --force, and --dry-run options\n7. Added support for --force to bypass interval checks\n8. Added support for --dry-run to show what would be executed without actually running operations\n\nThe script now properly integrates with the YAML configuration system and provides a much better user experience with proper command-line argument handling.\n</info added on 2025-07-22T04:40:54.889Z>",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Implement Interactive Config Management",
+            "description": "Create dialog/whiptail based interactive config editing and setup wizard for new users",
+            "status": "review",
+            "dependencies": [],
+            "details": "<info added on 2025-07-22T05:38:30.733Z>\n**IMPLEMENTATION COMPLETED WITH KNOWN ISSUES - NEEDS REVISITING**\n\nSuccessfully implemented interactive configuration management with significant UX improvements, but several critical issues remain:\n\n**COMPLETED FEATURES:**\n1. **Comprehensive Interactive Configuration System**:\n   - Added interactive_config() function with dialog/whiptail detection\n   - Created interactive_global_config() with menu-driven navigation\n   - Implemented interactive_module_config() for module-specific settings\n   - Built interactive_setup_wizard() for new user onboarding\n\n2. **Enhanced Setup Wizard**:\n   - Step-by-step guided configuration process\n   - Clear explanations of what each setting does\n   - Optional module-specific configuration (clarified as granular control)\n   - Optional logging configuration\n   - Final confirmation before saving\n   - Proper cancellation handling\n\n3. **Command-Line Integration**:\n   - Added --setup, --config-edit, and --module-config options to main.sh\n   - Integrated with existing help system\n   - Proper exit codes and error handling\n\n**CRITICAL ISSUES THAT NEED REVISITING:**\n\n1. **Dialog Sizing Problems**:\n   - Still getting \"sub-window\" errors despite multiple sizing adjustments\n   - \"Expected 2 arguments, but...\" errors in dialog calls\n   - Module selection interface has formatting issues\n   - Black areas in module selection menus\n\n2. **Configuration Persistence Issues**:\n   - Interval changes not being saved properly\n   - Setup wizard shows original values instead of newly saved intervals\n   - Configuration file updates not persisting between sessions\n\n3. **Navigation Missing**:\n   - No back/previous functionality in any of the interactive menus\n   - Users can't navigate back to previous screens\n   - No clear way to cancel and return to previous menu\n\n4. **Technical Debt**:\n   - Dialog sizing needs systematic approach rather than trial-and-error\n   - Configuration file handling needs better error checking\n   - Need to implement proper state management for interactive sessions\n\n**RECOMMENDATIONS FOR REVISITING:**\n- Implement proper terminal size detection and dynamic dialog sizing\n- Add comprehensive error handling for configuration file operations\n- Implement proper navigation stack for interactive menus\n- Add configuration validation and persistence testing\n- Consider alternative UI approaches if dialog continues to be problematic\n\n**STATUS:** Task 2.6 is functionally complete but has critical UX issues that prevent it from being production-ready. The core functionality works but the user experience is poor due to dialog sizing and navigation problems.\n</info added on 2025-07-22T05:38:30.733Z>",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "Implement Secure Settings Handling",
+            "description": "Add chmod 600 for sensitive config files and implement encryption for sensitive settings",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 8,
+            "title": "Create Migration Scripts",
+            "description": "Develop scripts for config upgrades between versions with version tracking in config files",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 9,
+            "title": "Add Environment-specific Configs",
+            "description": "Implement support for different environments (dev, staging, prod) with environment variable overrides and config inheritance",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 10,
+            "title": "Enhance YAML Parsing",
+            "description": "Replace simple grep parsing with full yq implementation for all operations",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 11,
+            "title": "Add Config Validation on Startup",
+            "description": "Implement validation checks when application starts to ensure config integrity",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 12,
+            "title": "Implement Config Backup System",
+            "description": "Add automatic config backup before making changes to prevent data loss",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          }
+        ]
       },
       {
         "id": 3,
-        "title": "Develop Dynamic Module Loader System",
-        "description": "Create a dynamic module loader (module_loader.sh) to auto-discover and load modules from core and user directories at runtime.",
-        "details": "Implement module discovery using Bash globbing and source. Maintain an in-memory registry of loaded modules and metadata. Ensure backward compatibility with existing static modules. Support hot-reloading for development. Document module interface requirements.",
-        "testStrategy": "Test module discovery, loading, and registry population. Validate backward compatibility with legacy modules.",
-        "priority": "high",
-        "dependencies": [
-          2
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 4,
         "title": "Implement State Management and Persistence",
         "description": "Develop state management (state.sh) to track last run timestamps, execution metrics, and support state validation and recovery.",
-        "details": "Store state in ~/.upkep/state.json using jq for JSON manipulation (latest stable version). Implement atomic writes and backup/restore for state file. Add validation and recovery logic for corrupted state. Track per-module and per-operation metrics.",
-        "testStrategy": "Test state read/write, validation, and recovery from corrupted files. Simulate concurrent access and verify atomicity.",
-        "priority": "high",
+        "status": "in-progress",
         "dependencies": [
           1
         ],
-        "status": "pending",
-        "subtasks": []
+        "priority": "high",
+        "details": "Store state in ~/.upkep/state.json using jq for JSON manipulation (latest stable version). Implement atomic writes and backup/restore for state file. Add validation and recovery logic for corrupted state. Track per-module and per-operation metrics.",
+        "testStrategy": "Test state read/write, validation, and recovery from corrupted files. Simulate concurrent access and verify atomicity.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Advanced state management implementation",
+            "description": "Implement advanced state management in scripts/core/state.sh with JSON storage, atomic writes, backup/restore, validation, and metrics tracking.",
+            "status": "done",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Fix integration with main application",
+            "description": "Update main.sh to source scripts/core/state.sh instead of scripts/modules/core/state.sh and replace simple state management calls with advanced ones.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Create compatibility layer",
+            "description": "Implement compatibility layer in advanced state.sh to ensure smooth transition from simple to advanced state management.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Update module state tracking",
+            "description": "Modify modules to use update_module_state function instead of direct variable updates for state tracking.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Test with existing modules",
+            "description": "Verify that all existing modules work correctly with the advanced state management system.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Remove simple state.sh",
+            "description": "Once migration is complete and tested, remove the simple state.sh implementation.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "Optional: Add concurrent access protection",
+            "description": "Implement file locking to prevent issues with concurrent access to the state file.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 8,
+            "title": "Optional: Implement state compression",
+            "description": "Add compression capabilities for large state files to improve performance.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 9,
+            "title": "Optional: Add state migration between versions",
+            "description": "Implement functionality to migrate state data between different versions of the application.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 10,
+            "title": "Optional: Enhance state validation",
+            "description": "Add schema checking to improve state validation capabilities.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Implement Comprehensive Logging System",
+        "description": "Develop structured logging to ~/.upkep/logs/upkep.log and per-module logs, with log rotation and multiple log levels.",
+        "status": "in-progress",
+        "dependencies": [
+          1
+        ],
+        "priority": "medium",
+        "details": "Enhance the existing basic logging system with advanced features including structured logging levels, log rotation, secure permissions, and audit capabilities. Build upon the current log_message function in scripts/core/utils.sh to create a comprehensive logging framework that supports all required functionality.",
+        "testStrategy": "Test log creation, rotation, and level filtering. Validate log content and permissions. Verify audit logging functionality and log file security.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Basic Logging Implementation",
+            "description": "Implement basic logging function in scripts/core/utils.sh and create log directory structure.",
+            "status": "done",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Module Logging Integration",
+            "description": "Integrate logging functions with module templates and ensure per-module log files exist.",
+            "status": "done",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Implement Log Rotation System",
+            "description": "Create logrotate configuration or custom rotation logic to handle log file rotation based on size/time. Implement log compression and archival of old logs.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Enhance Structured Logging Levels",
+            "description": "Extend log_message function to support configurable log levels (DEBUG, INFO, WARN, ERROR, AUDIT) and implement log level filtering based on configuration.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Implement Secure Log Permissions",
+            "description": "Ensure all log files are created with proper permissions (chmod 600) and are not world-readable. Implement secure log file creation and directory permissions.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Develop Audit Logging Functionality",
+            "description": "Implement AUDIT level logging for compliance purposes with secure audit trail and protection against tampering.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "Advanced Logging Features",
+            "description": "Add structured logging with JSON format option, log correlation IDs for tracking operations, and centralized log aggregation.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 8,
+            "title": "Log Analysis and Monitoring",
+            "description": "Implement log file size monitoring, alerts, and basic log analysis capabilities.",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          }
+        ]
       },
       {
         "id": 5,
-        "title": "Build Package Manager Update Modules (APT, Snap, Flatpak)",
-        "description": "Implement core modules for APT, Snap, and Flatpak updates with error handling and reporting.",
-        "details": "Create apt_update.sh, snap_update.sh, and flatpak_update.sh in modules/core/. Use robust error handling (set -euo pipefail). Capture and report errors with clear messages. Support dry-run mode. Ensure modules implement run_<module>() interface.",
-        "testStrategy": "Test each module for successful updates, error scenarios, and dry-run output. Mock package managers for CI testing.",
-        "priority": "high",
+        "title": "Implement Core CLI Interface with Subcommands",
+        "description": "Develop the main CLI entry point (main.sh) supporting subcommands (run, status, config) and options, integrating with the existing CLI framework in scripts/core/cli.sh.",
+        "status": "in-progress",
         "dependencies": [
-          3,
-          4
+          1
         ],
-        "status": "pending",
-        "subtasks": []
+        "priority": "high",
+        "details": "Use Bash 5.1+ for scripting. Implement CLI parsing with getopts or a modern Bash CLI helper (e.g., argbash or shflags). Ensure support for interactive and non-interactive modes. Provide comprehensive help output and error handling for unknown commands. Integrate the existing CLI framework from scripts/core/cli.sh with main.sh to support all implemented subcommands: run, status, config, list-modules, create-module, validate-module.",
+        "testStrategy": "Unit test CLI parsing for all subcommands and options. Validate help output and error handling for invalid input. Ensure backward compatibility with existing functionality.",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Integrate CLI Framework with main.sh",
+            "description": "Update main.sh to use the existing CLI framework from scripts/core/cli.sh",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement Argument Parsing in main.sh",
+            "description": "Add getopts or modern CLI helper integration to main.sh for parsing command-line arguments",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Add Subcommand Routing and Execution",
+            "description": "Implement routing logic in main.sh to handle and execute different subcommands",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Implement Core Subcommand Handlers",
+            "description": "Create handlers for run, status, and config subcommands that call existing functionality",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Implement Interactive Mode",
+            "description": "Add interactive mode with user prompts, guided operation selection, and confirmation dialogs",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Add Global CLI Options",
+            "description": "Implement --help, --version, --verbose, and --dry-run flags across all subcommands",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "Enhance User Feedback",
+            "description": "Add progress indicators and improved user feedback for all operations",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 8,
+            "title": "Test Backward Compatibility",
+            "description": "Ensure all existing functionality continues to work with the new CLI implementation",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          },
+          {
+            "id": 9,
+            "title": "Update Documentation",
+            "description": "Update help system and documentation to reflect the new CLI structure and options",
+            "status": "pending",
+            "dependencies": [],
+            "details": "",
+            "testStrategy": ""
+          }
+        ]
       },
       {
         "id": 6,
-        "title": "Develop System Cleanup Modules",
-        "description": "Implement cleanup modules for apt autoremove, apt clean, and extensible custom cleanup scripts.",
-        "details": "Create cleanup.sh in modules/core/. Support additional cleanup operations via user modules. Ensure interface compliance. Allow users to add custom scripts in modules/user/.",
-        "testStrategy": "Test cleanup operations, including custom user scripts. Validate error handling and reporting.",
-        "priority": "high",
-        "dependencies": [
-          3,
-          4
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 7,
-        "title": "Implement Interval and Execution Policy Management",
-        "description": "Add interval-based execution logic to skip operations within configured intervals and display skip messages.",
-        "details": "Store interval settings in YAML config (see Task 10). Use Bash date arithmetic for interval checks. Display clear skip messages with time remaining. Support per-module and per-category intervals. Allow dynamic adjustment based on system state.",
-        "testStrategy": "Test interval enforcement, skip logic, and dynamic adjustment. Validate correct messaging for skipped operations.",
-        "priority": "medium",
-        "dependencies": [
-          4
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 8,
         "title": "Design Visual Feedback and Styled CLI Output",
         "description": "Provide rich CLI output with progress indicators, styled summaries, ASCII art branding, and color-coded statuses.",
         "details": "Use tput and ANSI escape codes for color and formatting. Implement progress spinners and summary boxes. Add ASCII art branding via ascii_art.sh. Support output formats: table (column), JSON, YAML (yq). Ensure accessibility (colorblind-friendly palettes).",
         "testStrategy": "Visual inspection and automated snapshot tests for CLI output. Test accessibility with different terminal themes.",
         "priority": "medium",
         "dependencies": [
-          2
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Develop Dynamic Module Loader System",
+        "description": "Create a dynamic module loader (module_loader.sh) to auto-discover and load modules from core and user directories at runtime.",
+        "details": "Implement module discovery using Bash globbing and source. Maintain an in-memory registry of loaded modules and metadata. Ensure backward compatibility with existing static modules. Support hot-reloading for development. Document module interface requirements.",
+        "testStrategy": "Test module discovery, loading, and registry population. Validate backward compatibility with legacy modules.",
+        "priority": "high",
+        "dependencies": [
+          5
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Module Discovery Logic",
+            "description": "Develop logic to automatically discover available modules in a specified directory or configuration at runtime.",
+            "dependencies": [],
+            "details": "Use mechanisms such as FileSystemWatcher (for .NET) or directory scanning (for Python/Node.js) to detect new or existing modules. Ensure the logic can handle both initial discovery and ongoing monitoring for new modules.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Load Modules Dynamically at Runtime",
+            "description": "Enable the system to load discovered modules into memory as needed during application execution.",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement dynamic loading using platform-specific APIs (e.g., Assembly.Load in .NET, importlib in Python, require in Node.js). Ensure proper error handling for failed loads and support for unloading if necessary.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Maintain In-Memory Registry",
+            "description": "Create and manage an in-memory registry to track loaded modules and their metadata.",
+            "dependencies": [
+              5
+            ],
+            "details": "Design a registry structure that allows efficient lookup, addition, and removal of modules. Store relevant metadata such as module name, version, and status.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Ensure Backward Compatibility",
+            "description": "Implement mechanisms to ensure new module loader changes do not break compatibility with existing modules.",
+            "dependencies": [
+              7
+            ],
+            "details": "Define and enforce a stable module interface or contract. Provide shims or adapters if necessary to support legacy modules.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Add Hot-Reloading Support",
+            "description": "Enable modules to be reloaded at runtime without restarting the application.",
+            "dependencies": [
+              7
+            ],
+            "details": "Monitor the module directory for changes and reload affected modules in place. Ensure state consistency and handle potential errors during reloads.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Document Module Interface",
+            "description": "Create comprehensive documentation for the expected module interface and integration guidelines.",
+            "dependencies": [
+              3
+            ],
+            "details": "Describe required exports, initialization patterns, lifecycle hooks, and compatibility requirements. Include examples for both core and user modules.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "Test Module Loader with Core and User Modules",
+            "description": "Develop and execute tests to validate the module loader with both built-in and third-party modules.",
+            "dependencies": [
+              5,
+              7,
+              3,
+              8,
+              9
+            ],
+            "details": "Write unit and integration tests covering discovery, loading, registry management, backward compatibility, and hot-reloading scenarios. Ensure robust error handling and edge case coverage.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Build Package Manager Update Modules (APT, Snap, Flatpak)",
+        "description": "Implement core modules for APT, Snap, and Flatpak updates with error handling and reporting.",
+        "details": "Create apt_update.sh, snap_update.sh, and flatpak_update.sh in modules/core/. Use robust error handling (set -euo pipefail). Capture and report errors with clear messages. Support dry-run mode. Ensure modules implement run_<module>() interface.",
+        "testStrategy": "Test each module for successful updates, error scenarios, and dry-run output. Mock package managers for CI testing.",
+        "priority": "high",
+        "dependencies": [
+          7,
+          3
         ],
         "status": "pending",
         "subtasks": []
       },
       {
         "id": 9,
-        "title": "Implement Comprehensive Logging System",
-        "description": "Develop structured logging to ~/.upkep/logs/upkep.log and per-module logs, with log rotation and multiple log levels.",
-        "details": "Use Bash functions for logging with levels (INFO, WARN, ERROR, AUDIT). Implement log rotation using logrotate or custom Bash logic. Include timestamps and operation results. Ensure logs are not world-readable. Support audit logging for compliance.",
-        "testStrategy": "Test log creation, rotation, and level filtering. Validate log content and permissions.",
-        "priority": "medium",
+        "title": "Develop System Cleanup Modules",
+        "description": "Implement cleanup modules for apt autoremove, apt clean, and extensible custom cleanup scripts.",
+        "details": "Create cleanup.sh in modules/core/. Support additional cleanup operations via user modules. Ensure interface compliance. Allow users to add custom scripts in modules/user/.",
+        "testStrategy": "Test cleanup operations, including custom user scripts. Validate error handling and reporting.",
+        "priority": "high",
         "dependencies": [
-          1
+          7,
+          3
         ],
         "status": "pending",
         "subtasks": []
       },
       {
         "id": 10,
-        "title": "Develop YAML-Based Configuration Management",
-        "description": "Implement YAML configuration files for global and module-specific settings, with validation and migration tools.",
-        "details": "Use yq (latest version) for YAML parsing. Store configs in ~/.upkep/config.yaml. Support environment-specific configs. Implement interactive config management (dialog or whiptail). Provide migration scripts for config upgrades. Secure sensitive settings (chmod 600).",
-        "testStrategy": "Test config parsing, validation, and migration. Validate interactive config editing and environment switching.",
+        "title": "Implement Interval and Execution Policy Management",
+        "description": "Add interval-based execution logic to skip operations within configured intervals and display skip messages.",
+        "details": "Store interval settings in YAML config (see Task 10). Use Bash date arithmetic for interval checks. Display clear skip messages with time remaining. Support per-module and per-category intervals. Allow dynamic adjustment based on system state.",
+        "testStrategy": "Test interval enforcement, skip logic, and dynamic adjustment. Validate correct messaging for skipped operations.",
         "priority": "medium",
         "dependencies": [
-          1
+          3
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement interval storage and retrieval from YAML",
+            "description": "Develop functionality to store interval data in a YAML file and retrieve it within the script, ensuring compatibility with Bash parsing tools.",
+            "dependencies": [],
+            "details": "Use tools like yq or custom Bash functions to read and write interval values for modules/categories from a YAML configuration file.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Add Bash date arithmetic for interval checks",
+            "description": "Integrate Bash date arithmetic to calculate and compare time intervals for each module/category based on the retrieved YAML data.",
+            "dependencies": [
+              1
+            ],
+            "details": "Utilize Bash date commands (e.g., date, expr) to determine if the required interval has elapsed since the last execution for each module/category.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Display skip messages with time remaining",
+            "description": "Implement logic to display informative skip messages, including the time remaining until the next allowed execution for each module/category.",
+            "dependencies": [
+              5
+            ],
+            "details": "Calculate the remaining time using Bash arithmetic and output user-friendly messages when a module/category is skipped due to interval constraints.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Support per-module/category intervals",
+            "description": "Extend the interval logic to handle distinct intervals for each module or category, as defined in the YAML configuration.",
+            "dependencies": [
+              1,
+              5,
+              7
+            ],
+            "details": "Ensure the script can read and apply different interval values for each module/category, allowing for granular control.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Enable dynamic adjustment based on system state",
+            "description": "Add functionality to dynamically adjust interval values or skip logic based on current system state or runtime conditions.",
+            "dependencies": [
+              1,
+              5,
+              7,
+              3
+            ],
+            "details": "Incorporate checks for system metrics or external signals to modify interval enforcement or execution behavior in real time.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
       },
       {
         "id": 11,
@@ -139,11 +633,95 @@
         "testStrategy": "Test user module loading, validation, and sharing. Validate security scanning and guided creation flow.",
         "priority": "medium",
         "dependencies": [
-          3,
-          10
+          7,
+          2
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Document Module Interface",
+            "description": "Define and document the expected structure, required methods, and properties for modules to ensure consistency and interoperability.",
+            "dependencies": [],
+            "details": "Specify interface requirements such as initializer/finalizer functions, public/private members, and usage guidelines.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement Module Validation",
+            "description": "Develop logic to validate that modules conform to the documented interface and structural requirements.",
+            "dependencies": [
+              1
+            ],
+            "details": "Create validation routines that check for required functions, properties, and correct initialization/finalization patterns.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Add Guided Module Creation Tool",
+            "description": "Build a user-facing tool that assists users in creating new modules following the documented interface and validation rules.",
+            "dependencies": [
+              1,
+              5
+            ],
+            "details": "Provide step-by-step guidance, templates, and real-time validation feedback during module creation.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Support Module Sharing via GitHub Gist",
+            "description": "Enable users to share modules by exporting and importing them through GitHub Gist integration.",
+            "dependencies": [
+              1,
+              5,
+              7
+            ],
+            "details": "Implement authentication, gist creation, and retrieval workflows for seamless sharing and loading of modules.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Integrate Security Scanning",
+            "description": "Incorporate automated security scanning to detect vulnerabilities or malicious code in user modules before loading or sharing.",
+            "dependencies": [
+              5,
+              3
+            ],
+            "details": "Leverage static analysis tools or third-party APIs to scan module code and report issues to users.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Test User Module Loading",
+            "description": "Develop and execute tests to ensure modules can be dynamically loaded, validated, and initialized correctly in the application.",
+            "dependencies": [
+              5,
+              8
+            ],
+            "details": "Test various scenarios including valid, invalid, and malicious modules to verify robustness and security.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "Validate Sharing and Creation Flows",
+            "description": "Perform end-to-end testing of module creation and sharing workflows to ensure usability, correctness, and security.",
+            "dependencies": [
+              7,
+              3,
+              8,
+              9
+            ],
+            "details": "Simulate user journeys from module creation to sharing and loading, verifying all validation and security checks are enforced.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
       },
       {
         "id": 12,
@@ -153,55 +731,218 @@
         "testStrategy": "Simulate failures and verify error handling, retries, and rollback. Check diagnostic output and state recovery.",
         "priority": "high",
         "dependencies": [
-          5,
-          6,
-          4
+          8,
+          9,
+          3
         ],
         "status": "pending",
-        "subtasks": []
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Standardize Error Reporting",
+            "description": "Define and implement a consistent format for error messages and logs across the system.",
+            "dependencies": [],
+            "details": "Establish error codes, message structures, and logging conventions to ensure all errors are reported in a uniform and descriptive manner.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Implement Retry Logic with Backoff",
+            "description": "Develop mechanisms to automatically retry failed operations using exponential backoff strategies.",
+            "dependencies": [
+              1
+            ],
+            "details": "Integrate retry logic into critical workflows, ensuring retries are logged and respect system limits to avoid cascading failures.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Add Rollback Mechanisms",
+            "description": "Introduce rollback procedures to revert system state in case of unrecoverable errors.",
+            "dependencies": [
+              5
+            ],
+            "details": "Design and implement transactional or compensating actions to restore previous state when operations fail after partial completion.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Provide Diagnostics and Error Classification",
+            "description": "Enhance error handling with detailed diagnostics and categorize errors for easier troubleshooting.",
+            "dependencies": [
+              1
+            ],
+            "details": "Capture stack traces, context, and metadata for each error; classify errors by type, severity, and recoverability.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Integrate with State Recovery",
+            "description": "Ensure error handling mechanisms interact correctly with state management and recovery processes.",
+            "dependencies": [
+              7,
+              3
+            ],
+            "details": "Coordinate rollback and retry logic with state recovery modules to maintain data consistency and system reliability.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Test Error Scenarios",
+            "description": "Develop and execute tests to simulate various error conditions and validate error handling behavior.",
+            "dependencies": [
+              8
+            ],
+            "details": "Create unit, integration, and end-to-end tests covering common and edge-case failures, including retries and rollbacks.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "Validate Rollback",
+            "description": "Verify that rollback mechanisms correctly restore system state after failures.",
+            "dependencies": [],
+            "details": "Test rollback logic under different failure scenarios to ensure no residual side effects or data inconsistencies remain.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 8,
+            "title": "Document Error Handling Patterns",
+            "description": "Create comprehensive documentation outlining error handling strategies, patterns, and usage guidelines.",
+            "dependencies": [],
+            "details": "Detail standardized error reporting, retry and rollback logic, diagnostics, and integration points for future maintainability.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
       },
       {
         "id": 13,
-        "title": "Develop Test Suite and Continuous Integration",
-        "description": "Create a comprehensive test suite (unit, integration, visual) and set up CI for automated testing and code quality checks.",
-        "details": "Use Bats (Bash Automated Testing System, latest version) for unit/integration tests. Add visual output checks (compare snapshots). Integrate shellcheck and shfmt for linting/formatting. Set up GitHub Actions or GitLab CI for automated runs. Mock system commands for safe testing.",
-        "testStrategy": "Run all tests in CI. Validate coverage, linting, and visual output. Ensure tests pass on multiple Linux distros.",
-        "priority": "high",
-        "dependencies": [
-          5,
-          6,
-          8,
-          12
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 14,
-        "title": "Write Documentation and Usage Examples",
-        "description": "Produce comprehensive documentation, including API docs, module development guides, and usage examples.",
-        "details": "Use Markdown for docs. Cover CLI usage, configuration, module creation, troubleshooting, and contribution guidelines. Provide example modules and configurations. Generate man pages with help2man. Ensure docs are accessible and up-to-date.",
-        "testStrategy": "Manual review and automated link checks. Validate examples by running them as tests.",
-        "priority": "medium",
-        "dependencies": [
-          2,
-          11
-        ],
-        "status": "pending",
-        "subtasks": []
-      },
-      {
-        "id": 15,
         "title": "Optimize Performance and Resource Management",
         "description": "Implement performance optimizations, parallel execution of independent modules, and resource monitoring/throttling.",
         "details": "Use Bash job control (&, wait) for parallel execution where safe. Monitor resource usage with /proc and ps. Throttle operations if system load is high. Cache module metadata for faster loading. Profile execution time and memory usage. Document performance metrics.",
         "testStrategy": "Benchmark full runs, measure resource usage, and validate parallel execution. Test throttling under load.",
         "priority": "medium",
         "dependencies": [
-          3,
-          5,
+          7,
+          8,
+          9,
+          10
+        ],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Implement Parallel Execution",
+            "description": "Design and develop the system to support concurrent execution of tasks or processes, ensuring thread/process safety and minimizing contention.",
+            "dependencies": [],
+            "details": "Select appropriate parallelization strategies and frameworks (e.g., thread pools, parallel loops). Ensure tasks are independent to avoid race conditions and shared state issues. Optimize the granularity of parallelism to balance overhead and performance.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 2,
+            "title": "Monitor Resource Usage",
+            "description": "Integrate monitoring tools to track CPU, memory, and I/O usage during parallel execution.",
+            "dependencies": [
+              1
+            ],
+            "details": "Implement resource monitoring at both system and application levels. Collect metrics such as CPU utilization, memory consumption, and disk/network I/O. Ensure monitoring does not introduce significant overhead.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 3,
+            "title": "Add Throttling Logic",
+            "description": "Develop mechanisms to limit the number of concurrent tasks based on available resources and system thresholds.",
+            "dependencies": [
+              5
+            ],
+            "details": "Use resource usage data to dynamically adjust the degree of parallelism. Implement logic to queue or delay tasks when resource limits are approached, preventing system overload.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 4,
+            "title": "Cache Module Metadata",
+            "description": "Implement a caching layer for frequently accessed module metadata to reduce redundant computation and improve performance.",
+            "dependencies": [
+              1
+            ],
+            "details": "Design cache invalidation and consistency strategies. Choose appropriate cache storage (in-memory, distributed, etc.) and ensure thread-safe access in parallel environments.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 5,
+            "title": "Profile Execution Time and Memory",
+            "description": "Instrument the system to collect detailed timing and memory usage data for each parallel task.",
+            "dependencies": [
+              1
+            ],
+            "details": "Use profiling tools or custom instrumentation to measure execution time and memory footprint. Aggregate and store profiling data for analysis.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 6,
+            "title": "Document Performance Metrics",
+            "description": "Create comprehensive documentation of all collected performance metrics, including resource usage, execution times, and cache hit rates.",
+            "dependencies": [
+              5,
+              8
+            ],
+            "details": "Summarize key findings, provide visualizations (charts, tables), and explain the impact of parallelism and caching on performance. Ensure documentation is accessible and up-to-date.",
+            "status": "pending",
+            "testStrategy": ""
+          },
+          {
+            "id": 7,
+            "title": "Test Under Load",
+            "description": "Conduct load testing to evaluate system behavior and stability under high concurrency and resource utilization.",
+            "dependencies": [
+              7,
+              3,
+              8
+            ],
+            "details": "Simulate realistic and peak workloads. Monitor for bottlenecks, failures, and performance degradation. Use results to refine throttling, caching, and parallel execution strategies.",
+            "status": "pending",
+            "testStrategy": ""
+          }
+        ]
+      },
+      {
+        "id": 14,
+        "title": "Develop Test Suite and Continuous Integration",
+        "description": "Create a comprehensive test suite (unit, integration, visual) and set up CI for automated testing and code quality checks.",
+        "details": "Use Bats (Bash Automated Testing System, latest version) for unit/integration tests. Add visual output checks (compare snapshots). Integrate shellcheck and shfmt for linting/formatting. Set up GitHub Actions or GitLab CI for automated runs. Mock system commands for safe testing.",
+        "testStrategy": "Run all tests in CI. Validate coverage, linting, and visual output. Ensure tests pass on multiple Linux distros.",
+        "priority": "high",
+        "dependencies": [
+          8,
+          9,
           6,
-          7
+          12
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 15,
+        "title": "Write Documentation and Usage Examples",
+        "description": "Produce comprehensive documentation, including API docs, module development guides, and usage examples.",
+        "details": "Use Markdown for docs. Cover CLI usage, configuration, module creation, troubleshooting, and contribution guidelines. Provide example modules and configurations. Generate man pages with help2man. Ensure docs are accessible and up-to-date.",
+        "testStrategy": "Manual review and automated link checks. Validate examples by running them as tests.",
+        "priority": "medium",
+        "dependencies": [
+          5,
+          11
         ],
         "status": "pending",
         "subtasks": []
@@ -209,7 +950,7 @@
     ],
     "metadata": {
       "created": "2025-07-21T23:33:05.847Z",
-      "updated": "2025-07-21T23:33:05.847Z",
+      "updated": "2025-07-22T05:38:48.067Z",
       "description": "Tasks for master context"
     }
   }

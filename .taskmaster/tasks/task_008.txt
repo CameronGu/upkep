@@ -1,0 +1,11 @@
+# Task ID: 8
+# Title: Build Package Manager Update Modules (APT, Snap, Flatpak)
+# Status: pending
+# Dependencies: 7, 3
+# Priority: high
+# Description: Implement core modules for APT, Snap, and Flatpak updates with error handling and reporting.
+# Details:
+Create apt_update.sh, snap_update.sh, and flatpak_update.sh in modules/core/. Use robust error handling (set -euo pipefail). Capture and report errors with clear messages. Support dry-run mode. Ensure modules implement run_<module>() interface.
+
+# Test Strategy:
+Test each module for successful updates, error scenarios, and dry-run output. Mock package managers for CI testing.

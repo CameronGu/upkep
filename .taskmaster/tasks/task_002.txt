@@ -1,0 +1,11 @@
+# Task ID: 2
+# Title: Develop YAML-Based Configuration Management
+# Status: pending
+# Dependencies: 1
+# Priority: medium
+# Description: Implement YAML configuration files for global and module-specific settings, with validation and migration tools.
+# Details:
+Use yq (latest version) for YAML parsing. Store configs in ~/.upkep/config.yaml. Support environment-specific configs. Implement interactive config management (dialog or whiptail). Provide migration scripts for config upgrades. Secure sensitive settings (chmod 600).
+
+# Test Strategy:
+Test config parsing, validation, and migration. Validate interactive config editing and environment switching.

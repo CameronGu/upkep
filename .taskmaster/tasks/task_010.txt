@@ -1,0 +1,43 @@
+# Task ID: 10
+# Title: Implement Interval and Execution Policy Management
+# Status: pending
+# Dependencies: 3
+# Priority: medium
+# Description: Add interval-based execution logic to skip operations within configured intervals and display skip messages.
+# Details:
+Store interval settings in YAML config (see Task 10). Use Bash date arithmetic for interval checks. Display clear skip messages with time remaining. Support per-module and per-category intervals. Allow dynamic adjustment based on system state.
+
+# Test Strategy:
+Test interval enforcement, skip logic, and dynamic adjustment. Validate correct messaging for skipped operations.
+
+# Subtasks:
+## 1. Implement interval storage and retrieval from YAML [pending]
+### Dependencies: None
+### Description: Develop functionality to store interval data in a YAML file and retrieve it within the script, ensuring compatibility with Bash parsing tools.
+### Details:
+Use tools like yq or custom Bash functions to read and write interval values for modules/categories from a YAML configuration file.
+
+## 2. Add Bash date arithmetic for interval checks [pending]
+### Dependencies: 10.1
+### Description: Integrate Bash date arithmetic to calculate and compare time intervals for each module/category based on the retrieved YAML data.
+### Details:
+Utilize Bash date commands (e.g., date, expr) to determine if the required interval has elapsed since the last execution for each module/category.
+
+## 3. Display skip messages with time remaining [pending]
+### Dependencies: 10.5
+### Description: Implement logic to display informative skip messages, including the time remaining until the next allowed execution for each module/category.
+### Details:
+Calculate the remaining time using Bash arithmetic and output user-friendly messages when a module/category is skipped due to interval constraints.
+
+## 4. Support per-module/category intervals [pending]
+### Dependencies: 10.1, 10.5, 10.7
+### Description: Extend the interval logic to handle distinct intervals for each module or category, as defined in the YAML configuration.
+### Details:
+Ensure the script can read and apply different interval values for each module/category, allowing for granular control.
+
+## 5. Enable dynamic adjustment based on system state [pending]
+### Dependencies: 10.1, 10.5, 10.7, 10.3
+### Description: Add functionality to dynamically adjust interval values or skip logic based on current system state or runtime conditions.
+### Details:
+Incorporate checks for system metrics or external signals to modify interval enforcement or execution behavior in real time.
+

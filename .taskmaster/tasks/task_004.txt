@@ -1,0 +1,11 @@
+# Task ID: 4
+# Title: Implement Comprehensive Logging System
+# Status: pending
+# Dependencies: 1
+# Priority: medium
+# Description: Develop structured logging to ~/.upkep/logs/upkep.log and per-module logs, with log rotation and multiple log levels.
+# Details:
+Use Bash functions for logging with levels (INFO, WARN, ERROR, AUDIT). Implement log rotation using logrotate or custom Bash logic. Include timestamps and operation results. Ensure logs are not world-readable. Support audit logging for compliance.
+
+# Test Strategy:
+Test log creation, rotation, and level filtering. Validate log content and permissions.

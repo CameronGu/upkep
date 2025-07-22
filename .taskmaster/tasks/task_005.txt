@@ -1,0 +1,11 @@
+# Task ID: 5
+# Title: Implement Core CLI Interface with Subcommands
+# Status: pending
+# Dependencies: 1
+# Priority: high
+# Description: Develop the main CLI entry point (main.sh) supporting subcommands (run, status, config) and options.
+# Details:
+Use Bash 5.1+ for scripting. Implement CLI parsing with getopts or a modern Bash CLI helper (e.g., argbash or shflags). Ensure support for interactive and non-interactive modes. Provide comprehensive help output and error handling for unknown commands.
+
+# Test Strategy:
+Unit test CLI parsing for all subcommands and options. Validate help output and error handling for invalid input.

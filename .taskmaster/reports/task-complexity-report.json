@@ -1,0 +1,133 @@
+{
+	"meta": {
+		"generatedAt": "2025-07-22T00:25:01.129Z",
+		"tasksAnalyzed": 15,
+		"totalTasks": 15,
+		"analysisCount": 15,
+		"thresholdScore": 5,
+		"projectName": "Taskmaster",
+		"usedResearch": true
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 1,
+			"taskTitle": "Initialize Project Repository and Directory Structure",
+			"complexityScore": 3,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the repository initialization into subtasks such as: (1) Create Git repository, (2) Set up prescribed directory structure, (3) Add .gitignore with required patterns, (4) Initialize Makefile with build/test/clean commands, (5) Integrate shellcheck for linting.",
+			"reasoning": "This task is foundational but straightforward, involving standard setup steps with minimal branching or logic. Complexity is low due to well-defined procedures and tools."
+		},
+		{
+			"taskId": 2,
+			"taskTitle": "Implement Core CLI Interface with Subcommands",
+			"complexityScore": 5,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Expand into subtasks: (1) Create main.sh entry point, (2) Implement CLI parsing for subcommands, (3) Add support for options and flags, (4) Implement interactive and non-interactive modes, (5) Provide help output and usage documentation, (6) Add error handling for unknown commands.",
+			"reasoning": "Moderate complexity due to CLI parsing, multiple subcommands, and robust error handling. Requires careful structuring but uses established Bash patterns."
+		},
+		{
+			"taskId": 3,
+			"taskTitle": "Develop Dynamic Module Loader System",
+			"complexityScore": 7,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Decompose into: (1) Implement module discovery logic, (2) Load modules dynamically at runtime, (3) Maintain in-memory registry, (4) Ensure backward compatibility, (5) Add hot-reloading support, (6) Document module interface, (7) Test module loader with core and user modules.",
+			"reasoning": "High complexity due to dynamic loading, runtime discovery, registry management, and backward compatibility. Multiple moving parts and error scenarios."
+		},
+		{
+			"taskId": 4,
+			"taskTitle": "Implement State Management and Persistence",
+			"complexityScore": 6,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Expand into: (1) Design state file schema, (2) Implement read/write logic with jq, (3) Add atomic write and backup/restore, (4) Implement validation and recovery, (5) Track per-module/operation metrics, (6) Test concurrency and atomicity.",
+			"reasoning": "Moderate to high complexity due to atomic file operations, error recovery, and concurrency concerns. Requires careful handling of state consistency."
+		},
+		{
+			"taskId": 5,
+			"taskTitle": "Build Package Manager Update Modules (APT, Snap, Flatpak)",
+			"complexityScore": 5,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down into: (1) Implement apt_update.sh, (2) Implement snap_update.sh, (3) Implement flatpak_update.sh, (4) Add error handling and reporting, (5) Support dry-run mode, (6) Ensure interface compliance and CI mocks.",
+			"reasoning": "Moderate complexity due to multiple modules, error handling, and interface requirements. Each module is similar but needs robust testing."
+		},
+		{
+			"taskId": 6,
+			"taskTitle": "Develop System Cleanup Modules",
+			"complexityScore": 4,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Expand into: (1) Implement cleanup.sh for core cleanups, (2) Add support for apt autoremove/clean, (3) Enable extensible user cleanup scripts, (4) Validate interface compliance, (5) Test custom user scripts.",
+			"reasoning": "Slightly above basic complexity due to extensibility and user script support, but core logic is straightforward."
+		},
+		{
+			"taskId": 7,
+			"taskTitle": "Implement Interval and Execution Policy Management",
+			"complexityScore": 5,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Decompose into: (1) Implement interval storage and retrieval from YAML, (2) Add Bash date arithmetic for interval checks, (3) Display skip messages with time remaining, (4) Support per-module/category intervals, (5) Enable dynamic adjustment based on system state.",
+			"reasoning": "Moderate complexity due to time calculations, per-module logic, and dynamic adjustment requirements."
+		},
+		{
+			"taskId": 8,
+			"taskTitle": "Design Visual Feedback and Styled CLI Output",
+			"complexityScore": 6,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Expand into: (1) Implement color and formatting with tput/ANSI, (2) Add progress spinners, (3) Create summary boxes, (4) Integrate ASCII art branding, (5) Support multiple output formats (table, JSON, YAML), (6) Ensure accessibility and test output.",
+			"reasoning": "Moderate to high complexity due to multiple output formats, accessibility, and visual design considerations."
+		},
+		{
+			"taskId": 9,
+			"taskTitle": "Implement Comprehensive Logging System",
+			"complexityScore": 5,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down into: (1) Implement logging functions with levels, (2) Add log rotation logic, (3) Write per-module logs, (4) Include timestamps and results, (5) Enforce log permissions, (6) Support audit logging.",
+			"reasoning": "Moderate complexity due to log rotation, permissions, and multi-level logging, but follows established patterns."
+		},
+		{
+			"taskId": 10,
+			"taskTitle": "Develop YAML-Based Configuration Management",
+			"complexityScore": 6,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Expand into: (1) Implement YAML parsing with yq, (2) Store and load global/module configs, (3) Add validation logic, (4) Support environment-specific configs, (5) Implement interactive config management, (6) Provide migration scripts, (7) Secure sensitive settings.",
+			"reasoning": "Moderate to high complexity due to YAML parsing, validation, migration, and interactive editing."
+		},
+		{
+			"taskId": 11,
+			"taskTitle": "Enable Modular Architecture and User Module Support",
+			"complexityScore": 7,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Decompose into: (1) Document module interface, (2) Implement module validation, (3) Add guided module creation tool, (4) Support module sharing via GitHub Gist, (5) Integrate security scanning, (6) Test user module loading, (7) Validate sharing and creation flows.",
+			"reasoning": "High complexity due to dynamic loading, validation, user tooling, sharing, and security scanning."
+		},
+		{
+			"taskId": 12,
+			"taskTitle": "Implement Robust Error Handling and Recovery",
+			"complexityScore": 8,
+			"recommendedSubtasks": 8,
+			"expansionPrompt": "Expand into: (1) Standardize error reporting, (2) Implement retry logic with backoff, (3) Add rollback mechanisms, (4) Provide diagnostics and error classification, (5) Integrate with state recovery, (6) Test error scenarios, (7) Validate rollback, (8) Document error handling patterns.",
+			"reasoning": "High complexity due to cross-cutting concerns, retries, rollback, diagnostics, and integration with state management."
+		},
+		{
+			"taskId": 13,
+			"taskTitle": "Develop Test Suite and Continuous Integration",
+			"complexityScore": 7,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Break down into: (1) Set up Bats for unit tests, (2) Add integration tests, (3) Implement visual output checks, (4) Integrate shellcheck/shfmt, (5) Configure CI pipeline, (6) Mock system commands, (7) Validate multi-distro support.",
+			"reasoning": "High complexity due to comprehensive testing, CI integration, and multi-environment support."
+		},
+		{
+			"taskId": 14,
+			"taskTitle": "Write Documentation and Usage Examples",
+			"complexityScore": 4,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Expand into: (1) Write CLI usage docs, (2) Document configuration and modules, (3) Provide example modules/configs, (4) Generate man pages, (5) Ensure docs are accessible and up-to-date.",
+			"reasoning": "Slightly above basic complexity due to breadth of documentation, but tasks are well-defined and procedural."
+		},
+		{
+			"taskId": 15,
+			"taskTitle": "Optimize Performance and Resource Management",
+			"complexityScore": 7,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Decompose into: (1) Implement parallel execution, (2) Monitor resource usage, (3) Add throttling logic, (4) Cache module metadata, (5) Profile execution time/memory, (6) Document performance metrics, (7) Test under load.",
+			"reasoning": "High complexity due to parallelism, resource monitoring, caching, and performance profiling, requiring careful coordination."
+		}
+	]
+}
