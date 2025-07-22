@@ -47,6 +47,8 @@ show_help() {
     echo "  --setup             Run interactive setup wizard"
     echo "  --config-edit       Edit configuration interactively"
     echo "  --module-config     Configure modules interactively"
+    echo "  --migrate           Check and run configuration migrations"
+    echo "  --migration-history Show migration history"
     echo ""
     echo "Examples:"
     echo "  $0                  Run normal maintenance operations"
@@ -133,6 +135,15 @@ process_args() {
                 INTERACTIVE_MODE=true
                 configure_modules_interactively
                 ;;
+            --migrate)
+                INTERACTIVE_MODE=true
+                perform_migration
+                exit 0
+                ;;
+            --migration-history)
+                show_migration_history
+                exit 0
+                ;;
             *)
                 echo "Unknown option: $1"
                 echo "Use --help for usage information"
@@ -179,6 +190,15 @@ check_cleanup_interval() {
 
 main() {
     ascii_title
+    
+    # Check for configuration migrations
+    if check_migration_needed; then
+        echo ""
+        echo "Configuration migration is available."
+        echo "Run with --migrate to upgrade your configuration."
+        echo ""
+    fi
+    
     show_current_status
 
     # Check intervals and run operations accordingly

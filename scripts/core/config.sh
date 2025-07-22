@@ -28,6 +28,14 @@ else
     exit 1
 fi
 
+# Source migration functions
+if [[ -f "$SCRIPT_DIR/config/migration.sh" ]]; then
+    source "$SCRIPT_DIR/config/migration.sh"
+else
+    echo "Error: Migration configuration module not found: $SCRIPT_DIR/config/migration.sh"
+    exit 1
+fi
+
 # Validate configuration schema
 validate_config_schema() {
     local issues_found=0
@@ -81,6 +89,8 @@ interactive_config() {
         echo "5. Restore configuration"
         echo "6. View configuration"
         echo "7. Reset to defaults"
+        echo "8. Check for migrations"
+        echo "9. Show migration history"
         echo "0. Exit"
         echo ""
         echo -n "Select option: "
@@ -98,6 +108,8 @@ interactive_config() {
                 ;;
             6) show_config "global" ;;
             7) reset_to_defaults_simple ;;
+            8) perform_migration ;;
+            9) show_migration_history ;;
             0) break ;;
             *) echo "Invalid option. Please try again." ;;
         esac

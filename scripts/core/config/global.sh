@@ -5,7 +5,9 @@
 GLOBAL_CONFIG="$HOME/.upkep/config.yaml"
 
 # Default configuration
-DEFAULT_CONFIG="defaults:
+DEFAULT_CONFIG="version: 2.0.0
+
+defaults:
   update_interval: 7
   cleanup_interval: 30
   security_interval: 1
