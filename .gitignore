@@ -95,3 +95,6 @@ htmlcov/
 # Profiling data
 *.prof
 *.lprof 
+
+# Cursor
+.cursor
