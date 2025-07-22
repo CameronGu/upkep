@@ -25,7 +25,49 @@ print_color() {
 }
 
 echo "==== upKep Linux Maintainer Test Runner ===="
-echo "Running all test cases in $TEST_DIR"
+
+# Step 1: Auto-fix common style issues
+echo "→ Auto-fixing style issues (trailing whitespace)"
+bash scripts/lint.sh --fix >/dev/null 2>&1
+echo "   ✔ Auto-fixes applied"
+
+# Step 2: Run critical linting checks (ShellCheck only for now)
+echo "→ Running critical code quality checks (ShellCheck)"
+critical_issues=0
+
+# Find all shell scripts and run ShellCheck
+while IFS= read -r -d '' file; do
+    # Skip template files
+    if [[ "$file" == *"/templates/"* ]]; then
+        continue
+    fi
+
+    # Run ShellCheck and filter out informational SC2317 warnings (test functions)
+    if ! shellcheck -s bash -S style "$file" 2>&1 | grep -v "SC2317" | grep -q "^"; then
+        continue  # No issues (after filtering)
+    else
+        # Check if there are real errors (not just SC2317)
+        if shellcheck -s bash -S style "$file" 2>&1 | grep -v "SC2317" | grep -q "error\|warning"; then
+            echo "   ✖ Critical issues in: $file"
+            shellcheck -s bash -S style "$file" 2>&1 | grep -v "SC2317" | head -5
+            ((critical_issues++))
+        fi
+    fi
+done < <(find . -name "*.sh" -type f -print0)
+
+if [[ $critical_issues -gt 0 ]]; then
+    echo "   ✖ $critical_issues files have critical code quality issues"
+    echo ""
+    echo "💡 Fix critical ShellCheck issues:"
+    echo "   shellcheck path/to/file.sh    # See specific issues"
+    echo "   bash scripts/lint.sh          # See all issues (including style)"
+    exit 1
+else
+    echo "   ✔ Critical code quality checks passed"
+fi
+
+echo ""
+echo "→ Running all test cases in $TEST_DIR"
 echo ""
 
 # Check if test directory exists
@@ -40,6 +82,7 @@ test_order=(
     "test_ascii_art.sh"
     "test_formatting.sh"
     "test_config_management.sh"
+    "test_enhanced_yaml_parsing.sh"
     "test_simple_env_overrides.sh"
     "test_state.sh"
     "test_interval_logic.sh"
@@ -56,7 +99,7 @@ for test_case in "${test_order[@]}"; do
     if [[ -f "$test_file" ]]; then
         ((TOTAL_TESTS++))
         print_color "$BLUE" "→ Running $test_case"
-        
+
         if bash "$test_file"; then
             print_color "$GREEN" "   ✔ Passed"
             ((PASSED_TESTS++))
@@ -72,15 +115,15 @@ done
 for test_case in "$TEST_DIR"/*.sh; do
     if [[ -f "$test_case" ]]; then
         test_name=$(basename "$test_case")
-        
+
         # Skip if already run
         if [[ " ${test_order[*]} " == *" $test_name "* ]]; then
             continue
         fi
-        
+
         ((TOTAL_TESTS++))
         print_color "$BLUE" "→ Running $test_name"
-        
+
         if bash "$test_case"; then
             print_color "$GREEN" "   ✔ Passed"
             ((PASSED_TESTS++))
@@ -107,7 +150,7 @@ echo ""
 if [[ $TOTAL_TESTS -gt 0 ]]; then
     success_rate=$(( (PASSED_TESTS * 100) / TOTAL_TESTS ))
     echo "Success rate: ${success_rate}%"
-    
+
     if [[ $success_rate -eq 100 ]]; then
         print_color "$GREEN" "🎉 All tests passed!"
         exit 0
