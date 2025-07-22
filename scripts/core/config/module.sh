@@ -2,9 +2,53 @@
 # module.sh - Module configuration management for upKep
 
 # Module configuration directory
-MODULE_CONFIG_DIR="$HOME/.upkep/modules"
+MODULE_CONFIG_DIR="${MODULE_CONFIG_DIR:-$HOME/.upkep/modules}"
 
-# Get module configuration value
+# Centralized YAML parsing utility functions
+# Only removes quotes that wrap the entire string, preserves internal quotes
+smart_quote_removal() {
+    local value="$1"
+
+    # Remove surrounding double quotes
+    if [[ "$value" =~ ^\".*\"$ ]]; then
+        value=$(echo "$value" | sed 's/^"//;s/"$//')
+    # Remove surrounding single quotes only if there aren't internal single quotes
+    elif [[ "$value" =~ ^\'.*\'$ ]] && [[ ! "$value" =~ ^\'.*\'.*\'$ ]]; then
+        value=$(echo "$value" | sed 's/^.//;s/.$//')
+    fi
+
+    echo "$value"
+}
+
+# Extract value from simple YAML line (key: value)
+extract_simple_yaml_value() {
+    local line="$1"
+    echo "$line" | sed 's/^[^:]*:[[:space:]]*//'
+}
+
+# Extract value from indented YAML line (  key: value)
+extract_indented_yaml_value() {
+    local line="$1"
+    echo "$line" | sed 's/^[[:space:]]*[^:]*:[[:space:]]*//'
+}
+
+# Handle boolean and special YAML values with whitespace trimming
+format_yaml_value() {
+    local value="$1"
+    case "$value" in
+        "true"|"false"|"null") echo "$value" ;;
+        *) echo "$value" | sed 's/[[:space:]]*$//' ;;  # Trim trailing whitespace
+    esac
+}
+
+# Skip YAML comments and empty lines
+should_skip_yaml_line() {
+    local line="$1"
+    [[ "$line" =~ ^[[:space:]]*# ]] || [[ -z "${line// }" ]]
+}
+
+# Enhanced module configuration value getter
+# Consistent with global config approach - yq optional, robust fallback
 get_module_config() {
     local module="$1"
     local key="$2"
@@ -13,6 +57,7 @@ get_module_config() {
     local module_config="$MODULE_CONFIG_DIR/${module}.yaml"
 
     if [[ -f "$module_config" ]]; then
+        # Try yq first if available (optional enhancement)
         if command -v yq >/dev/null 2>&1; then
             local value
             value=$(yq eval ".$key" "$module_config" 2>/dev/null)
@@ -20,21 +65,119 @@ get_module_config() {
                 echo "$value"
                 return 0
             fi
-        else
-            # Fallback to grep if yq is not available
-            local value
-            value=$(grep "^[[:space:]]*${key}:[[:space:]]*" "$module_config" | sed 's/.*:[[:space:]]*//')
-            if [[ -n "$value" ]]; then
-                echo "$value"
-                return 0
-            fi
+        fi
+
+        # Enhanced fallback method
+        local value
+        value=$(get_module_config_enhanced_fallback "$module_config" "$key")
+        if [[ -n "$value" ]]; then
+            echo "$value"
+            return 0
         fi
     fi
 
     echo "$default"
 }
 
-# Set module configuration value
+# Enhanced fallback method for module config parsing
+get_module_config_enhanced_fallback() {
+    local module_config="$1"
+    local key="$2"
+
+    # Use the same enhanced parsing logic as global config
+    local path_parts
+    IFS='.' read -ra path_parts <<< "$key"
+    local depth=${#path_parts[@]}
+
+    case $depth in
+        1)
+            # Simple key (no dots)
+            get_module_yaml_simple_key "$module_config" "${path_parts[0]}"
+            ;;
+        2)
+            # Two-level nesting
+            get_module_yaml_nested_key "$module_config" "${path_parts[0]}" "${path_parts[1]}"
+            ;;
+        *)
+            # For deeper nesting or complex cases
+            get_module_yaml_generic "$module_config" "$key"
+            ;;
+    esac
+}
+
+# Parse simple YAML key for modules
+get_module_yaml_simple_key() {
+    local module_config="$1"
+    local key="$2"
+    local value
+
+    # Match key at start of line followed by colon
+    local raw_line
+    raw_line=$(grep "^${key}:[[:space:]]*" "$module_config" 2>/dev/null | head -n1)
+
+    # Extract and process value through centralized functions
+    value=$(extract_simple_yaml_value "$raw_line")
+    value=$(smart_quote_removal "$value")
+    format_yaml_value "$value"
+}
+
+# Parse two-level nested YAML key for modules
+get_module_yaml_nested_key() {
+    local module_config="$1"
+    local parent_key="$2"
+    local child_key="$3"
+    local in_section=false
+    local value=""
+    local indentation_pattern="^[[:space:]]+"
+
+    while IFS= read -r line; do
+        # Skip comments and empty lines
+        should_skip_yaml_line "$line" && continue
+
+        # Check if we're entering the parent section
+        if [[ "$line" =~ ^${parent_key}:[[:space:]]*$ ]]; then
+            in_section=true
+            continue
+        fi
+
+        # If we're in the section and hit another top-level key, exit section
+        if [[ $in_section == true ]] && [[ "$line" =~ ^[a-zA-Z_][a-zA-Z0-9_]*:[[:space:]]* ]] && [[ ! "$line" =~ $indentation_pattern ]]; then
+            break
+        fi
+
+        # If we're in the section, look for our child key
+        if [[ $in_section == true ]] && [[ "$line" =~ $indentation_pattern${child_key}:[[:space:]]* ]]; then
+            value=$(extract_indented_yaml_value "$line")
+            value=$(smart_quote_removal "$value")
+            break
+        fi
+    done < "$module_config"
+
+    # Format and return the value
+    format_yaml_value "$value"
+}
+
+# Generic fallback for module config
+get_module_yaml_generic() {
+    local module_config="$1"
+    local key="$2"
+    local path_parts
+    IFS='.' read -ra path_parts <<< "$key"
+    local search_pattern
+
+    # Simple approach: look for the final key in the path
+    search_pattern=$(printf "[[:space:]]*%s:[[:space:]]*" "${path_parts[-1]}")
+
+    local value raw_line
+    raw_line=$(grep "$search_pattern" "$module_config" 2>/dev/null | tail -n1)
+
+    # Extract and process value through centralized functions
+    value=$(extract_indented_yaml_value "$raw_line")
+    value=$(smart_quote_removal "$value")
+    format_yaml_value "$value"
+}
+
+# Enhanced set_module_config with better error handling
 set_module_config() {
     local module="$1"
     local key="$2"
@@ -54,28 +197,132 @@ description: \"\""
         secure_file_create "$module_config" "$default_content" "600"
     fi
 
+    # Validate input
+    if [[ -z "$key" ]]; then
+        echo "Error: Module configuration key cannot be empty" >&2
+        return 1
+    fi
+
+    # Try yq first if available (optional enhancement)
     if command -v yq >/dev/null 2>&1; then
-        yq eval ".$key = \"$value\"" -i "$module_config"
-    else
-        # Fallback to sed if yq is not available
-        local temp_file
-        temp_file=$(mktemp)
-        cp "$module_config" "$temp_file"
+        # Handle different value types like global config
+        local yq_value="$value"
+        case "$value" in
+            "true"|"false")
+                yq_value="$value"
+                ;;
+            *[0-9]*)
+                if [[ "$value" =~ ^[0-9]+$ ]]; then
+                    yq_value="$value"
+                else
+                    yq_value="\"$value\""
+                fi
+                ;;
+            *)
+                yq_value="\"$(echo "$value" | sed 's/"/\\"/g')\""
+                ;;
+        esac
 
-        # Check if the key exists
-        if grep -q "^[[:space:]]*${key}:" "$temp_file"; then
-            # Update existing key
-            sed -i "s/^[[:space:]]*${key}:[[:space:]]*.*/${key}: $value/" "$temp_file"
+        if yq eval ".$key = $yq_value" -i "$module_config" 2>/dev/null; then
+            return 0
         else
-            # Add new key
-            echo "${key}: $value" >> "$temp_file"
+            echo "Warning: yq failed for module '$module' key '$key', using fallback method" >&2
         fi
+    fi
 
-        mv "$temp_file" "$module_config"
+    # Enhanced fallback method
+    set_module_config_enhanced_fallback "$module_config" "$key" "$value"
+}
+
+# Enhanced fallback method for setting module configuration
+set_module_config_enhanced_fallback() {
+    local module_config="$1"
+    local key="$2"
+    local value="$3"
+
+    local temp_file
+    temp_file=$(mktemp) || {
+        echo "Error: Cannot create temporary file for module config" >&2
+        return 1
+    }
+
+    # Create backup
+    if ! cp "$module_config" "$temp_file"; then
+        echo "Error: Cannot backup module configuration file" >&2
+        rm -f "$temp_file"
+        return 1
+    fi
+
+    # Handle different nesting levels (most module configs are simple)
+    local path_parts
+    IFS='.' read -ra path_parts <<< "$key"
+    local depth=${#path_parts[@]}
+
+    case $depth in
+        1)
+            set_module_yaml_simple_key "$temp_file" "${path_parts[0]}" "$value"
+            ;;
+        2)
+            set_module_yaml_nested_key "$temp_file" "${path_parts[0]}" "${path_parts[1]}" "$value"
+            ;;
+        *)
+            echo "Warning: Complex nesting in module config may not be fully supported" >&2
+            set_module_yaml_simple_key "$temp_file" "$key" "$value"
+            ;;
+    esac
+
+    # Replace original file atomically
+    if mv "$temp_file" "$module_config"; then
+        return 0
+    else
+        echo "Error: Cannot update module configuration file" >&2
+        rm -f "$temp_file"
+        return 1
     fi
 }
 
-# Validate module configuration
+# Set simple YAML key for modules
+set_module_yaml_simple_key() {
+    local temp_file="$1"
+    local key="$2"
+    local value="$3"
+
+    if grep -q "^${key}:" "$temp_file"; then
+        # Key exists, update it
+        sed -i "s/^${key}:[[:space:]]*.*/${key}: $value/" "$temp_file"
+    else
+        # Key doesn't exist, add it at the end
+        echo "${key}: $value" >> "$temp_file"
+    fi
+}
+
+# Set nested YAML key for modules
+set_module_yaml_nested_key() {
+    local temp_file="$1"
+    local parent_key="$2"
+    local child_key="$3"
+    local value="$4"
+
+    if grep -q "^${parent_key}:" "$temp_file"; then
+        # Parent section exists
+        if grep -A20 "^${parent_key}:" "$temp_file" | grep -q "^[[:space:]]\+${child_key}:"; then
+            # Child key exists, update it
+            sed -i "/^${parent_key}:/,/^[a-zA-Z]/ s/^[[:space:]]*${child_key}:[[:space:]]*.*$/  ${child_key}: $value/" "$temp_file"
+        else
+            # Child key doesn't exist, add it
+            sed -i "/^${parent_key}:/a\\  ${child_key}: $value" "$temp_file"
+        fi
+    else
+        # Parent section doesn't exist, create both
+        {
+            echo ""
+            echo "${parent_key}:"
+            echo "  ${child_key}: $value"
+        } >> "$temp_file"
+    fi
+}
+
+# Enhanced module configuration validation
 validate_module_config() {
     local module="$1"
     local module_config="$MODULE_CONFIG_DIR/${module}.yaml"
@@ -86,6 +333,11 @@ validate_module_config() {
         return 1
     fi
 
+    # Basic YAML structure validation
+    if ! validate_module_yaml_structure "$module_config"; then
+        ((issues_found++))
+    fi
+
     # Validate YAML syntax if yamllint is available
     if command -v yamllint >/dev/null 2>&1; then
         if ! yamllint "$module_config" >/dev/null 2>&1; then
@@ -94,7 +346,7 @@ validate_module_config() {
         fi
     fi
 
-    # Validate required fields
+    # Validate required fields using enhanced parsing
     local enabled
     enabled=$(get_module_config "$module" "enabled" "")
     if [[ -z "$enabled" ]]; then
@@ -126,6 +378,50 @@ validate_module_config() {
         return 0
     else
         echo "Module configuration validation found $issues_found issue(s) in: $module"
+        return 1
+    fi
+}
+
+# Validate module YAML structure
+validate_module_yaml_structure() {
+    local file="$1"
+
+    if [[ ! -f "$file" ]]; then
+        echo "Module configuration file not found: $file" >&2
+        return 1
+    fi
+
+    # Basic YAML structure validation (similar to global config)
+    local line_num=0
+    local errors=0
+
+    while IFS= read -r line; do
+        ((line_num++))
+
+        # Skip empty lines and comments
+        [[ -z "${line// }" ]] && continue
+        [[ "$line" =~ ^[[:space:]]*# ]] && continue
+
+        # Check for basic YAML syntax issues
+        if [[ "$line" =~ ^[[:space:]]*[^:[:space:]]+[[:space:]]*$ ]] && [[ ! "$line" =~ : ]]; then
+            echo "Warning: Line $line_num may be missing colon: $line" >&2
+            ((errors++))
+        fi
+
+        # Check for basic indentation issues
+        if [[ "$line" =~ ^[[:space:]]+ ]] && [[ ! "$line" =~ ^[[:space:]]{2}|^[[:space:]]{4} ]]; then
+            local indent_count
+            indent_count=$(echo "$line" | sed 's/[^[:space:]].*//' | wc -c)
+            if [[ $((indent_count % 2)) -ne 1 ]]; then  # wc -c includes newline
+                echo "Warning: Line $line_num has unusual indentation ($((indent_count - 1)) spaces): $line" >&2
+            fi
+        fi
+    done < "$file"
+
+    if [[ $errors -eq 0 ]]; then
+        return 0
+    else
+        echo "Found $errors potential YAML structure issues in module config: $file" >&2
         return 1
     fi
 }
