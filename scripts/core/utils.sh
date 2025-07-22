@@ -59,7 +59,7 @@ print_header() {
     local text="$1"
     local width="${2:-60}"
     local padding=$(( (width - ${#text} - 2) / 2 ))
-    
+
     printf "%${padding}s" ""
     print_color "$MAGENTA" "$text"
 }
@@ -69,7 +69,7 @@ create_box() {
     local text="$1"
     local width="${2:-60}"
     local padding=$(( width - ${#text} - 2 ))
-    
+
     echo "$BOX_TOP_LEFT$(printf "%${width}s" | tr ' ' "$BOX_HORIZONTAL")$BOX_TOP_RIGHT"
     echo "$BOX_VERTICAL $text$(printf "%${padding}s") $BOX_VERTICAL"
     echo "$BOX_BOTTOM_LEFT$(printf "%${width}s" | tr ' ' "$BOX_HORIZONTAL")$BOX_BOTTOM_RIGHT"
@@ -81,7 +81,7 @@ create_summary_box() {
     local status="$2"
     local message="$3"
     local width="${4:-60}"
-    
+
     local status_color
     case "$status" in
         "success") status_color="$GREEN" ;;
@@ -89,7 +89,7 @@ create_summary_box() {
         "skipped") status_color="$YELLOW" ;;
         *) status_color="$WHITE" ;;
     esac
-    
+
     echo "$BOX_TOP_LEFT$(printf "%${width}s" | tr ' ' "$BOX_HORIZONTAL")$BOX_TOP_RIGHT"
     echo "$BOX_VERTICAL $(printf "%-${width}s" "$title") $BOX_VERTICAL"
     echo "$BOX_VERTICAL $(printf "%-${width}s" "Status: ${status_color}${status}${NC}") $BOX_VERTICAL"
@@ -104,17 +104,17 @@ spinner() {
     local pid="$1"
     local message="${2:-Processing...}"
     local delay=0.1
-    
+
     # Hide cursor
     echo -en "\033[?25l"
-    
+
     while kill -0 "$pid" 2>/dev/null; do
         local char="${SPINNER_CHARS[$SPINNER_INDEX]}"
         echo -ne "\r${CYAN}${char}${NC} $message"
         SPINNER_INDEX=$(( (SPINNER_INDEX + 1) % ${#SPINNER_CHARS[@]} ))
         sleep "$delay"
     done
-    
+
     # Show cursor
     echo -en "\033[?25h"
     echo -ne "\r"
@@ -128,16 +128,16 @@ progress_bar() {
     local total="$2"
     local width="${3:-50}"
     local message="${4:-Progress}"
-    
+
     local percentage=$(( current * 100 / total ))
     local filled=$(( current * width / total ))
     local empty=$(( width - filled ))
-    
+
     printf "\r${CYAN}${message}:${NC} ["
     printf "%${filled}s" | tr ' ' '█'
     printf "%${empty}s" | tr ' ' '░'
     printf "] %d%%" "$percentage"
-    
+
     if [[ "$current" -eq "$total" ]]; then
         echo
     fi
@@ -148,7 +148,7 @@ log_message() {
     local level="$1"
     local message="$2"
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-    
+
     case "$level" in
         "INFO") color="$BLUE" ;;
         "WARN") color="$YELLOW" ;;
@@ -156,7 +156,7 @@ log_message() {
         "SUCCESS") color="$GREEN" ;;
         *) color="$WHITE" ;;
     esac
-    
+
     echo -e "[$timestamp] ${color}[$level]${NC} $message"
 }
 
@@ -189,17 +189,17 @@ get_system_info() {
 validate_file() {
     local file="$1"
     local description="${2:-File}"
-    
+
     if [[ ! -f "$file" ]]; then
         print_error "$description not found: $file"
         return 1
     fi
-    
+
     if [[ ! -r "$file" ]]; then
         print_error "$description not readable: $file"
         return 1
     fi
-    
+
     return 0
 }
 
@@ -207,17 +207,17 @@ validate_file() {
 validate_directory() {
     local dir="$1"
     local description="${2:-Directory}"
-    
+
     if [[ ! -d "$dir" ]]; then
         print_error "$description not found: $dir"
         return 1
     fi
-    
+
     if [[ ! -w "$dir" ]]; then
         print_error "$description not writable: $dir"
         return 1
     fi
-    
+
     return 0
 }
 
@@ -225,7 +225,7 @@ validate_directory() {
 ensure_directory() {
     local dir="$1"
     local description="${2:-Directory}"
-    
+
     if [[ ! -d "$dir" ]]; then
         if mkdir -p "$dir" 2>/dev/null; then
             print_success "Created $description: $dir"
@@ -234,7 +234,7 @@ ensure_directory() {
             return 1
         fi
     fi
-    
+
     return 0
 }
 
@@ -242,18 +242,18 @@ ensure_directory() {
 backup_file() {
     local file="$1"
     local backup_dir="${2:-./backups}"
-    
+
     if [[ ! -f "$file" ]]; then
         print_error "File not found: $file"
         return 1
     fi
-    
+
     ensure_directory "$backup_dir" "Backup directory"
-    
+
     local timestamp=$(date +%Y%m%d_%H%M%S)
     local filename=$(basename "$file")
     local backup_file="$backup_dir/${filename}.backup.$timestamp"
-    
+
     if cp "$file" "$backup_file" 2>/dev/null; then
         print_success "Backed up: $backup_file"
         return 0
@@ -268,24 +268,24 @@ human_readable_size() {
     local bytes="$1"
     local units=("B" "KB" "MB" "GB" "TB")
     local unit_index=0
-    
+
     while [[ $bytes -ge 1024 && $unit_index -lt ${#units[@]}-1 ]]; do
         bytes=$((bytes / 1024))
         unit_index=$((unit_index + 1))
     done
-    
+
     echo "${bytes}${units[$unit_index]}"
 }
 
 # Get disk usage for directory
 get_disk_usage() {
     local dir="$1"
-    
+
     if [[ ! -d "$dir" ]]; then
         print_error "Directory not found: $dir"
         return 1
     fi
-    
+
     local usage=$(du -sh "$dir" 2>/dev/null | cut -f1)
     echo "$usage"
 }
@@ -344,7 +344,7 @@ format_duration() {
     local hours=$((seconds / 3600))
     local minutes=$(( (seconds % 3600) / 60 ))
     local secs=$((seconds % 60))
-    
+
     if [[ $hours -gt 0 ]]; then
         printf "%dh %dm %ds" "$hours" "$minutes" "$secs"
     elif [[ $minutes -gt 0 ]]; then
@@ -360,7 +360,7 @@ wait_for() {
     local timeout="${2:-30}"
     local interval="${3:-1}"
     local elapsed=0
-    
+
     while [[ $elapsed -lt $timeout ]]; do
         if eval "$condition"; then
             return 0
@@ -368,7 +368,7 @@ wait_for() {
         sleep "$interval"
         elapsed=$((elapsed + interval))
     done
-    
+
     return 1
 }
 
@@ -378,21 +378,21 @@ retry_command() {
     local max_attempts="${2:-3}"
     local base_delay="${3:-1}"
     local attempt=1
-    
+
     while [[ $attempt -le $max_attempts ]]; do
         if eval "$command"; then
             return 0
         fi
-        
+
         if [[ $attempt -lt $max_attempts ]]; then
             local delay=$((base_delay * (2 ** (attempt - 1))))
             print_warning "Attempt $attempt failed, retrying in ${delay}s..."
             sleep "$delay"
         fi
-        
+
         attempt=$((attempt + 1))
     done
-    
+
     print_error "Command failed after $max_attempts attempts: $command"
     return 1
 }
@@ -402,7 +402,7 @@ is_port_open() {
     local host="$1"
     local port="$2"
     local timeout="${3:-5}"
-    
+
     if command_exists nc; then
         nc -z -w "$timeout" "$host" "$port" >/dev/null 2>&1
     elif command_exists telnet; then
@@ -416,7 +416,7 @@ is_port_open() {
 # Get IP address
 get_ip_address() {
     local interface="${1:-}"
-    
+
     if [[ -n "$interface" ]]; then
         ip addr show "$interface" 2>/dev/null | grep -oP 'inet \K\S+' | head -1
     else
@@ -427,7 +427,7 @@ get_ip_address() {
 # Check internet connectivity
 check_internet() {
     local timeout="${1:-5}"
-    
+
     if command_exists curl; then
         curl -s --connect-timeout "$timeout" --max-time "$timeout" http://www.google.com >/dev/null 2>&1
     elif command_exists wget; then
@@ -442,7 +442,7 @@ check_internet() {
 random_string() {
     local length="${1:-8}"
     local charset="${2:-a-zA-Z0-9}"
-    
+
     tr -dc "$charset" < /dev/urandom | head -c "$length"
 }
 
@@ -517,7 +517,7 @@ print_usage() {
     local script_name="$1"
     local description="$2"
     local usage="$3"
-    
+
     echo "Usage: $script_name $usage"
     echo ""
     echo "$description"
@@ -531,14 +531,14 @@ print_usage() {
 print_version() {
     local script_name="$1"
     local version="$2"
-    
+
     echo "$script_name version $version"
 }
 
 # Parse command line arguments (simple version)
 parse_args() {
     local args=("$@")
-    
+
     for arg in "${args[@]}"; do
         case "$arg" in
             -h|--help)
@@ -554,4 +554,4 @@ parse_args() {
                 ;;
         esac
     done
-} 
+}

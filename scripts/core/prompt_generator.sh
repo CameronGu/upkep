@@ -8,13 +8,13 @@ generate_ai_prompt() {
     local module_name="$1"
     local description="$2"
     local category="${3:-system_maintenance}"
-    
+
     # Read current state for context
     local state_file="$HOME/.upkep/state.json"
     local modules=""
     local patterns=""
     local similar_module=""
-    
+
     if [[ -f "$state_file" ]]; then
         if command -v jq >/dev/null 2>&1; then
             modules=$(jq -r '.modules | keys[]' "$state_file" 2>/dev/null)
@@ -22,10 +22,10 @@ generate_ai_prompt() {
             similar_module=$(find_similar_module "$category" "$description")
         fi
     fi
-    
+
     # Generate contextual prompt
     local prompt_file="prompt_for_${module_name}.txt"
-    
+
     cat > "$prompt_file" << EOF
 # upKep Module Creation Prompt
 # Generated: $(date)
@@ -130,14 +130,14 @@ EOF
 find_similar_module() {
     local category="$1"
     local description="$2"
-    
+
     # Find modules in the same category
     local similar_modules=""
-    
+
     if [[ -f "$HOME/.upkep/state.json" ]] && command -v jq >/dev/null 2>&1; then
         similar_modules=$(jq -r ".modules | to_entries[] | select(.value.category == \"$category\") | .key" "$HOME/.upkep/state.json" 2>/dev/null)
     fi
-    
+
     # Return the first available module as example
     echo "$similar_modules" | head -n1
 }
@@ -146,9 +146,9 @@ find_similar_module() {
 generate_improvement_prompt() {
     local module_name="$1"
     local improvement_type="$2"
-    
+
     local prompt_file="improvement_prompt_for_${module_name}.txt"
-    
+
     cat > "$prompt_file" << EOF
 # upKep Module Improvement Prompt
 # Generated: $(date)
@@ -239,9 +239,9 @@ EOF
 # Generate prompt for module testing
 generate_testing_prompt() {
     local module_name="$1"
-    
+
     local prompt_file="testing_prompt_for_${module_name}.txt"
-    
+
     cat > "$prompt_file" << EOF
 # upKep Module Testing Prompt
 # Generated: $(date)
@@ -306,9 +306,9 @@ EOF
 # Generate prompt for documentation
 generate_documentation_prompt() {
     local module_name="$1"
-    
+
     local prompt_file="documentation_prompt_for_${module_name}.txt"
-    
+
     cat > "$prompt_file" << EOF
 # upKep Module Documentation Prompt
 # Generated: $(date)
@@ -386,9 +386,9 @@ generate_development_prompt() {
     local category="$3"
     local include_tests="${4:-true}"
     local include_docs="${5:-true}"
-    
+
     local prompt_file="development_prompt_for_${module_name}.txt"
-    
+
     cat > "$prompt_file" << EOF
 # upKep Complete Module Development Prompt
 # Generated: $(date)
@@ -464,7 +464,7 @@ EOF
 main_prompt_generator() {
     local prompt_type="$1"
     shift
-    
+
     case "$prompt_type" in
         "create")
             generate_ai_prompt "$@"
@@ -498,4 +498,4 @@ main_prompt_generator() {
 # If script is run directly, execute main function
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main_prompt_generator "$@"
-fi 
+fi

@@ -148,11 +148,11 @@ check_update_interval() {
     if [[ "${FORCE_RUN:-false}" == "true" ]]; then
         return 0
     fi
-    
+
     load_state
     NOW=$(date +%s)
     DAYS_SINCE_UPDATE=$(( (NOW - UPDATE_LAST_RUN) / 86400 ))
-    
+
     if [[ $DAYS_SINCE_UPDATE -lt $UPDATE_INTERVAL_DAYS ]]; then
         echo "Updates within interval ($DAYS_SINCE_UPDATE days < $UPDATE_INTERVAL_DAYS days) – skipped"
         return 1
@@ -165,11 +165,11 @@ check_cleanup_interval() {
     if [[ "${FORCE_RUN:-false}" == "true" ]]; then
         return 0
     fi
-    
+
     load_state
     NOW=$(date +%s)
     DAYS_SINCE_CLEANUP=$(( (NOW - CLEANUP_LAST_RUN) / 86400 ))
-    
+
     if [[ $DAYS_SINCE_CLEANUP -lt $CLEANUP_INTERVAL_DAYS ]]; then
         echo "Cleanup within interval ($DAYS_SINCE_CLEANUP days < $CLEANUP_INTERVAL_DAYS days) – skipped"
         return 1
@@ -180,7 +180,7 @@ check_cleanup_interval() {
 main() {
     ascii_title
     show_current_status
-    
+
     # Check intervals and run operations accordingly
     UPDATE_SKIP_NOTE=$(check_update_interval)
     if [[ $? -eq 0 ]]; then
@@ -196,7 +196,7 @@ main() {
     else
         draw_box "$YELLOW" "UPDATES SKIPPED" "$UPDATE_SKIP_NOTE"
     fi
-    
+
     CLEANUP_SKIP_NOTE=$(check_cleanup_interval)
     if [[ $? -eq 0 ]]; then
         if [[ "${DRY_RUN:-false}" == "true" ]]; then
@@ -207,7 +207,7 @@ main() {
     else
         draw_box "$YELLOW" "CLEANUP SKIPPED" "$CLEANUP_SKIP_NOTE"
     fi
-    
+
     if [[ "${DRY_RUN:-false}" != "true" ]]; then
         save_state
     fi

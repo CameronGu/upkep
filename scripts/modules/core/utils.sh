@@ -47,7 +47,7 @@ draw_box() { local c="$1" title="$2"; shift 2; box_top "$c" "$title"; for l in "
 spinner() {
     local pid=$1
     local msg="$2"
-    local spin='|/-\'
+    local spin="|/-\\"
     local i=0
     tput civis
     while kill -0 $pid 2>/dev/null; do

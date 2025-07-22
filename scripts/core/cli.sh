@@ -9,7 +9,7 @@ CLI_VERSION="2.0.0"
 # Show help information
 show_help() {
     local command="${1:-}"
-    
+
     case "$command" in
         "run")
             echo "Usage: upkep run [options]"
@@ -151,25 +151,25 @@ parse_args() {
     local args=("$@")
     local command=""
     local options=()
-    
+
     # Extract command
     if [[ ${#args[@]} -gt 0 ]]; then
         command="${args[0]}"
         options=("${args[@]:1}")
     fi
-    
+
     # Handle help command
     if [[ "$command" == "help" ]]; then
         show_help "${options[0]:-}"
         return 0
     fi
-    
+
     # Handle version
     if [[ "$command" == "version" || "$command" == "--version" || "$command" == "-v" ]]; then
         echo "upKep version $CLI_VERSION"
         return 0
     fi
-    
+
     # Execute command
     case "$command" in
         "run")
@@ -212,7 +212,7 @@ execute_run_command() {
     local dry_run=false
     local force=false
     local verbose=false
-    
+
     # Parse options
     for arg in "$@"; do
         case "$arg" in
@@ -240,18 +240,18 @@ execute_run_command() {
                 ;;
         esac
     done
-    
+
     # Execute maintenance operations
     echo "Executing upKep maintenance operations..."
-    
+
     if [[ "$dry_run" == "true" ]]; then
         echo "DRY RUN MODE - No changes will be made"
     fi
-    
+
     if [[ "$parallel" == "true" ]]; then
         echo "Parallel execution enabled"
     fi
-    
+
     if [[ -n "$module" ]]; then
         echo "Executing module: $module"
         # TODO: Execute specific module
@@ -270,7 +270,7 @@ execute_status_command() {
     local category=""
     local format="table"
     local verbose=false
-    
+
     # Parse options
     for arg in "$@"; do
         case "$arg" in
@@ -292,11 +292,11 @@ execute_status_command() {
                 ;;
         esac
     done
-    
+
     # Show status information
     echo "upKep Status Information"
     echo "========================"
-    
+
     if [[ -n "$module" ]]; then
         echo "Module: $module"
         # TODO: Show module-specific status
@@ -315,7 +315,7 @@ execute_config_command() {
     local key=""
     local value=""
     local format=""
-    
+
     # Parse options
     for arg in "$@"; do
         case "$arg" in
@@ -353,7 +353,7 @@ execute_config_command() {
                 ;;
         esac
     done
-    
+
     # Execute config action
     case "$action" in
         "show")
@@ -399,7 +399,7 @@ execute_list_modules_command() {
     local category=""
     local type=""
     local verbose=false
-    
+
     # Parse options
     for arg in "$@"; do
         case "$arg" in
@@ -418,7 +418,7 @@ execute_list_modules_command() {
                 ;;
         esac
     done
-    
+
     # List modules
     if [[ -n "$category" ]]; then
         list_modules_by_category "$category"
@@ -438,7 +438,7 @@ execute_create_module_command() {
     local template="basic"
     local category=""
     local description=""
-    
+
     # Parse options
     for arg in "$@"; do
         case "$arg" in
@@ -467,14 +467,14 @@ execute_create_module_command() {
                 ;;
         esac
     done
-    
+
     if [[ -z "$module_name" ]]; then
         echo "Usage: upkep create-module <name> [options]"
         return 1
     fi
-    
+
     echo "Creating module: $module_name"
-    
+
     if [[ "$interactive" == "true" ]]; then
         create_module_interactive "$module_name"
     elif [[ "$ai_prompt" == "true" ]]; then
@@ -487,14 +487,14 @@ execute_create_module_command() {
 # Execute validate-module command
 execute_validate_module_command() {
     local module_name="$1"
-    
+
     if [[ -z "$module_name" ]]; then
         echo "Usage: upkep validate-module <name>"
         return 1
     fi
-    
+
     echo "Validating module: $module_name"
-    
+
     if module_exists "$module_name"; then
         local module_file=$(get_module_file "$module_name")
         if validate_module_structure "$module_file"; then
@@ -515,7 +515,7 @@ execute_test_module_command() {
     local module_name="$1"
     local dry_run=false
     local verbose=false
-    
+
     # Parse options
     shift
     for arg in "$@"; do
@@ -532,18 +532,18 @@ execute_test_module_command() {
                 ;;
         esac
     done
-    
+
     if [[ -z "$module_name" ]]; then
         echo "Usage: upkep test-module <name> [options]"
         return 1
     fi
-    
+
     echo "Testing module: $module_name"
-    
+
     if [[ "$dry_run" == "true" ]]; then
         echo "DRY RUN MODE - No actual execution"
     fi
-    
+
     if module_exists "$module_name"; then
         # TODO: Implement module testing
         echo "Module test functionality not yet implemented"
@@ -556,17 +556,17 @@ execute_test_module_command() {
 # Create module interactively
 create_module_interactive() {
     local module_name="$1"
-    
+
     echo "Interactive module creation for: $module_name"
     echo "============================================="
-    
+
     # Get module details
     read -p "Description: " description
     read -p "Category [system_maintenance]: " category
     category="${category:-system_maintenance}"
     read -p "Template [basic]: " template
     template="${template:-basic}"
-    
+
     create_module_from_template "$module_name" "$template" "$category" "$description"
 }
 
@@ -576,12 +576,12 @@ create_module_from_template() {
     local template="$2"
     local category="$3"
     local description="$4"
-    
+
     local user_modules_dir="$HOME/.upkep/modules"
     local module_file="$user_modules_dir/${module_name}.sh"
-    
+
     mkdir -p "$user_modules_dir"
-    
+
     case "$template" in
         "basic")
             create_basic_module_template "$module_file" "$module_name" "$category" "$description"
@@ -594,7 +594,7 @@ create_module_from_template() {
             return 1
             ;;
     esac
-    
+
     echo "Created module: $module_file"
     echo "You can now edit the module and test it with: upkep test-module $module_name"
 }
@@ -605,7 +605,7 @@ create_basic_module_template() {
     local module_name="$2"
     local category="$3"
     local description="$4"
-    
+
     cat > "$module_file" << EOF
 #!/bin/bash
 
@@ -621,9 +621,9 @@ ${module_name^^}_ERROR=""
 # Main execution function
 run_${module_name}() {
     echo "Executing $module_name..."
-    
+
     # TODO: Implement your module logic here
-    
+
     # Example implementation:
     # if your_command; then
     #     ${module_name^^}_STATUS="success"
@@ -633,7 +633,7 @@ run_${module_name}() {
     #     ${module_name^^}_STATUS="failed"
     #     ${module_name^^}_ERROR="Operation failed"
     # fi
-    
+
     # Placeholder - always succeeds
     ${module_name^^}_STATUS="success"
     ${module_name^^}_MESSAGE="Module executed successfully"
@@ -665,7 +665,7 @@ validate_${module_name}_environment() {
     return 0
 }
 EOF
-    
+
     chmod +x "$module_file"
 }
 
@@ -675,7 +675,7 @@ create_advanced_module_template() {
     local module_name="$2"
     local category="$3"
     local description="$4"
-    
+
     cat > "$module_file" << EOF
 #!/bin/bash
 
@@ -698,7 +698,7 @@ ${module_name^^}_LOG_FILE=""
 init_${module_name}() {
     ${module_name^^}_CONFIG_FILE="\$(get_module_config "$module_name" "config_file" "")"
     ${module_name^^}_LOG_FILE="\$(get_module_config "$module_name" "log_file" "")"
-    
+
     # Create log directory if needed
     if [[ -n "\${${module_name^^}_LOG_FILE}" ]]; then
         mkdir -p "\$(dirname "\${${module_name^^}_LOG_FILE}")"
@@ -708,12 +708,12 @@ init_${module_name}() {
 # Main execution function
 run_${module_name}() {
     local start_time=\$(date +%s)
-    
+
     echo "Executing $module_name..."
-    
+
     # Initialize module
     init_${module_name}
-    
+
     # Validate environment
     if ! validate_${module_name}_environment; then
         ${module_name^^}_STATUS="failed"
@@ -722,9 +722,9 @@ run_${module_name}() {
         update_${module_name}_state
         return 1
     fi
-    
+
     # TODO: Implement your module logic here
-    
+
     # Example implementation with error handling:
     # if your_command; then
     #     ${module_name^^}_STATUS="success"
@@ -733,7 +733,7 @@ run_${module_name}() {
     #     ${module_name^^}_STATUS="failed"
     #     ${module_name^^}_ERROR="Operation failed: \$?"
     # fi
-    
+
     # Placeholder - always succeeds
     ${module_name^^}_STATUS="success"
     ${module_name^^}_MESSAGE="Module executed successfully"
@@ -765,12 +765,12 @@ validate_${module_name}_environment() {
     # - Check required permissions
     # - Check required files/directories
     # - Check system requirements
-    
+
     # if ! command -v your_command >/dev/null 2>&1; then
     #     echo "Required command 'your_command' not found"
     #     return 1
     # fi
-    
+
     return 0
 }
 
@@ -786,13 +786,13 @@ log_${module_name}() {
     local level="\$1"
     local message="\$2"
     local timestamp="\$(date '+%Y-%m-%d %H:%M:%S')"
-    
+
     if [[ -n "\${${module_name^^}_LOG_FILE}" ]]; then
         echo "[\$timestamp] [\$level] \$message" >> "\${${module_name^^}_LOG_FILE}"
     fi
 }
 EOF
-    
+
     chmod +x "$module_file"
 }
 
@@ -801,15 +801,15 @@ generate_ai_prompt() {
     local module_name="$1"
     local description="$2"
     local category="$3"
-    
+
     echo "Generating AI prompt for module: $module_name"
     echo "============================================="
-    
+
     # TODO: Implement AI prompt generation based on state reflection
     # This would use the state reflection system to generate contextual prompts
-    
+
     local prompt_file="prompt_for_${module_name}.txt"
-    
+
     cat > "$prompt_file" << EOF
 # upKep Module Creation Prompt
 # Generated: \$(date)
@@ -865,7 +865,7 @@ Please provide:
 - Follow the same visual formatting patterns as other modules
 - Include appropriate error handling and logging
 EOF
-    
+
     echo "AI prompt generated: $prompt_file"
     echo "You can copy this prompt to your preferred AI tool for module generation."
-} 
+}
