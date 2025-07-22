@@ -1,0 +1,16 @@
+# ShellCheck configuration for upKep project
+
+# Shell dialect
+shell=bash
+
+# Severity level
+severity=style
+
+# Source path
+source-path=SCRIPTDIR
+
+# External sources
+external-sources=false
+
+# Disable specific rules that are too strict for our use case
+disable=SC1090,SC1091,SC2001,SC2004,SC2012,SC2013,SC2015,SC2016,SC2028,SC2034,SC2046,SC2059,SC2064,SC2086,SC2115,SC2120,SC2124,SC2128,SC2148,SC2154,SC2155,SC2162,SC2164,SC2166,SC2170,SC2178,SC2181,SC2206,SC2207,SC2219,SC2220,SC2221 

@@ -45,9 +45,27 @@ uninstall:
 	@sudo rm -f /usr/local/bin/upkep
 	@echo "Uninstallation complete."
 
-# Run shellcheck on all shell scripts
+# Run comprehensive linting
 .PHONY: lint
 lint:
+	@echo "Running comprehensive linting..."
+	@if [ -f "$(SCRIPTS_DIR)/lint.sh" ]; then \
+		$(SCRIPTS_DIR)/lint.sh; \
+	else \
+		echo "Error: lint.sh not found. Running basic shellcheck..."; \
+		if command -v shellcheck >/dev/null 2>&1; then \
+			shellcheck $(ALL_SCRIPTS) || exit 1; \
+			echo "Shellcheck passed for all scripts."; \
+		else \
+			echo "Warning: shellcheck not found. Install it for linting."; \
+			echo "  Ubuntu/Debian: sudo apt install shellcheck"; \
+			echo "  macOS: brew install shellcheck"; \
+		fi; \
+	fi
+
+# Run basic shellcheck only
+.PHONY: shellcheck
+shellcheck:
 	@echo "Running shellcheck on $(words $(ALL_SCRIPTS)) shell scripts..."
 	@if command -v shellcheck >/dev/null 2>&1; then \
 		shellcheck $(ALL_SCRIPTS) || exit 1; \
@@ -56,6 +74,16 @@ lint:
 		echo "Warning: shellcheck not found. Install it for linting."; \
 		echo "  Ubuntu/Debian: sudo apt install shellcheck"; \
 		echo "  macOS: brew install shellcheck"; \
+	fi
+
+# Auto-fix linting issues
+.PHONY: lint-fix
+lint-fix:
+	@echo "Auto-fixing linting issues..."
+	@if [ -f "$(SCRIPTS_DIR)/lint.sh" ]; then \
+		$(SCRIPTS_DIR)/lint.sh --fix; \
+	else \
+		echo "Error: lint.sh not found."; \
 	fi
 
 # Run tests
@@ -126,7 +154,9 @@ help:
 	@echo "  build        - Build the upkep.sh script from core modules"
 	@echo "  install      - Install upKep to /usr/local/bin"
 	@echo "  uninstall    - Remove upKep from /usr/local/bin"
-	@echo "  lint         - Run shellcheck on all shell scripts"
+	@echo "  lint         - Run comprehensive linting (line count, shellcheck, yamllint)"
+	@echo "  shellcheck   - Run basic shellcheck only"
+	@echo "  lint-fix     - Auto-fix some linting issues"
 	@echo "  test         - Run unit tests"
 	@echo "  test-visual  - Run visual check tests"
 	@echo "  test-all     - Run all tests"

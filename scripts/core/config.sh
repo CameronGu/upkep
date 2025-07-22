@@ -1,119 +1,75 @@
 #!/bin/bash
+# config.sh - Configuration management for upKep
 
-# upKep Configuration Management
-# Handles YAML-based configuration files for global and module-specific settings
+# Configuration paths
+GLOBAL_CONFIG="$HOME/.upkep/config.yaml"
+MODULE_CONFIG_DIR="$HOME/.upkep/modules"
 
-# Configuration file locations
-CONFIG_DIR="$HOME/.upkep"
-GLOBAL_CONFIG="$CONFIG_DIR/config.yaml"
-MODULE_CONFIG_DIR="$CONFIG_DIR/modules"
-
-# Default configuration values
-DEFAULT_CONFIG="
-global:
-  log_level: info
-  notifications: true
-  dry_run: false
-  parallel_execution: true
-  max_parallel_modules: 4
-
-defaults:
+# Default configuration
+DEFAULT_CONFIG="defaults:
   update_interval: 7
-  cleanup_interval: 3
+  cleanup_interval: 30
   security_interval: 1
 
 logging:
-  file: ~/.upkep/logs/upkep.log
+  level: info
+  file: ~/.upkep/upkep.log
   max_size: 10MB
   max_files: 5
-  format: json
+
+notifications:
+  enabled: true
+
+dry_run: false
+parallel_execution: true
 
 modules:
   apt_update:
     enabled: true
     interval_days: 7
-    description: \"Update APT packages and repositories\"
+    description: Update APT packages and repositories
   snap_update:
     enabled: true
     interval_days: 7
-    description: \"Update Snap packages\"
+    description: Update Snap packages
   flatpak_update:
     enabled: true
     interval_days: 7
-    description: \"Update Flatpak packages\"
+    description: Update Flatpak packages
   cleanup:
     enabled: true
-    interval_days: 3
-    description: \"System cleanup operations\"
-"
+    interval_days: 30
+    description: Perform system cleanup"
 
 # Initialize configuration system
 init_config() {
-    mkdir -p "$CONFIG_DIR" "$MODULE_CONFIG_DIR"
-    
-    if [[ ! -f "$GLOBAL_CONFIG" ]]; then
-        echo "$DEFAULT_CONFIG" > "$GLOBAL_CONFIG"
-        echo "Created default configuration at $GLOBAL_CONFIG"
-    fi
+    # Use secure initialization
+    secure_init_config
 }
 
 # Get global configuration value
 get_global_config() {
     local key="$1"
-    local default_value="${2:-}"
+    local default="$2"
     
     if [[ -f "$GLOBAL_CONFIG" ]]; then
-        # Use yq for proper YAML parsing if available
         if command -v yq >/dev/null 2>&1; then
             local value=$(yq eval ".$key" "$GLOBAL_CONFIG" 2>/dev/null)
-            if [[ -n "$value" && "$value" != "null" ]]; then
+            if [[ "$value" != "null" && -n "$value" ]]; then
                 echo "$value"
-            else
-                echo "$default_value"
+                return 0
             fi
         else
-            # Fallback to simple grep parsing for basic key-value pairs
-            local value=$(grep "^[[:space:]]*$key:" "$GLOBAL_CONFIG" | head -1 | sed 's/.*:[[:space:]]*//')
+            # Fallback to grep if yq is not available
+            local value=$(grep "^[[:space:]]*${key//./[[:space:]]*}: " "$GLOBAL_CONFIG" | sed 's/.*:[[:space:]]*//')
             if [[ -n "$value" ]]; then
                 echo "$value"
-            else
-                echo "$default_value"
+                return 0
             fi
         fi
-    else
-        echo "$default_value"
     fi
-}
-
-# Get module configuration value
-get_module_config() {
-    local module_name="$1"
-    local key="$2"
-    local default_value="${3:-}"
     
-    local module_config="$MODULE_CONFIG_DIR/${module_name}.yaml"
-    
-    if [[ -f "$module_config" ]]; then
-        # Use yq for proper YAML parsing if available
-        if command -v yq >/dev/null 2>&1; then
-            local value=$(yq eval ".$key" "$module_config" 2>/dev/null)
-            if [[ -n "$value" && "$value" != "null" ]]; then
-                echo "$value"
-            else
-                echo "$default_value"
-            fi
-        else
-            # Fallback to simple grep parsing for basic key-value pairs
-            local value=$(grep "^[[:space:]]*$key:" "$module_config" | head -1 | sed 's/.*:[[:space:]]*//')
-            if [[ -n "$value" ]]; then
-                echo "$value"
-            else
-                echo "$default_value"
-            fi
-        fi
-    else
-        echo "$default_value"
-    fi
+    echo "$default"
 }
 
 # Set global configuration value
@@ -121,155 +77,571 @@ set_global_config() {
     local key="$1"
     local value="$2"
     
-    mkdir -p "$CONFIG_DIR"
-    
-    if [[ -f "$GLOBAL_CONFIG" ]]; then
-        # Update existing key or add new one
-        if grep -q "^[[:space:]]*$key:" "$GLOBAL_CONFIG"; then
-            sed -i "s/^[[:space:]]*$key:.*/$key: $value/" "$GLOBAL_CONFIG"
-        else
-            echo "$key: $value" >> "$GLOBAL_CONFIG"
-        fi
-    else
-        echo "$key: $value" > "$GLOBAL_CONFIG"
+    if [[ ! -f "$GLOBAL_CONFIG" ]]; then
+        init_config
     fi
+    
+    if command -v yq >/dev/null 2>&1; then
+        # Escape special characters in the value
+        local escaped_value=$(echo "$value" | sed 's/"/\\"/g')
+        yq eval ".$key = \"$escaped_value\"" -i "$GLOBAL_CONFIG" 2>/dev/null || {
+            # Fallback if yq fails
+            local temp_file=$(mktemp)
+            cp "$GLOBAL_CONFIG" "$temp_file"
+            
+            # Convert dot notation to nested structure
+            local path_parts=(${key//./ })
+            local current_path=""
+            local indent=""
+            
+            for part in "${path_parts[@]}"; do
+                if [[ -z "$current_path" ]]; then
+                    current_path="$part"
+                    indent=""
+                else
+                    current_path="${current_path}.$part"
+                    indent="  $indent"
+                fi
+                
+                # Check if the path exists
+                if ! grep -q "^${indent}${part}:" "$temp_file"; then
+                    # Add the key if it doesn't exist
+                    echo "${indent}${part}:" >> "$temp_file"
+                fi
+            done
+            
+            # Update the value
+            sed -i "s/^${indent}${path_parts[-1]}:[[:space:]]*.*/${indent}${path_parts[-1]}: $escaped_value/" "$temp_file"
+            
+            mv "$temp_file" "$GLOBAL_CONFIG"
+        }
+    else
+        # Fallback to sed if yq is not available
+        local temp_file=$(mktemp)
+        cp "$GLOBAL_CONFIG" "$temp_file"
+        
+        # Convert dot notation to nested structure
+        local path_parts=(${key//./ })
+        local current_path=""
+        local indent=""
+        
+        for part in "${path_parts[@]}"; do
+            if [[ -z "$current_path" ]]; then
+                current_path="$part"
+                indent=""
+            else
+                current_path="${current_path}.$part"
+                indent="  $indent"
+            fi
+            
+            # Check if the path exists
+            if ! grep -q "^${indent}${part}:" "$temp_file"; then
+                # Add the key if it doesn't exist
+                echo "${indent}${part}:" >> "$temp_file"
+            fi
+        done
+        
+        # Update the value
+        sed -i "s/^${indent}${path_parts[-1]}:[[:space:]]*.*/${indent}${path_parts[-1]}: $value/" "$temp_file"
+        
+        mv "$temp_file" "$GLOBAL_CONFIG"
+    fi
+}
+
+# Get module configuration value
+get_module_config() {
+    local module="$1"
+    local key="$2"
+    local default="$3"
+    
+    local module_config="$MODULE_CONFIG_DIR/${module}.yaml"
+    
+    if [[ -f "$module_config" ]]; then
+        if command -v yq >/dev/null 2>&1; then
+            local value=$(yq eval ".$key" "$module_config" 2>/dev/null)
+            if [[ "$value" != "null" && -n "$value" ]]; then
+                echo "$value"
+                return 0
+            fi
+        else
+            # Fallback to grep if yq is not available
+            local value=$(grep "^[[:space:]]*${key}:[[:space:]]*" "$module_config" | sed 's/.*:[[:space:]]*//')
+            if [[ -n "$value" ]]; then
+                echo "$value"
+                return 0
+            fi
+        fi
+    fi
+    
+    echo "$default"
 }
 
 # Set module configuration value
 set_module_config() {
-    local module_name="$1"
+    local module="$1"
     local key="$2"
     local value="$3"
     
+    local module_config="$MODULE_CONFIG_DIR/${module}.yaml"
+    
+    # Create module config directory if it doesn't exist
     mkdir -p "$MODULE_CONFIG_DIR"
-    local module_config="$MODULE_CONFIG_DIR/${module_name}.yaml"
+    chmod 700 "$MODULE_CONFIG_DIR"
     
-    if [[ -f "$module_config" ]]; then
-        if grep -q "^[[:space:]]*$key:" "$module_config"; then
-            sed -i "s/^[[:space:]]*$key:.*/$key: $value/" "$module_config"
-        else
-            echo "$key: $value" >> "$module_config"
-        fi
+    # Create module config file if it doesn't exist
+    if [[ ! -f "$module_config" ]]; then
+        local default_content="enabled: true
+interval_days: 7
+description: \"\""
+        secure_file_create "$module_config" "$default_content" "600"
+    fi
+    
+    if command -v yq >/dev/null 2>&1; then
+        yq eval ".$key = \"$value\"" -i "$module_config"
     else
-        echo "$key: $value" > "$module_config"
-    fi
-}
-
-# Validate configuration
-validate_config() {
-    local config_file="$1"
-    
-    if [[ ! -f "$config_file" ]]; then
-        echo "Configuration file not found: $config_file"
-        return 1
-    fi
-    
-    # Basic YAML syntax validation
-    if command -v yamllint >/dev/null 2>&1; then
-        yamllint "$config_file" >/dev/null 2>&1
-        if [[ $? -ne 0 ]]; then
-            echo "YAML syntax error in configuration file: $config_file"
-            return 1
+        # Fallback to sed if yq is not available
+        local temp_file=$(mktemp)
+        cp "$module_config" "$temp_file"
+        
+        # Update the value
+        if grep -q "^[[:space:]]*${key}:" "$temp_file"; then
+            sed -i "s/^[[:space:]]*${key}:[[:space:]]*.*/  ${key}: $value/" "$temp_file"
+        else
+            echo "  ${key}: $value" >> "$temp_file"
         fi
+        
+        mv "$temp_file" "$module_config"
     fi
-    
-    return 0
 }
 
 # Show configuration
 show_config() {
-    local config_type="${1:-global}"
+    local config_type="$1"
     
     case "$config_type" in
         "global")
+            echo "Global Configuration:"
+            echo "==================="
             if [[ -f "$GLOBAL_CONFIG" ]]; then
-                echo "Global Configuration ($GLOBAL_CONFIG):"
                 cat "$GLOBAL_CONFIG"
             else
-                echo "Global configuration file not found"
+                echo "No global configuration file found."
             fi
             ;;
         "modules")
             echo "Module Configurations:"
+            echo "====================="
             if [[ -d "$MODULE_CONFIG_DIR" ]]; then
-                for config_file in "$MODULE_CONFIG_DIR"/*.yaml; do
-                    if [[ -f "$config_file" ]]; then
-                        local module_name=$(basename "$config_file" .yaml)
-                        echo "  $module_name:"
-                        cat "$config_file" | sed 's/^/    /'
+                for module_file in "$MODULE_CONFIG_DIR"/*.yaml; do
+                    if [[ -f "$module_file" ]]; then
+                        local module_name=$(basename "$module_file" .yaml)
+                        echo "Module: $module_name"
+                        echo "----------------"
+                        cat "$module_file"
+                        echo ""
                     fi
                 done
+            else
+                echo "No module configuration directory found."
             fi
             ;;
         *)
             echo "Unknown configuration type: $config_type"
-            echo "Available types: global, modules"
             ;;
     esac
 }
 
-# Export configuration for external tools
-export_config() {
-    local format="${1:-json}"
-    local output_file="${2:-}"
+# =============================================================================
+# SECURE SETTINGS HANDLING
+# =============================================================================
+
+# Secure file creation with proper permissions
+secure_file_create() {
+    local file_path="$1"
+    local content="$2"
+    local permissions="${3:-600}"
     
-    case "$format" in
-        "json")
-            # Convert YAML to JSON (requires yq or similar tool)
-            if command -v yq >/dev/null 2>&1; then
-                local json_data=$(yq eval -o=json "$GLOBAL_CONFIG" 2>/dev/null)
-                if [[ -n "$output_file" ]]; then
-                    echo "$json_data" > "$output_file"
-                else
-                    echo "$json_data"
-                fi
-            else
-                echo "yq not found. Install yq for JSON export support."
-                return 1
+    # Create directory if it doesn't exist
+    local dir_path=$(dirname "$file_path")
+    if [[ ! -d "$dir_path" ]]; then
+        mkdir -p "$dir_path"
+        chmod 700 "$dir_path"
+    fi
+    
+    # Create file with atomic write
+    local temp_file=$(mktemp)
+    echo "$content" > "$temp_file"
+    
+    # Set permissions and move atomically
+    chmod "$permissions" "$temp_file"
+    mv "$temp_file" "$file_path"
+    
+    echo "Created secure file: $file_path (permissions: $permissions)"
+}
+
+# Validate file permissions
+validate_file_permissions() {
+    local file_path="$1"
+    local expected_permissions="${2:-600}"
+    
+    if [[ ! -f "$file_path" ]]; then
+        echo "File does not exist: $file_path"
+        return 1
+    fi
+    
+    local current_permissions=$(stat -c "%a" "$file_path")
+    if [[ "$current_permissions" != "$expected_permissions" ]]; then
+        echo "WARNING: Incorrect permissions on $file_path (current: $current_permissions, expected: $expected_permissions)"
+        return 1
+    fi
+    
+    echo "Permissions OK: $file_path ($current_permissions)"
+    return 0
+}
+
+# Repair file permissions
+repair_permissions() {
+    local file_path="$1"
+    local expected_permissions="${2:-600}"
+    
+    if [[ ! -f "$file_path" ]]; then
+        echo "File does not exist: $file_path"
+        return 1
+    fi
+    
+    local current_permissions=$(stat -c "%a" "$file_path")
+    if [[ "$current_permissions" != "$expected_permissions" ]]; then
+        echo "Repairing permissions on $file_path (from $current_permissions to $expected_permissions)"
+        chmod "$expected_permissions" "$file_path"
+        return 0
+    fi
+    
+    echo "Permissions already correct: $file_path ($current_permissions)"
+    return 0
+}
+
+# Validate and repair all configuration files
+validate_all_config_permissions() {
+    echo "Validating configuration file permissions..."
+    
+    local issues_found=0
+    
+    # Check global config
+    if [[ -f "$GLOBAL_CONFIG" ]]; then
+        if ! validate_file_permissions "$GLOBAL_CONFIG" "600"; then
+            repair_permissions "$GLOBAL_CONFIG" "600"
+            ((issues_found++))
+        fi
+    fi
+    
+    # Check module configs
+    if [[ -d "$MODULE_CONFIG_DIR" ]]; then
+        find "$MODULE_CONFIG_DIR" -name "*.yaml" -type f 2>/dev/null | while read -r module_file; do
+            if ! validate_file_permissions "$module_file" "600"; then
+                repair_permissions "$module_file" "600"
+                ((issues_found++))
             fi
-            ;;
-        "yaml")
-            if [[ -n "$output_file" ]]; then
-                cp "$GLOBAL_CONFIG" "$output_file"
-            else
-                cat "$GLOBAL_CONFIG"
+        done
+    fi
+    
+    # Check directory permissions
+    if [[ -d "$HOME/.upkep" ]]; then
+        local dir_perms=$(stat -c "%a" "$HOME/.upkep")
+        if [[ "$dir_perms" != "700" ]]; then
+            echo "Repairing directory permissions on $HOME/.upkep (from $dir_perms to 700)"
+            chmod 700 "$HOME/.upkep"
+            ((issues_found++))
+        fi
+    fi
+    
+    if [[ -d "$MODULE_CONFIG_DIR" ]]; then
+        local module_dir_perms=$(stat -c "%a" "$MODULE_CONFIG_DIR")
+        if [[ "$module_dir_perms" != "700" ]]; then
+            echo "Repairing directory permissions on $MODULE_CONFIG_DIR (from $module_dir_perms to 700)"
+            chmod 700 "$MODULE_CONFIG_DIR"
+            ((issues_found++))
+        fi
+    fi
+    
+    if [[ $issues_found -eq 0 ]]; then
+        echo "All configuration permissions are secure."
+    else
+        echo "Repaired $issues_found permission issues."
+    fi
+    
+    return $issues_found
+}
+
+# =============================================================================
+# CONFIGURATION VALIDATION
+# =============================================================================
+
+# Validate configuration schema
+validate_config_schema() {
+    local config_file="$1"
+    local issues_found=0
+    
+    if [[ ! -f "$config_file" ]]; then
+        echo "ERROR: Configuration file not found: $config_file"
+        return 1
+    fi
+    
+    # Check if yamllint is available for YAML validation
+    if command -v yamllint >/dev/null 2>&1; then
+        if ! yamllint "$config_file" >/dev/null 2>&1; then
+            echo "WARNING: YAML syntax issues found in $config_file"
+            ((issues_found++))
+        fi
+    fi
+    
+    # Basic structure validation
+    local required_sections=("defaults" "logging" "notifications" "modules")
+    for section in "${required_sections[@]}"; do
+        if ! grep -q "^${section}:" "$config_file"; then
+            echo "WARNING: Missing required section '$section' in $config_file"
+            ((issues_found++))
+        fi
+    done
+    
+    # Validate critical values
+    local update_interval=$(get_global_config "defaults.update_interval" "")
+    if [[ -n "$update_interval" ]] && ! [[ "$update_interval" =~ ^[0-9]+$ ]]; then
+        echo "WARNING: Invalid update_interval value: $update_interval (should be a number)"
+        ((issues_found++))
+    fi
+    
+    local cleanup_interval=$(get_global_config "defaults.cleanup_interval" "")
+    if [[ -n "$cleanup_interval" ]] && ! [[ "$cleanup_interval" =~ ^[0-9]+$ ]]; then
+        echo "WARNING: Invalid cleanup_interval value: $cleanup_interval (should be a number)"
+        ((issues_found++))
+    fi
+    
+    if [[ $issues_found -eq 0 ]]; then
+        echo "Configuration validation passed: $config_file"
+        return 0
+    else
+        echo "Configuration validation found $issues_found issue(s): $config_file"
+        return 1
+    fi
+}
+
+# Validate module configurations
+validate_module_configs() {
+    local issues_found=0
+    
+    if [[ ! -d "$MODULE_CONFIG_DIR" ]]; then
+        return 0
+    fi
+    
+    find "$MODULE_CONFIG_DIR" -name "*.yaml" -type f 2>/dev/null | while read -r module_file; do
+        local module_name=$(basename "$module_file" .yaml)
+        
+        # Check if yamllint is available
+        if command -v yamllint >/dev/null 2>&1; then
+            if ! yamllint "$module_file" >/dev/null 2>&1; then
+                echo "WARNING: YAML syntax issues in module config: $module_name"
+                ((issues_found++))
             fi
-            ;;
-        *)
-            echo "Unsupported format: $format"
-            echo "Supported formats: json, yaml"
+        fi
+        
+        # Validate module-specific values
+        local enabled=$(get_module_config "$module_name" "enabled" "")
+        if [[ -n "$enabled" ]] && [[ "$enabled" != "true" ]] && [[ "$enabled" != "false" ]]; then
+            echo "WARNING: Invalid 'enabled' value in $module_name: $enabled (should be true/false)"
+            ((issues_found++))
+        fi
+        
+        local interval=$(get_module_config "$module_name" "interval_days" "")
+        if [[ -n "$interval" ]] && ! [[ "$interval" =~ ^[0-9]+$ ]]; then
+            echo "WARNING: Invalid 'interval_days' value in $module_name: $interval (should be a number)"
+            ((issues_found++))
+        fi
+    done
+    
+    if [[ $issues_found -eq 0 ]]; then
+        echo "Module configuration validation passed"
+        return 0
+    else
+        echo "Module configuration validation found $issues_found issue(s)"
+        return 1
+    fi
+}
+
+# =============================================================================
+# BACKUP AND RESTORE
+# =============================================================================
+
+# Backup configuration with timestamp
+backup_config() {
+    local backup_dir="$HOME/.upkep/backups"
+    local timestamp=$(date +"%Y%m%d_%H%M%S")
+    local backup_file="$backup_dir/config_backup_$timestamp.tar.gz"
+    
+    # Create backup directory if it doesn't exist
+    mkdir -p "$backup_dir"
+    chmod 700 "$backup_dir"
+    
+    # Create backup
+    if [[ -f "$GLOBAL_CONFIG" ]] || [[ -d "$MODULE_CONFIG_DIR" ]]; then
+        tar -czf "$backup_file" -C "$HOME/.upkep" config.yaml modules/ 2>/dev/null
+        if [[ $? -eq 0 ]]; then
+            echo "Configuration backed up to: $backup_file"
+            
+            # Rotate old backups (keep last 5)
+            local backup_count=$(find "$backup_dir" -name "config_backup_*.tar.gz" | wc -l)
+            if [[ $backup_count -gt 5 ]]; then
+                find "$backup_dir" -name "config_backup_*.tar.gz" -printf '%T@ %p\n' | sort -n | head -n $((backup_count - 5)) | cut -d' ' -f2- | xargs rm -f
+                echo "Rotated old backups (kept last 5)"
+            fi
+        else
+            echo "ERROR: Failed to create backup"
             return 1
-            ;;
-    esac
-} 
+        fi
+    else
+        echo "No configuration files to backup"
+    fi
+}
+
+# Restore configuration from backup
+restore_config() {
+    local backup_file="$1"
+    
+    if [[ ! -f "$backup_file" ]]; then
+        echo "ERROR: Backup file not found: $backup_file"
+        return 1
+    fi
+    
+    # Validate backup file
+    if ! tar -tzf "$backup_file" >/dev/null 2>&1; then
+        echo "ERROR: Invalid backup file: $backup_file"
+        return 1
+    fi
+    
+    # Create temporary directory for extraction
+    local temp_dir=$(mktemp -d)
+    
+    # Extract backup
+    tar -xzf "$backup_file" -C "$temp_dir" 2>/dev/null
+    if [[ $? -ne 0 ]]; then
+        echo "ERROR: Failed to extract backup"
+        rm -rf "$temp_dir"
+        return 1
+    fi
+    
+    # Validate extracted configuration
+    if [[ -f "$temp_dir/config.yaml" ]]; then
+        if ! validate_config_schema "$temp_dir/config.yaml"; then
+            echo "ERROR: Backup contains invalid configuration"
+            rm -rf "$temp_dir"
+            return 1
+        fi
+    fi
+    
+    # Create backup of current config before restoration
+    backup_config
+    
+    # Restore configuration
+    if [[ -f "$temp_dir/config.yaml" ]]; then
+        cp "$temp_dir/config.yaml" "$GLOBAL_CONFIG"
+        chmod 600 "$GLOBAL_CONFIG"
+    fi
+    
+    if [[ -d "$temp_dir/modules" ]]; then
+        rm -rf "$MODULE_CONFIG_DIR"
+        cp -r "$temp_dir/modules" "$MODULE_CONFIG_DIR"
+        chmod 700 "$MODULE_CONFIG_DIR"
+        find "$MODULE_CONFIG_DIR" -name "*.yaml" -exec chmod 600 {} \;
+    fi
+    
+    # Clean up
+    rm -rf "$temp_dir"
+    
+    echo "Configuration restored from: $backup_file"
+    echo "Previous configuration backed up automatically"
+}
+
+# List available backups
+list_backups() {
+    local backup_dir="$HOME/.upkep/backups"
+    
+    if [[ ! -d "$backup_dir" ]]; then
+        echo "No backups found"
+        return 0
+    fi
+    
+    local backups=$(find "$backup_dir" -name "config_backup_*.tar.gz" -printf '%T@ %p\n' | sort -n)
+    
+    if [[ -z "$backups" ]]; then
+        echo "No backups found"
+        return 0
+    fi
+    
+    echo "Available backups:"
+    echo "=================="
+    echo "$backups" | while read -r timestamp file; do
+        local date_str=$(date -d "@$timestamp" "+%Y-%m-%d %H:%M:%S")
+        local size=$(du -h "$file" | cut -f1)
+        echo "$date_str - $size - $(basename "$file")"
+    done
+}
+
+# Secure initialization with permission validation
+secure_init_config() {
+    echo "Initializing secure configuration system..."
+    
+    # Create configuration directory with secure permissions
+    mkdir -p "$HOME/.upkep"
+    chmod 700 "$HOME/.upkep"
+    
+    mkdir -p "$MODULE_CONFIG_DIR"
+    chmod 700 "$MODULE_CONFIG_DIR"
+    
+    # Create default global config if it doesn't exist
+    if [[ ! -f "$GLOBAL_CONFIG" ]]; then
+        secure_file_create "$GLOBAL_CONFIG" "$DEFAULT_CONFIG" "600"
+        echo "Created secure default configuration at $GLOBAL_CONFIG"
+    else
+        # Validate existing config permissions
+        validate_file_permissions "$GLOBAL_CONFIG" "600"
+        
+        # Validate configuration schema
+        echo "Validating configuration schema..."
+        validate_config_schema "$GLOBAL_CONFIG"
+    fi
+    
+    # Validate module configurations
+    echo "Validating module configurations..."
+    validate_module_configs
+    
+    # Validate all permissions
+    validate_all_config_permissions
+    
+    # Create initial backup if config exists
+    if [[ -f "$GLOBAL_CONFIG" ]] || [[ -d "$MODULE_CONFIG_DIR" ]]; then
+        echo "Creating initial configuration backup..."
+        backup_config
+    fi
+    
+    echo "Secure configuration system initialized."
+}
+
+# =============================================================================
+# INTERACTIVE CONFIGURATION MANAGEMENT
+# =============================================================================
 
 # Interactive configuration management
 interactive_config() {
     local config_type="${1:-global}"
     
-    # Check for dialog or whiptail
-    local dialog_cmd=""
-    if command -v dialog >/dev/null 2>&1; then
-        dialog_cmd="dialog"
-    elif command -v whiptail >/dev/null 2>&1; then
-        dialog_cmd="whiptail"
-    else
-        echo "Error: Neither dialog nor whiptail is installed."
-        echo "Please install one of them to use interactive configuration."
-        echo "  Ubuntu/Debian: sudo apt install dialog"
-        echo "  CentOS/RHEL: sudo yum install dialog"
-        return 1
-    fi
-    
     case "$config_type" in
         "global")
-            interactive_global_config "$dialog_cmd"
+            interactive_global_config_simple
             ;;
         "modules")
-            interactive_module_config "$dialog_cmd"
+            interactive_module_config_simple
             ;;
         "setup")
-            interactive_setup_wizard "$dialog_cmd"
+            interactive_setup_wizard_simple
             ;;
         *)
             echo "Unknown configuration type: $config_type"
@@ -279,400 +651,389 @@ interactive_config() {
     esac
 }
 
-interactive_global_config() {
-    local dialog_cmd="$1"
-    local temp_file=$(mktemp)
-    
-    # Create a temporary config file for editing
-    if [[ -f "$GLOBAL_CONFIG" ]]; then
-        cp "$GLOBAL_CONFIG" "$temp_file"
-    else
-        echo "$DEFAULT_CONFIG" > "$temp_file"
-    fi
+# Simple text-based global configuration
+interactive_global_config_simple() {
+    echo "=== upKep Global Configuration ==="
+    echo ""
     
     while true; do
-        # Show current config and options
-        local choice=$($dialog_cmd --title "upKep Global Configuration" \
-            --menu "Select an option:" 10 45 8 \
-            "1" "Edit update intervals" \
-            "2" "Edit logging settings" \
-            "3" "Edit global settings" \
-            "4" "View current config" \
-            "5" "Reset to defaults" \
-            "6" "Save and exit" \
-            "7" "Exit without saving" 3>&1 1>&2 2>&3)
+        echo "Current configuration:"
+        echo "1. Update interval: $(get_global_config "defaults.update_interval" "7") days"
+        echo "2. Cleanup interval: $(get_global_config "defaults.cleanup_interval" "30") days"
+        echo "3. Security interval: $(get_global_config "defaults.security_interval" "1") days"
+        echo "4. Log level: $(get_global_config "logging.level" "info")"
+        echo "5. Notifications: $(get_global_config "notifications.enabled" "true")"
+        echo "6. Dry run mode: $(get_global_config "dry_run" "false")"
+        echo "7. Parallel execution: $(get_global_config "parallel_execution" "true")"
+        echo ""
+        echo "Options:"
+        echo "a) Edit update intervals"
+        echo "b) Edit logging settings"
+        echo "c) Edit global settings"
+        echo "v) View current config file"
+        echo "r) Reset to defaults"
+        echo "s) Save and exit"
+        echo "q) Quit without saving"
+        echo ""
+        read -p "Select option: " choice
         
         case $choice in
-            "1")
-                edit_update_intervals "$dialog_cmd" "$temp_file"
+            a|A)
+                edit_update_intervals_simple
                 ;;
-            "2")
-                edit_logging_settings "$dialog_cmd" "$temp_file"
+            b|B)
+                edit_logging_settings_simple
                 ;;
-            "3")
-                edit_global_settings "$dialog_cmd" "$temp_file"
+            c|C)
+                edit_global_settings_simple
                 ;;
-            "4")
-                view_config_file "$dialog_cmd" "$temp_file"
+            v|V)
+                view_config_file_simple
                 ;;
-            "5")
-                reset_to_defaults "$dialog_cmd" "$temp_file"
+            r|R)
+                reset_to_defaults_simple
                 ;;
-            "6")
-                cp "$temp_file" "$GLOBAL_CONFIG"
-                $dialog_cmd --title "Success" --msgbox "Configuration saved successfully!" 8 40
-                rm "$temp_file"
-                return 0
+            s|S)
+                echo "Configuration saved."
+                break
                 ;;
-            "7")
-                rm "$temp_file"
-                return 0
+            q|Q)
+                echo "Exiting without saving changes."
+                break
                 ;;
             *)
-                rm "$temp_file"
-                return 1
+                echo "Invalid option. Please try again."
                 ;;
         esac
+        echo ""
     done
 }
 
-edit_update_intervals() {
-    local dialog_cmd="$1"
-    local config_file="$2"
+# Simple text-based update intervals editor
+edit_update_intervals_simple() {
+    echo "=== Edit Update Intervals ==="
+    echo ""
     
-    # Get current values
     local update_interval=$(get_global_config "defaults.update_interval" "7")
-    local cleanup_interval=$(get_global_config "defaults.cleanup_interval" "3")
+    local cleanup_interval=$(get_global_config "defaults.cleanup_interval" "30")
     local security_interval=$(get_global_config "defaults.security_interval" "1")
     
-    # Create form for editing
-    local form_output=$($dialog_cmd --title "Update Intervals" \
-        --form "Edit update intervals (in days):" 8 45 0 \
-        "Update interval:" 1 1 "$update_interval" 1 20 8 0 \
-        "Cleanup interval:" 2 1 "$cleanup_interval" 2 20 8 0 \
-        "Security interval:" 3 1 "$security_interval" 3 20 8 0 3>&1 1>&2 2>&3)
+    echo "Current intervals:"
+    echo "1. Update interval: $update_interval days"
+    echo "2. Cleanup interval: $cleanup_interval days"
+    echo "3. Security interval: $security_interval days"
+    echo ""
     
-    if [[ $? -eq 0 ]]; then
-        # Parse form output
-        local new_update_interval=$(echo "$form_output" | head -1)
-        local new_cleanup_interval=$(echo "$form_output" | head -2 | tail -1)
-        local new_security_interval=$(echo "$form_output" | tail -1)
-        
-        # Update config file
-        if command -v yq >/dev/null 2>&1; then
-            yq eval ".defaults.update_interval = $new_update_interval" -i "$config_file"
-            yq eval ".defaults.cleanup_interval = $new_cleanup_interval" -i "$config_file"
-            yq eval ".defaults.security_interval = $new_security_interval" -i "$config_file"
+    read -p "Enter new update interval (days) [$update_interval]: " new_update
+    if [[ -n "$new_update" ]]; then
+        if [[ "$new_update" =~ ^[0-9]+$ ]] && [[ "$new_update" -ge 1 ]]; then
+            set_global_config "defaults.update_interval" "$new_update"
+            update_interval="$new_update"
+            echo "Update interval set to $new_update days"
         else
-            # Fallback to sed for simple updates
-            sed -i "s/update_interval:.*/update_interval: $new_update_interval/" "$config_file"
-            sed -i "s/cleanup_interval:.*/cleanup_interval: $new_cleanup_interval/" "$config_file"
-            sed -i "s/security_interval:.*/security_interval: $new_security_interval/" "$config_file"
+            echo "Invalid value. Must be a positive number."
         fi
-        
-        $dialog_cmd --title "Success" --msgbox "Update intervals updated successfully!" 8 40
     fi
-}
-
-edit_logging_settings() {
-    local dialog_cmd="$1"
-    local config_file="$2"
     
-    # Get current values
-    local log_file=$(get_global_config "logging.file" "~/.upkep/logs/upkep.log")
-    local max_size=$(get_global_config "logging.max_size" "10MB")
-    local max_files=$(get_global_config "logging.max_files" "5")
-    local format=$(get_global_config "logging.format" "json")
-    
-    # Create form for editing
-    local form_output=$($dialog_cmd --title "Logging Settings" \
-        --form "Edit logging settings:" 8 50 0 \
-        "Log file:" 1 1 "$log_file" 1 20 20 0 \
-        "Max size:" 2 1 "$max_size" 2 20 8 0 \
-        "Max files:" 3 1 "$max_files" 3 20 8 0 \
-        "Format:" 4 1 "$format" 4 20 8 0 3>&1 1>&2 2>&3)
-    
-    if [[ $? -eq 0 ]]; then
-        # Parse form output
-        local new_log_file=$(echo "$form_output" | head -1)
-        local new_max_size=$(echo "$form_output" | head -2 | tail -1)
-        local new_max_files=$(echo "$form_output" | head -3 | tail -1)
-        local new_format=$(echo "$form_output" | tail -1)
-        
-        # Update config file
-        if command -v yq >/dev/null 2>&1; then
-            yq eval ".logging.file = \"$new_log_file\"" -i "$config_file"
-            yq eval ".logging.max_size = \"$new_max_size\"" -i "$config_file"
-            yq eval ".logging.max_files = $new_max_files" -i "$config_file"
-            yq eval ".logging.format = \"$new_format\"" -i "$config_file"
+    read -p "Enter new cleanup interval (days) [$cleanup_interval]: " new_cleanup
+    if [[ -n "$new_cleanup" ]]; then
+        if [[ "$new_cleanup" =~ ^[0-9]+$ ]] && [[ "$new_cleanup" -ge 1 ]]; then
+            set_global_config "defaults.cleanup_interval" "$new_cleanup"
+            cleanup_interval="$new_cleanup"
+            echo "Cleanup interval set to $new_cleanup days"
         else
-            # Fallback to sed for simple updates
-            sed -i "s|file:.*|file: $new_log_file|" "$config_file"
-            sed -i "s/max_size:.*/max_size: $new_max_size/" "$config_file"
-            sed -i "s/max_files:.*/max_files: $new_max_files/" "$config_file"
-            sed -i "s/format:.*/format: $new_format/" "$config_file"
+            echo "Invalid value. Must be a positive number."
         fi
-        
-        $dialog_cmd --title "Success" --msgbox "Logging settings updated successfully!" 8 40
     fi
-}
-
-edit_global_settings() {
-    local dialog_cmd="$1"
-    local config_file="$2"
     
-    # Get current values
-    local log_level=$(get_global_config "global.log_level" "info")
-    local notifications=$(get_global_config "global.notifications" "true")
-    local dry_run=$(get_global_config "global.dry_run" "false")
-    local parallel_execution=$(get_global_config "global.parallel_execution" "true")
-    local max_parallel_modules=$(get_global_config "global.max_parallel_modules" "4")
-    
-    # Create form for editing
-    local form_output=$($dialog_cmd --title "Global Settings" \
-        --form "Edit global settings:" 8 50 0 \
-        "Log level:" 1 1 "$log_level" 1 20 8 0 \
-        "Notifications:" 2 1 "$notifications" 2 20 8 0 \
-        "Dry run:" 3 1 "$dry_run" 3 20 8 0 \
-        "Parallel execution:" 4 1 "$parallel_execution" 4 20 8 0 \
-        "Max parallel modules:" 5 1 "$max_parallel_modules" 5 20 8 0 3>&1 1>&2 2>&3)
-    
-    if [[ $? -eq 0 ]]; then
-        # Parse form output
-        local new_log_level=$(echo "$form_output" | head -1)
-        local new_notifications=$(echo "$form_output" | head -2 | tail -1)
-        local new_dry_run=$(echo "$form_output" | head -3 | tail -1)
-        local new_parallel_execution=$(echo "$form_output" | head -4 | tail -1)
-        local new_max_parallel_modules=$(echo "$form_output" | tail -1)
-        
-        # Update config file
-        if command -v yq >/dev/null 2>&1; then
-            yq eval ".global.log_level = \"$new_log_level\"" -i "$config_file"
-            yq eval ".global.notifications = $new_notifications" -i "$config_file"
-            yq eval ".global.dry_run = $new_dry_run" -i "$config_file"
-            yq eval ".global.parallel_execution = $new_parallel_execution" -i "$config_file"
-            yq eval ".global.max_parallel_modules = $new_max_parallel_modules" -i "$config_file"
+    read -p "Enter new security interval (days) [$security_interval]: " new_security
+    if [[ -n "$new_security" ]]; then
+        if [[ "$new_security" =~ ^[0-9]+$ ]] && [[ "$new_security" -ge 1 ]]; then
+            set_global_config "defaults.security_interval" "$new_security"
+            security_interval="$new_security"
+            echo "Security interval set to $new_security days"
         else
-            # Fallback to sed for simple updates
-            sed -i "s/log_level:.*/log_level: $new_log_level/" "$config_file"
-            sed -i "s/notifications:.*/notifications: $new_notifications/" "$config_file"
-            sed -i "s/dry_run:.*/dry_run: $new_dry_run/" "$config_file"
-            sed -i "s/parallel_execution:.*/parallel_execution: $new_parallel_execution/" "$config_file"
-            sed -i "s/max_parallel_modules:.*/max_parallel_modules: $new_max_parallel_modules/" "$config_file"
+            echo "Invalid value. Must be a positive number."
         fi
-        
-        $dialog_cmd --title "Success" --msgbox "Global settings updated successfully!" 8 40
     fi
+    
+    echo "Intervals updated successfully!"
+    echo ""
 }
 
-view_config_file() {
-    local dialog_cmd="$1"
-    local config_file="$2"
+# Simple text-based logging settings editor
+edit_logging_settings_simple() {
+    echo "=== Edit Logging Settings ==="
+    echo ""
     
-    $dialog_cmd --title "Current Configuration" \
-        --scrolltext --textbox "$config_file" 20 70
-}
-
-reset_to_defaults() {
-    local dialog_cmd="$1"
-    local config_file="$2"
+    local log_level=$(get_global_config "logging.level" "info")
+    local log_file=$(get_global_config "logging.file" "~/.upkep/upkep.log")
+    local max_log_size=$(get_global_config "logging.max_size" "10MB")
+    local max_log_files=$(get_global_config "logging.max_files" "5")
     
-    $dialog_cmd --title "Reset to Defaults" \
-        --yesno "Are you sure you want to reset the configuration to defaults? This will overwrite all current settings." 8 60
+    echo "Current logging settings:"
+    echo "1. Log level: $log_level"
+    echo "2. Log file: $log_file"
+    echo "3. Max log size: $max_log_size"
+    echo "4. Max log files: $max_log_files"
+    echo ""
     
-    if [[ $? -eq 0 ]]; then
-        echo "$DEFAULT_CONFIG" > "$config_file"
-        $dialog_cmd --title "Success" --msgbox "Configuration reset to defaults successfully!" 8 40
+    echo "Available log levels: debug, info, warn, error"
+    read -p "Enter new log level [$log_level]: " new_level
+    if [[ -n "$new_level" ]]; then
+        if [[ "$new_level" =~ ^(debug|info|warn|error)$ ]]; then
+            set_global_config "logging.level" "$new_level"
+            log_level="$new_level"
+            echo "Log level set to $new_level"
+        else
+            echo "Invalid log level. Must be debug, info, warn, or error."
+        fi
     fi
+    
+    read -p "Enter log file path [$log_file]: " new_file
+    if [[ -n "$new_file" ]]; then
+        set_global_config "logging.file" "$new_file"
+        log_file="$new_file"
+        echo "Log file set to $new_file"
+    fi
+    
+    read -p "Enter max log size (e.g., 10MB) [$max_log_size]: " new_size
+    if [[ -n "$new_size" ]]; then
+        set_global_config "logging.max_size" "$new_size"
+        max_log_size="$new_size"
+        echo "Max log size set to $new_size"
+    fi
+    
+    read -p "Enter max log files (1-10) [$max_log_files]: " new_files
+    if [[ -n "$new_files" ]]; then
+        if [[ "$new_files" =~ ^[0-9]+$ ]] && [[ "$new_files" -ge 1 ]] && [[ "$new_files" -le 10 ]]; then
+            set_global_config "logging.max_files" "$new_files"
+            max_log_files="$new_files"
+            echo "Max log files set to $new_files"
+        else
+            echo "Invalid value. Must be 1-10."
+        fi
+    fi
+    
+    echo "Logging settings updated successfully!"
+    echo ""
 }
 
-interactive_module_config() {
-    local dialog_cmd="$1"
+# Simple text-based global settings editor
+edit_global_settings_simple() {
+    echo "=== Edit Global Settings ==="
+    echo ""
+    
+    local notifications=$(get_global_config "notifications.enabled" "true")
+    local dry_run=$(get_global_config "dry_run" "false")
+    local parallel=$(get_global_config "parallel_execution" "true")
+    
+    echo "Current global settings:"
+    echo "1. Notifications: $notifications"
+    echo "2. Dry run mode: $dry_run"
+    echo "3. Parallel execution: $parallel"
+    echo ""
+    
+    read -p "Enable notifications? (y/n) [${notifications:0:1}]: " new_notifications
+    if [[ -n "$new_notifications" ]]; then
+        if [[ "$new_notifications" =~ ^[Yy]$ ]]; then
+            set_global_config "notifications.enabled" "true"
+            notifications="true"
+            echo "Notifications enabled"
+        elif [[ "$new_notifications" =~ ^[Nn]$ ]]; then
+            set_global_config "notifications.enabled" "false"
+            notifications="false"
+            echo "Notifications disabled"
+        else
+            echo "Invalid input. Please enter y or n."
+        fi
+    fi
+    
+    read -p "Enable dry run mode? (y/n) [${dry_run:0:1}]: " new_dry_run
+    if [[ -n "$new_dry_run" ]]; then
+        if [[ "$new_dry_run" =~ ^[Yy]$ ]]; then
+            set_global_config "dry_run" "true"
+            dry_run="true"
+            echo "Dry run mode enabled"
+        elif [[ "$new_dry_run" =~ ^[Nn]$ ]]; then
+            set_global_config "dry_run" "false"
+            dry_run="false"
+            echo "Dry run mode disabled"
+        else
+            echo "Invalid input. Please enter y or n."
+        fi
+    fi
+    
+    read -p "Enable parallel execution? (y/n) [${parallel:0:1}]: " new_parallel
+    if [[ -n "$new_parallel" ]]; then
+        if [[ "$new_parallel" =~ ^[Yy]$ ]]; then
+            set_global_config "parallel_execution" "true"
+            parallel="true"
+            echo "Parallel execution enabled"
+        elif [[ "$new_parallel" =~ ^[Nn]$ ]]; then
+            set_global_config "parallel_execution" "false"
+            parallel="false"
+            echo "Parallel execution disabled"
+        else
+            echo "Invalid input. Please enter y or n."
+        fi
+    fi
+    
+    echo "Global settings updated successfully!"
+    echo ""
+}
+
+# Simple text-based config file viewer
+view_config_file_simple() {
+    echo "=== Current Configuration File ==="
+    echo ""
+    if [[ -f "$GLOBAL_CONFIG" ]]; then
+        cat "$GLOBAL_CONFIG"
+    else
+        echo "No configuration file found. Using defaults."
+    fi
+    echo ""
+    read -p "Press Enter to continue..."
+}
+
+# Simple text-based reset to defaults
+reset_to_defaults_simple() {
+    echo "=== Reset to Defaults ==="
+    echo ""
+    echo "This will reset all configuration to default values."
+    read -p "Are you sure? (y/n): " confirm
+    if [[ "$confirm" =~ ^[Yy]$ ]]; then
+        echo "$DEFAULT_CONFIG" > "$GLOBAL_CONFIG"
+        echo "Configuration reset to defaults."
+    else
+        echo "Reset cancelled."
+    fi
+    echo ""
+}
+
+# Simple text-based module configuration
+interactive_module_config_simple() {
+    echo "=== Module Configuration ==="
+    echo ""
     
     # Get list of available modules
     local modules=()
-    if [[ -d "$MODULE_CONFIG_DIR" ]]; then
-        for config_file in "$MODULE_CONFIG_DIR"/*.yaml; do
-            if [[ -f "$config_file" ]]; then
-                local module_name=$(basename "$config_file" .yaml)
+    for module_file in "$MODULE_CONFIG_DIR"/*.yaml; do
+        if [[ -f "$module_file" ]]; then
+            local module_name=$(basename "$module_file" .yaml)
                 modules+=("$module_name")
             fi
         done
-    fi
     
-    # Add default modules if none exist
     if [[ ${#modules[@]} -eq 0 ]]; then
-        modules=("apt_update" "snap_update" "flatpak_update" "cleanup")
+        echo "No modules found."
+        return 0
     fi
     
-    while true; do
-        # Create module selection menu with descriptions
-        local menu_items=()
-        for module in "${modules[@]}"; do
-            local description=$(get_module_config "$module" "description" "Module configuration for $module")
+    echo "Available modules:"
+    for i in "${!modules[@]}"; do
+        local module="${modules[$i]}"
             local enabled=$(get_module_config "$module" "enabled" "true")
-            local status=""
-            if [[ "$enabled" == "true" ]]; then
-                status="[ENABLED]"
-            else
-                status="[DISABLED]"
-            fi
-            # Truncate description if too long
-            if [[ ${#description} -gt 25 ]]; then
-                description="${description:0:22}..."
-            fi
-            menu_items+=("$module" "$status - $description")
-        done
-        
-        # Add navigation options
-        menu_items+=("done" "Finish module configuration")
-        
-        local choice=$($dialog_cmd --title "Module Configuration" \
-            --menu "Select a module to configure:\n\nCurrent modules and their status:" 12 50 6 "${menu_items[@]}" 3>&1 1>&2 2>&3)
-        
-        if [[ -n "$choice" && "$choice" != "done" ]]; then
-            edit_module_config "$dialog_cmd" "$choice"
-        else
-            break
-        fi
+        local interval=$(get_module_config "$module" "interval_days" "7")
+        echo "$((i+1)). $module (enabled: $enabled, interval: $interval days)"
     done
+    echo ""
+    
+    read -p "Enter module number to configure (or q to quit): " choice
+    if [[ "$choice" =~ ^[Qq]$ ]]; then
+        return 0
+    fi
+    
+    if [[ "$choice" =~ ^[0-9]+$ ]] && [[ "$choice" -ge 1 ]] && [[ "$choice" -le ${#modules[@]} ]]; then
+        local selected_module="${modules[$((choice-1))]}"
+        edit_module_config_simple "$selected_module"
+    else
+        echo "Invalid selection."
+    fi
 }
 
-edit_module_config() {
-    local dialog_cmd="$1"
-    local module_name="$2"
-    local module_config="$MODULE_CONFIG_DIR/${module_name}.yaml"
-    local temp_file=$(mktemp)
+# Simple text-based module editor
+edit_module_config_simple() {
+    local module="$1"
+    echo "=== Configure Module: $module ==="
+    echo ""
     
-    # Create or load module config
-    if [[ -f "$module_config" ]]; then
-        cp "$module_config" "$temp_file"
-    else
-        # Create default module config
-        cat > "$temp_file" << EOF
-enabled: true
-interval_days: 7
-description: "Module configuration for $module_name"
-EOF
-    fi
+    local enabled=$(get_module_config "$module" "enabled" "true")
+    local interval=$(get_module_config "$module" "interval_days" "7")
+    local description=$(get_module_config "$module" "description" "")
     
-    # Get current values
-    local enabled=$(get_module_config "$module_name" "enabled" "true")
-    local interval_days=$(get_module_config "$module_name" "interval_days" "7")
-    local description=$(get_module_config "$module_name" "description" "Module configuration for $module_name")
+    echo "Current settings:"
+    echo "1. Enabled: $enabled"
+    echo "2. Interval: $interval days"
+    echo "3. Description: $description"
+    echo ""
     
-    # Show current module info
-    $dialog_cmd --title "Configure $module_name" \
-        --msgbox "Configuring module: $module_name\n\nCurrent settings:\n• Enabled: $enabled\n• Interval: $interval_days days\n• Description: $description\n\nPress OK to edit these settings." 10 50
-    
-    if [[ $? -ne 0 ]]; then
-        rm "$temp_file"
-        return 1
-    fi
-    
-    # Create form for editing with better layout and sizing
-    local form_output=$($dialog_cmd --title "Configure $module_name" \
-        --form "Edit module settings for $module_name:" 8 45 0 \
-        "Enabled (true/false):" 1 1 "$enabled" 1 20 8 0 \
-        "Interval (days):" 2 1 "$interval_days" 2 20 8 0 \
-        "Description:" 3 1 "$description" 3 20 20 0 3>&1 1>&2 2>&3)
-    
-    if [[ $? -eq 0 ]]; then
-        # Parse form output
-        local new_enabled=$(echo "$form_output" | head -1)
-        local new_interval_days=$(echo "$form_output" | head -2 | tail -1)
-        local new_description=$(echo "$form_output" | tail -1)
-        
-        # Update config file
-        if command -v yq >/dev/null 2>&1; then
-            yq eval ".enabled = $new_enabled" -i "$temp_file"
-            yq eval ".interval_days = $new_interval_days" -i "$temp_file"
-            yq eval ".description = \"$new_description\"" -i "$temp_file"
+    read -p "Enable this module? (y/n) [${enabled:0:1}]: " new_enabled
+    if [[ -n "$new_enabled" ]]; then
+        if [[ "$new_enabled" =~ ^[Yy]$ ]]; then
+            set_module_config "$module" "enabled" "true"
+            enabled="true"
+            echo "Module enabled"
+        elif [[ "$new_enabled" =~ ^[Nn]$ ]]; then
+            set_module_config "$module" "enabled" "false"
+            enabled="false"
+            echo "Module disabled"
         else
-            # Fallback to sed for simple updates
-            sed -i "s/enabled:.*/enabled: $new_enabled/" "$temp_file"
-            sed -i "s/interval_days:.*/interval_days: $new_interval_days/" "$temp_file"
-            sed -i "s/description:.*/description: $new_description/" "$temp_file"
+            echo "Invalid input. Please enter y or n."
         fi
-        
-        # Save to module config
-        mkdir -p "$MODULE_CONFIG_DIR"
-        cp "$temp_file" "$module_config"
-        
-        # Show updated settings
-        $dialog_cmd --title "Configuration Saved" \
-            --msgbox "Module '$module_name' configuration updated:\n\n• Enabled: $new_enabled\n• Interval: $new_interval_days days\n• Description: $new_description\n\nPress OK to continue." 10 50
     fi
     
-    rm "$temp_file"
+    read -p "Enter interval in days [$interval]: " new_interval
+    if [[ -n "$new_interval" ]]; then
+        if [[ "$new_interval" =~ ^[0-9]+$ ]] && [[ "$new_interval" -ge 1 ]]; then
+            set_module_config "$module" "interval_days" "$new_interval"
+            interval="$new_interval"
+            echo "Interval set to $new_interval days"
+        else
+            echo "Invalid value. Must be a positive number."
+        fi
+    fi
+    
+    read -p "Enter description [$description]: " new_description
+    if [[ -n "$new_description" ]]; then
+        set_module_config "$module" "description" "$new_description"
+        description="$new_description"
+        echo "Description updated"
+    fi
+    
+    echo "Module configuration updated successfully!"
+    echo ""
 }
 
-interactive_setup_wizard() {
-    local dialog_cmd="$1"
+# Simple text-based setup wizard
+interactive_setup_wizard_simple() {
+    echo "=== upKep Setup Wizard ==="
+    echo ""
+    echo "Welcome to upKep! This wizard will help you configure the basic settings."
+    echo ""
     
-    $dialog_cmd --title "upKep Setup Wizard" \
-        --msgbox "Welcome to upKep Linux Maintainer!\n\nThis wizard will help you configure upKep for your system.\n\nPress OK to continue." 10 50
-    
-    if [[ $? -ne 0 ]]; then
-        return 1
+    # Initialize configuration if it doesn't exist
+    if [[ ! -f "$GLOBAL_CONFIG" ]]; then
+        echo "Creating initial configuration..."
+        init_config
     fi
     
-    # Initialize configuration
-    init_config
+    echo "Let's configure the basic settings:"
+    echo ""
     
-    # Step 1: System Information
-    $dialog_cmd --title "System Information" \
-        --msgbox "upKep will help you maintain your Linux system by:\n\n• Updating APT packages and repositories\n• Updating Snap packages\n• Updating Flatpak packages\n• Performing system cleanup\n\nAll operations are scheduled based on configurable intervals.\n\nPress OK to configure update intervals." 12 60
+    # Configure update intervals
+    echo "1. Update Intervals"
+    edit_update_intervals_simple
     
-    if [[ $? -ne 0 ]]; then
-        return 1
-    fi
+    # Configure logging
+    echo "2. Logging Settings"
+    edit_logging_settings_simple
     
-    # Step 2: Configure update intervals
-    local temp_file=$(mktemp)
-    if [[ -f "$GLOBAL_CONFIG" ]]; then
-        cp "$GLOBAL_CONFIG" "$temp_file"
-    else
-        echo "$DEFAULT_CONFIG" > "$temp_file"
-    fi
+    # Configure global settings
+    echo "3. Global Settings"
+    edit_global_settings_simple
     
-    $dialog_cmd --title "Update Intervals" \
-        --msgbox "Let's configure how often upKep should run updates.\n\n• Update interval: How often to check for package updates\n• Cleanup interval: How often to perform system cleanup\n• Security interval: How often to check for security updates\n\nPress OK to configure these intervals." 12 60
-    
-    if [[ $? -eq 0 ]]; then
-        edit_update_intervals "$dialog_cmd" "$temp_file"
-    fi
-    
-    # Step 3: Ask about module-specific configuration
-    $dialog_cmd --title "Module Configuration" \
-        --yesno "The intervals you just set are the default intervals for all modules.\n\nWould you like to configure individual modules?\n\nThis allows you to:\n• Enable/disable specific modules\n• Set different intervals for each module\n• Add custom descriptions\n\nThis is optional - you can skip this and use the default settings.\n\nPress 'Yes' to configure modules, or 'No' to skip." 15 60
-    
-    if [[ $? -eq 0 ]]; then
-        interactive_module_config "$dialog_cmd"
-    fi
-    
-    # Step 4: Configure logging (optional)
-    $dialog_cmd --title "Logging Configuration" \
-        --yesno "Would you like to configure logging settings?\n\nupKep can log its activities to help you track what was done and when.\n\nPress 'Yes' to configure logging, or 'No' to use default settings." 12 60
-    
-    if [[ $? -eq 0 ]]; then
-        edit_logging_settings "$dialog_cmd" "$temp_file"
-    fi
-    
-    # Final confirmation before saving
-    $dialog_cmd --title "Save Configuration" \
-        --yesno "Setup is complete!\n\nWould you like to save the configuration?\n\nPress 'Yes' to save and finish setup, or 'No' to cancel." 10 50
-    
-    if [[ $? -eq 0 ]]; then
-        # Save configuration
-        cp "$temp_file" "$GLOBAL_CONFIG"
-        rm "$temp_file"
-        
-        $dialog_cmd --title "Setup Complete" \
-            --msgbox "upKep has been configured successfully!\n\nConfiguration files are stored in:\n~/.upkep/\n\nYou can now run upKep to maintain your system:\n\n  bash scripts/main.sh\n\nTo modify settings later, use:\n  bash scripts/main.sh --config-edit" 15 60
-    else
-        rm "$temp_file"
-        $dialog_cmd --title "Setup Cancelled" \
-            --msgbox "Setup was cancelled. No changes were saved.\n\nYou can run the setup wizard again anytime with:\n  bash scripts/main.sh --setup" 10 50
-    fi
+    echo "Setup complete! Your configuration has been saved."
+    echo "You can run 'bash scripts/main.sh --config-edit' to modify settings later."
+    echo ""
 } 

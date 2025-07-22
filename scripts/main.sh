@@ -91,6 +91,8 @@ configure_modules_interactively() {
 }
 
 # ── Argument Processing ───────────────────────────────────────────
+INTERACTIVE_MODE=false
+
 process_args() {
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -120,16 +122,16 @@ process_args() {
                 shift
                 ;;
             --setup)
+                INTERACTIVE_MODE=true
                 run_setup_wizard
-                exit 0
                 ;;
             --config-edit)
+                INTERACTIVE_MODE=true
                 edit_config_interactively
-                exit 0
                 ;;
             --module-config)
+                INTERACTIVE_MODE=true
                 configure_modules_interactively
-                exit 0
                 ;;
             *)
                 echo "Unknown option: $1"
@@ -216,4 +218,10 @@ main() {
 process_args "$@"
 
 # Run main function
-main
+if [[ "$INTERACTIVE_MODE" == "true" ]]; then
+    # Interactive mode was used, exit after the interactive function completes
+    exit 0
+else
+    # Run normal maintenance operations
+    main
+fi
