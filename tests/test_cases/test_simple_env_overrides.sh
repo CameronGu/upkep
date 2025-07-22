@@ -23,10 +23,10 @@ TESTS_TOTAL=0
 run_test() {
     local test_name="$1"
     local test_command="$2"
-    
+
     ((TESTS_TOTAL++))
     echo "Running test: $test_name"
-    
+
     if eval "$test_command"; then
         echo "✓ PASS: $test_name"
         ((TESTS_PASSED++))
@@ -39,6 +39,9 @@ run_test() {
 
 # Initialize test config
 init_test_config() {
+    # Ensure test directory exists
+    mkdir -p "$TEST_CONFIG_DIR"
+
     cat > "$TEST_CONFIG_FILE" << 'EOF'
 version: 2.0.0
 
@@ -64,7 +67,7 @@ EOF
 # Test basic config reading
 test_basic_config() {
     init_test_config
-    
+
     local value
     value=$(get_config "logging.level" "warn")
     [[ "$value" == "info" ]]
@@ -73,7 +76,7 @@ test_basic_config() {
 # Test environment variable override
 test_env_var_override() {
     init_test_config
-    
+
     # Test environment variable override
     UPKEP_LOGGING_LEVEL=debug
     local value
@@ -85,14 +88,14 @@ test_env_var_override() {
 # Test different key formats
 test_key_formats() {
     init_test_config
-    
+
     # Test dot notation conversion
     UPKEP_DEFAULTS_UPDATE_INTERVAL=14
     local value
     value=$(get_config "defaults.update_interval" "1")
     unset UPKEP_DEFAULTS_UPDATE_INTERVAL
     [[ "$value" == "14" ]] || return 1
-    
+
     # Test simple keys
     UPKEP_DRY_RUN=true
     value=$(get_config "dry_run" "false")
@@ -103,7 +106,7 @@ test_key_formats() {
 # Test fallback to config file
 test_fallback_to_config() {
     init_test_config
-    
+
     # No env var set, should use config file value
     local value
     value=$(get_config "parallel_execution" "false")
@@ -113,7 +116,7 @@ test_fallback_to_config() {
 # Test fallback to default
 test_fallback_to_default() {
     init_test_config
-    
+
     # Non-existent key, should use default
     local value
     value=$(get_config "nonexistent.key" "default_value")
@@ -151,7 +154,7 @@ main() {
     echo ""
     echo "=================================================="
     echo "Test Results: $TESTS_PASSED/$TESTS_TOTAL passed"
-    
+
     if [[ $TESTS_PASSED -eq $TESTS_TOTAL ]]; then
         echo "✓ All tests passed!"
         exit 0
@@ -164,4 +167,4 @@ main() {
 # Run tests if script is executed directly
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main "$@"
-fi 
+fi
