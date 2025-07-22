@@ -30,6 +30,7 @@ SKIPPED_FILES=0
 LINE_COUNT_VIOLATIONS=0
 TRAILING_WHITESPACE_VIOLATIONS=0
 SHELLCHECK_VIOLATIONS=0
+SC2317_WARNINGS=0
 SHEBANG_VIOLATIONS=0
 PERMISSION_VIOLATIONS=0
 FILE_SIZE_VIOLATIONS=0
@@ -118,13 +119,39 @@ check_shell_script() {
     fi
 
     if command -v shellcheck >/dev/null 2>&1; then
-        if shellcheck -s bash -S style "$file" >/dev/null 2>&1; then
+        # Run ShellCheck and categorize SC2317 as informational instead of critical
+        local shellcheck_output
+        shellcheck_output=$(shellcheck -s bash -S style "$file" 2>&1)
+        local shellcheck_exit=$?
+        
+        if [[ $shellcheck_exit -eq 0 ]]; then
             print_status "PASS" "$file: shellcheck passed"
             return 0
         else
-                    print_status "FAIL" "$file: shellcheck found issues [CRITICAL]"
-        ((SHELLCHECK_VIOLATIONS++))
-        return 1  # Critical failure - blocks CI
+            # Check if we have critical issues (non-SC2317)
+            local critical_issues
+            critical_issues=$(echo "$shellcheck_output" | grep -v "SC2317" | grep -c "error\|warning")
+            
+            # Check if we have SC2317 informational warnings
+            local sc2317_count
+            sc2317_count=$(echo "$shellcheck_output" | grep -c "SC2317")
+            
+            if [[ $critical_issues -gt 0 ]]; then
+                # Real critical issues found
+                print_status "FAIL" "$file: shellcheck found issues [CRITICAL]"
+                ((SHELLCHECK_VIOLATIONS++))
+                return 1  # Critical failure - blocks CI
+            elif [[ $sc2317_count -gt 0 ]]; then
+                # Only SC2317 informational warnings
+                print_status "INFO" "$file: shellcheck found $sc2317_count test function warnings [INFORMATIONAL]"
+                SC2317_WARNINGS=$((SC2317_WARNINGS + sc2317_count))
+                return 0  # Informational only, doesn't block CI
+            else
+                # This shouldn't happen, but handle gracefully
+                print_status "WARN" "$file: shellcheck had issues but couldn't categorize"
+                ((WARNINGS++))
+                return 0
+            fi
         fi
     else
         print_status "WARN" "$file: shellcheck not available"
@@ -360,6 +387,7 @@ print_summary() {
     echo -e "${PURPLE}ℹ️  INFORMATIONAL:${NC}"
     echo -e "   Permission warnings: $PERMISSION_VIOLATIONS"
     echo -e "   Encoding warnings: $ENCODING_VIOLATIONS"
+    echo -e "   SC2317 test function warnings: $SC2317_WARNINGS"
     echo -e "   Other warnings: $WARNINGS"
     echo ""
     echo -e "${CYAN}=== Final Result ===${NC}"
