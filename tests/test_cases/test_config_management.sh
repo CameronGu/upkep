@@ -24,10 +24,10 @@ TESTS_TOTAL=0
 run_test() {
     local test_name="$1"
     local test_command="$2"
-    
+
     ((TESTS_TOTAL++))
     echo "Running test: $test_name"
-    
+
     if eval "$test_command"; then
         echo "✓ PASS: $test_name"
         ((TESTS_PASSED++))
@@ -60,12 +60,12 @@ EOF
 test_config_reading() {
     # Clean up from any previous test
     rm -f "$TEST_CONFIG_FILE"
-    
+
     init_test_config
-    
+
     # Re-export the test config path to ensure it's used
     export GLOBAL_CONFIG="$TEST_CONFIG_FILE"
-    
+
     local value
     value=$(get_global_config "defaults.update_interval" "unknown")
     [[ "$value" == "7" ]]
@@ -77,7 +77,7 @@ test_config_writing() {
     rm -f "$TEST_CONFIG_FILE"
     init_test_config
     export GLOBAL_CONFIG="$TEST_CONFIG_FILE"
-    
+
     set_global_config "defaults.update_interval" "14"
     local value
     value=$(get_global_config "defaults.update_interval" "unknown")
@@ -90,7 +90,7 @@ test_nested_key_creation() {
     rm -f "$TEST_CONFIG_FILE"
     init_test_config
     export GLOBAL_CONFIG="$TEST_CONFIG_FILE"
-    
+
     set_global_config "new_section.new_key" "new_value"
     local value
     value=$(get_global_config "new_section.new_key" "unknown")
@@ -103,10 +103,10 @@ test_config_persistence() {
     rm -f "$TEST_CONFIG_FILE"
     init_test_config
     export GLOBAL_CONFIG="$TEST_CONFIG_FILE"
-    
+
     # Set a value
     set_global_config "defaults.cleanup_interval" "45"
-    
+
     # Read it back using a fresh function call
     local value
     value=$(get_global_config "defaults.cleanup_interval" "unknown")
@@ -119,7 +119,7 @@ test_fallback_method() {
     rm -f "$TEST_CONFIG_FILE"
     init_test_config
     export GLOBAL_CONFIG="$TEST_CONFIG_FILE"
-    
+
     # Test with yq unavailable (if yq exists, this tests the fallback path)
     local old_yq=""
     if command -v yq >/dev/null 2>&1; then
@@ -128,17 +128,17 @@ test_fallback_method() {
         echo '#!/bin/bash\nexit 1' > /tmp/yq
         chmod +x /tmp/yq
     fi
-    
+
     set_global_config "test.fallback_key" "fallback_value"
     local value
     value=$(get_global_config "test.fallback_key" "unknown")
-    
+
     # Restore yq if needed
     if [[ -f /tmp/yq ]]; then
         rm -f /tmp/yq
         export PATH="${PATH#/tmp:}"
     fi
-    
+
     [[ "$value" == "fallback_value" ]]
 }
 
@@ -148,7 +148,7 @@ test_default_values() {
     rm -f "$TEST_CONFIG_FILE"
     init_test_config
     export GLOBAL_CONFIG="$TEST_CONFIG_FILE"
-    
+
     local value
     value=$(get_global_config "nonexistent.key" "default_value")
     [[ "$value" == "default_value" ]]
@@ -180,4 +180,4 @@ if [[ $TESTS_PASSED -eq $TESTS_TOTAL ]]; then
 else
     echo "❌ Some configuration management tests failed!"
     exit 1
-fi 
+fi

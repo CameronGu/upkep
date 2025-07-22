@@ -8,27 +8,27 @@
 migrate_1_0_0_to_2_0_0() {
     local from_version="$1"
     local to_version="$2"
-    
+
     echo "Starting migration from $from_version to $to_version..."
-    
+
     # Set config file path
     local config_file="$HOME/.upkep/config.yaml"
-    
+
     # Check if config file exists
     if [[ ! -f "$config_file" ]]; then
         echo "Error: Configuration file not found: $config_file"
         return 1
     fi
-    
+
     # Create backup
     local backup_file="$HOME/.upkep/config.yaml.backup.$(date +%Y%m%d_%H%M%S)"
     cp "$config_file" "$backup_file"
     echo "Backup created: $backup_file"
-    
+
     # Read current config
     local temp_config
     temp_config=$(mktemp)
-    
+
     # Add version field and update structure
     cat > "$temp_config" << 'EOF'
 version: 2.0.0
@@ -68,16 +68,16 @@ modules:
     interval_days: 30
     description: Perform system cleanup
 EOF
-    
+
     # Replace the config file
     mv "$temp_config" "$config_file"
-    
+
     echo "Migration completed successfully!"
     echo "Configuration updated to version $to_version"
     echo "Backup saved to: $backup_file"
-    
+
     return 0
 }
 
 # Run the migration
-migrate_1_0_0_to_2_0_0 "$1" "$2" 
+migrate_1_0_0_to_2_0_0 "$1" "$2"

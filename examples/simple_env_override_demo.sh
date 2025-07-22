@@ -23,7 +23,7 @@ export UPKEP_PARALLEL_EXECUTION=false
 export UPKEP_DEFAULTS_UPDATE_INTERVAL=1
 
 echo "   UPKEP_LOGGING_LEVEL=debug"
-echo "   UPKEP_DRY_RUN=true"  
+echo "   UPKEP_DRY_RUN=true"
 echo "   UPKEP_PARALLEL_EXECUTION=false"
 echo "   UPKEP_DEFAULTS_UPDATE_INTERVAL=1"
 echo ""
@@ -61,4 +61,4 @@ echo ""
 echo "Demo Complete!"
 echo ""
 echo "This simple system provides the flexibility users need"
-echo "without the complexity of multi-environment configurations." 
+echo "without the complexity of multi-environment configurations."

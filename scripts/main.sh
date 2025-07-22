@@ -190,7 +190,7 @@ check_cleanup_interval() {
 
 main() {
     ascii_title
-    
+
     # Check for configuration migrations
     if check_migration_needed; then
         echo ""
@@ -198,7 +198,7 @@ main() {
         echo "Run with --migrate to upgrade your configuration."
         echo ""
     fi
-    
+
     show_current_status
 
     # Check intervals and run operations accordingly

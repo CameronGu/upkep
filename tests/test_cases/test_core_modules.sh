@@ -24,10 +24,10 @@ TESTS_TOTAL=0
 run_test() {
     local test_name="$1"
     local test_command="$2"
-    
+
     ((TESTS_TOTAL++))
     echo "Running test: $test_name"
-    
+
     if eval "$test_command"; then
         echo "✓ PASS: $test_name"
         ((TESTS_PASSED++))
@@ -48,27 +48,27 @@ init_test_state() {
 # Test APT update module
 test_apt_update() {
     init_test_state
-    
+
     # Reset status
     APT_STATUS="skipped"
-    
+
     # Run APT update
     run_apt_updates 2>/dev/null
-    
+
     # Check if status was updated to success
     [[ "$APT_STATUS" == "success" ]]
 }
 
-# Test Snap update module  
+# Test Snap update module
 test_snap_update() {
     init_test_state
-    
+
     # Reset status
     SNAP_STATUS="skipped"
-    
+
     # Run Snap update
     run_snap_updates 2>/dev/null
-    
+
     # Check if status was updated
     [[ "$SNAP_STATUS" == "success" ]]
 }
@@ -76,13 +76,13 @@ test_snap_update() {
 # Test Flatpak update module
 test_flatpak_update() {
     init_test_state
-    
+
     # Reset status
     FLATPAK_STATUS="skipped"
-    
+
     # Run Flatpak update (this might skip if flatpak not installed)
     run_flatpak_updates 2>/dev/null
-    
+
     # Flatpak might be skipped if not available, which is ok
     [[ "$FLATPAK_STATUS" == "success" || "$FLATPAK_STATUS" == "skipped" ]]
 }
@@ -90,13 +90,13 @@ test_flatpak_update() {
 # Test cleanup module
 test_cleanup() {
     init_test_state
-    
+
     # Reset status
     CLEANUP_STATUS="skipped"
-    
+
     # Run cleanup
     run_cleanup 2>/dev/null
-    
+
     # Check if status was updated
     [[ "$CLEANUP_STATUS" == "success" ]]
 }
@@ -113,12 +113,12 @@ test_module_functions_exist() {
 # Test state management integration
 test_state_integration() {
     init_test_state
-    
+
     # Save some test state
     APT_STATUS="success"
     UPDATE_LAST_RUN=$(date +%s)
     save_state
-    
+
     # Check if state file was updated
     grep -q "APT_STATUS" "$STATE_FILE" || grep -q "UPDATE_LAST_RUN" "$STATE_FILE"
 }
@@ -148,4 +148,4 @@ if [[ $TESTS_PASSED -eq $TESTS_TOTAL ]]; then
 else
     echo "❌ Some core module tests failed!"
     exit 1
-fi 
+fi
