@@ -75,6 +75,25 @@ get_global_config() {
     echo "$default"
 }
 
+# Get configuration value with simple environment variable overrides
+# This is the recommended function for modules to use
+get_config() {
+    local key="$1"
+    local default="$2"
+    
+    # Check for environment variable override first
+    local env_var_name
+    env_var_name="UPKEP_$(echo "$key" | tr '[:lower:].' '[:upper:]_')"
+    
+    if [[ -n "${!env_var_name}" ]]; then
+        echo "${!env_var_name}"
+        return 0
+    fi
+    
+    # Fall back to regular config lookup
+    get_global_config "$key" "$default"
+}
+
 # Fallback method to get config values when yq is not available
 get_config_value_fallback() {
     local key="$1"

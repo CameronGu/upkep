@@ -40,6 +40,7 @@ test_order=(
     "test_ascii_art.sh"
     "test_formatting.sh"
     "test_config_management.sh"
+    "test_simple_env_overrides.sh"
     "test_state.sh"
     "test_interval_logic.sh"
     "test_core_modules.sh"

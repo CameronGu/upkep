@@ -54,16 +54,22 @@ show_help() {
             echo "Options:"
             echo "  --show                  Show current configuration"
             echo "  --set <key>=<value>     Set configuration value"
-            echo "  --get <key>             Get configuration value"
+            echo "  --get <key>             Get configuration value (supports env var overrides)"
             echo "  --init                  Initialize configuration"
             echo "  --validate              Validate configuration"
             echo "  --export <format>       Export configuration"
             echo ""
+            echo "Environment Variable Overrides:"
+            echo "  UPKEP_DRY_RUN=true      Enable dry run mode"
+            echo "  UPKEP_PARALLEL_EXECUTION=false  Disable parallel execution"
+            echo "  UPKEP_LOGGING_LEVEL=debug       Set log level"
+            echo ""
             echo "Examples:"
             echo "  upkep config --show"
-            echo "  upkep config --set log_level=debug"
-            echo "  upkep config --get update_interval"
-            echo "  upkep config --export json"
+            echo "  upkep config --set logging.level=debug"
+            echo "  upkep config --get logging.level"
+            echo "  UPKEP_LOGGING_LEVEL=debug upkep run     # Override log level"
+            echo "  UPKEP_DRY_RUN=true upkep run            # Test mode"
             ;;
         "list-modules")
             echo "Usage: upkep list-modules [options]"
@@ -370,7 +376,7 @@ execute_config_command() {
             ;;
         "get")
             if [[ -n "$key" ]]; then
-                local val=$(get_global_config "$key")
+                local val=$(get_config "$key")
                 echo "$key = $val"
             else
                 echo "Usage: upkep config --get <key>"
