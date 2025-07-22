@@ -62,9 +62,9 @@ get_global_config() {
                 return 0
             fi
         else
-            # Fallback to grep if yq is not available
+            # Fallback method for when yq is not available
             local value
-            value=$(grep "^[[:space:]]*${key//./[[:space:]]*}: " "$GLOBAL_CONFIG" | sed 's/.*:[[:space:]]*//')
+            value=$(get_config_value_fallback "$key")
             if [[ -n "$value" ]]; then
                 echo "$value"
                 return 0
@@ -73,6 +73,48 @@ get_global_config() {
     fi
 
     echo "$default"
+}
+
+# Fallback method to get config values when yq is not available
+get_config_value_fallback() {
+    local key="$1"
+    local path_parts=(${key//./ })
+    
+    if [[ ${#path_parts[@]} -eq 1 ]]; then
+        # Simple key (no dots)
+        local value
+        value=$(grep "^${path_parts[0]}:" "$GLOBAL_CONFIG" | sed 's/^[^:]*:[[:space:]]*//' | sed 's/^"//;s/"$//')
+        echo "$value"
+    else
+        # Nested key (e.g., defaults.update_interval)
+        local parent_key="${path_parts[0]}"
+        local child_key="${path_parts[1]}"
+        
+        # Find the parent section and get the child value
+        local in_section=false
+        local value=""
+        
+        while IFS= read -r line; do
+            # Check if we're entering the parent section
+            if [[ "$line" =~ ^${parent_key}:[[:space:]]*$ ]]; then
+                in_section=true
+                continue
+            fi
+            
+            # If we're in the section and hit another top-level key, exit section
+            if [[ $in_section == true ]] && [[ "$line" =~ ^[a-zA-Z_][a-zA-Z0-9_]*:[[:space:]]* ]] && [[ ! "$line" =~ ^[[:space:]] ]]; then
+                break
+            fi
+            
+            # If we're in the section, look for our child key
+            if [[ $in_section == true ]] && [[ "$line" =~ ^[[:space:]]+${child_key}:[[:space:]]+ ]]; then
+                value=$(echo "$line" | sed 's/^[[:space:]]*[^:]*:[[:space:]]*//' | sed 's/^"//;s/"$//')
+                break
+            fi
+        done < "$GLOBAL_CONFIG"
+        
+        echo "$value"
+    fi
 }
 
 # Set global configuration value
@@ -88,70 +130,65 @@ set_global_config() {
         # Escape special characters in the value
         local escaped_value
         escaped_value=$(echo "$value" | sed 's/"/\\"/g')
-        yq eval ".$key = \"$escaped_value\"" -i "$GLOBAL_CONFIG" 2>/dev/null || {
-            # Fallback if yq fails
-            local temp_file
-            temp_file=$(mktemp)
-            cp "$GLOBAL_CONFIG" "$temp_file"
-
-            # Convert dot notation to nested structure
-            local path_parts=(${key//./ })
-            local current_path=""
-            local indent=""
-
-            for part in "${path_parts[@]}"; do
-                if [[ -z "$current_path" ]]; then
-                    current_path="$part"
-                    indent=""
-                else
-                    current_path="${current_path}.$part"
-                    indent="  $indent"
-                fi
-
-                # Check if the path exists
-                if ! grep -q "^${indent}${part}:" "$temp_file"; then
-                    # Add the key if it doesn't exist
-                    echo "${indent}${part}:" >> "$temp_file"
-                fi
-            done
-
-            # Update the value
-            sed -i "s/^${indent}${path_parts[-1]}:[[:space:]]*.*/${indent}${path_parts[-1]}: $escaped_value/" "$temp_file"
-
-            mv "$temp_file" "$GLOBAL_CONFIG"
-        }
+        
+        # Try yq first, fallback to sed if it fails
+        if ! yq eval ".$key = \"$escaped_value\"" -i "$GLOBAL_CONFIG" 2>/dev/null; then
+            echo "Warning: yq failed, using fallback method for setting $key"
+            set_global_config_fallback "$key" "$value"
+        fi
     else
-        # Fallback to sed if yq is not available
-        local temp_file
-        temp_file=$(mktemp)
-        cp "$GLOBAL_CONFIG" "$temp_file"
-
-        # Convert dot notation to nested structure
-        local path_parts=(${key//./ })
-        local current_path=""
-        local indent=""
-
-        for part in "${path_parts[@]}"; do
-            if [[ -z "$current_path" ]]; then
-                current_path="$part"
-                indent=""
-            else
-                current_path="${current_path}.$part"
-                indent="  $indent"
-            fi
-
-            # Check if the path exists
-            if ! grep -q "^${indent}${part}:" "$temp_file"; then
-                # Add the key if it doesn't exist
-                echo "${indent}${part}:" >> "$temp_file"
-            fi
-        done
-
-        # Update the value
-        sed -i "s/^${indent}${path_parts[-1]}:[[:space:]]*.*/${indent}${path_parts[-1]}: $value/" "$temp_file"
-
-        mv "$temp_file" "$GLOBAL_CONFIG"
+        # Use fallback method when yq is not available
+        set_global_config_fallback "$key" "$value"
     fi
+}
+
+# Fallback method for setting configuration when yq is not available or fails
+set_global_config_fallback() {
+    local key="$1"
+    local value="$2"
+    
+    local temp_file
+    temp_file=$(mktemp)
+    cp "$GLOBAL_CONFIG" "$temp_file"
+
+    # Handle dot notation keys (e.g., "defaults.update_interval")
+    local path_parts=(${key//./ })
+    
+    # For nested keys, we need to find the right line to update
+    if [[ ${#path_parts[@]} -eq 1 ]]; then
+        # Simple key, just update the line
+        if grep -q "^${path_parts[0]}:" "$temp_file"; then
+            # Key exists, update it
+            sed -i "s/^${path_parts[0]}:[[:space:]]*.*/${path_parts[0]}: $value/" "$temp_file"
+        else
+            # Key doesn't exist, add it
+            echo "${path_parts[0]}: $value" >> "$temp_file"
+        fi
+    else
+        # Nested key (e.g., defaults.update_interval)
+        local parent_key="${path_parts[0]}"
+        local child_key="${path_parts[1]}"
+        
+        # Find the parent section and update the child key
+        if grep -q "^${parent_key}:" "$temp_file"; then
+            # Parent section exists
+            if grep -A20 "^${parent_key}:" "$temp_file" | grep -q "^[[:space:]]*${child_key}:"; then
+                # Child key exists, update it - preserve indentation
+                sed -i "/^${parent_key}:/,/^[a-zA-Z]/ s/^[[:space:]]*${child_key}:[[:space:]]*.*$/  ${child_key}: $value/" "$temp_file"
+            else
+                # Child key doesn't exist, add it under the parent section
+                sed -i "/^${parent_key}:/a\\  ${child_key}: $value" "$temp_file"
+            fi
+        else
+            # Parent section doesn't exist, create both parent and child
+            echo "" >> "$temp_file"
+            echo "${parent_key}:" >> "$temp_file"
+            echo "  ${child_key}: $value" >> "$temp_file"
+        fi
+    fi
+
+    # Replace the original file
+    mv "$temp_file" "$GLOBAL_CONFIG"
 }
 
 # Show configuration
