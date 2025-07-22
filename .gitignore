@@ -56,4 +56,7 @@ node_modules/
 
 # Task files
 # tasks.json
-# tasks/ 
+# tasks/
+
+# Cursor
+.cursor 
