@@ -5,9 +5,9 @@
 STATE_FILE="/tmp/test_upkep_state"
 export STATE_FILE
 
-# Load required modules
-source "$(dirname "$0")/../../scripts/modules/utils.sh"
-source "$(dirname "$0")/../../scripts/modules/state.sh"
+# Load required modules with correct paths
+source "$(dirname "$0")/../../scripts/modules/core/utils.sh"
+source "$(dirname "$0")/../../scripts/modules/core/state.sh"
 
 # Clean up any existing test state file
 rm -f "$STATE_FILE"

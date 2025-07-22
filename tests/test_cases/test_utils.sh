@@ -1,19 +1,26 @@
 #!/bin/bash
 # test_utils.sh - Test utility functions
 
-source "$(dirname "$0")/../../scripts/modules/utils.sh"
+# Load required modules with correct paths (enhanced utils)
+source "$(dirname "$0")/../../scripts/core/utils.sh"
 
-# Test repeat_char
-repeated=$(repeat_char "*" 5)
-if [[ "$repeated" == "*****" ]]; then
-    echo "repeat_char passed."
+# Test print_color function
+result=$(print_color "$RED" "Test message" 2>&1)
+if [[ -n "$result" ]]; then
+    echo "print_color test passed."
 else
-    echo "repeat_char failed: $repeated"
+    echo "print_color failed: $result"
     exit 1
 fi
 
-# Test spinner (quick mock)
-(sleep 0.5) & spinner $! "Test Spinner"
-echo "Spinner test completed."
+# Test print_success function
+result=$(print_success "Test success" 2>&1)
+if echo "$result" | grep -q "✓"; then
+    echo "print_success test passed."
+else
+    echo "print_success failed: $result"
+    exit 1
+fi
 
+echo "All utility tests passed."
 exit 0

@@ -1,9 +1,9 @@
 #!/bin/bash
 # test_interval_logic.sh - Test interval calculation
 
-# Load required modules
-source "$(dirname "$0")/../../scripts/modules/utils.sh"
-source "$(dirname "$0")/../../scripts/modules/state.sh"
+# Load required modules with correct paths
+source "$(dirname "$0")/../../scripts/modules/core/utils.sh"
+source "$(dirname "$0")/../../scripts/modules/core/state.sh"
 
 # Override STATE_FILE for testing
 STATE_FILE="/tmp/test_upkep_state"

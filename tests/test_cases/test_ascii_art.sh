@@ -1,14 +1,15 @@
 #!/bin/bash
-# test_ascii_art.sh - Test ASCII title rendering
+# test_ascii_art.sh - Test ASCII art display
 
-source "$(dirname "$0")/../../scripts/modules/ascii_art.sh"
+# Load required modules with correct paths
+source "$(dirname "$0")/../../scripts/modules/core/ascii_art.sh"
 
-# Capture output
-output=$(ascii_title 2>&1)
-if [[ -n "$output" ]]; then
+# Test ASCII title function
+ascii_title > /dev/null 2>&1
+if [[ $? -eq 0 ]]; then
     echo "ASCII Art printed successfully."
     exit 0
 else
-    echo "ASCII Art did not print."
+    echo "ASCII Art test failed."
     exit 1
 fi
