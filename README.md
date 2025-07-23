@@ -19,7 +19,7 @@ A modular, extensible system maintenance tool for Linux that automates common ma
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/upkep.git
+git clone https://github.com/camerongu/upkep.git
 cd upkep
 
 # Build and install
@@ -40,6 +40,71 @@ upkep list-modules
 
 # Show configuration
 upkep config --show
+```
+
+## Troubleshooting
+
+upkep provides optional file logging to help troubleshoot issues when they occur.
+
+### Enable File Logging
+
+By default, upkep only displays output to the console. To enable persistent file logging for debugging:
+
+```bash
+# Enable file logging for a single run
+UPKEP_LOG_TO_FILE=true upkep run
+
+# View the log file
+cat ~/.upkep/upkep.log
+```
+
+### Log Levels
+
+Control the verbosity of logging with the `UPKEP_LOGGING_LEVEL` environment variable:
+
+```bash
+# Debug level (most verbose) - shows all messages
+UPKEP_LOGGING_LEVEL=debug UPKEP_LOG_TO_FILE=true upkep run
+
+# Info level (default) - shows info, warnings, and errors
+UPKEP_LOGGING_LEVEL=info UPKEP_LOG_TO_FILE=true upkep run
+
+# Warning level - shows only warnings and errors
+UPKEP_LOGGING_LEVEL=warn UPKEP_LOG_TO_FILE=true upkep run
+
+# Error level (least verbose) - shows only errors
+UPKEP_LOGGING_LEVEL=error UPKEP_LOG_TO_FILE=true upkep run
+```
+
+### Common Debugging Workflows
+
+**When something fails:**
+```bash
+# Run with debug logging to capture detailed information
+UPKEP_LOG_TO_FILE=true UPKEP_LOGGING_LEVEL=debug upkep run
+
+# Review the log file for errors
+cat ~/.upkep/upkep.log | grep -i error
+
+# Or view the full log with timestamps
+cat ~/.upkep/upkep.log
+```
+
+**Testing configuration changes:**
+```bash
+# Use dry-run mode with logging to see what would happen
+UPKEP_DRY_RUN=true UPKEP_LOG_TO_FILE=true upkep run
+
+# Review the planned actions
+cat ~/.upkep/upkep.log
+```
+
+**Module-specific troubleshooting:**
+Log messages include context information to help identify which module generated each message:
+
+```
+[2025-01-22 10:30:15] [INFO] [apt_update] Starting APT package updates
+[2025-01-22 10:30:20] [ERROR] [snap_update] Failed to refresh snap packages
 ```
 
 ## Project Structure

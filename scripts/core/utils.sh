@@ -143,21 +143,65 @@ progress_bar() {
     fi
 }
 
-# Log message with timestamp
+# Log message with timestamp and level filtering
 log_message() {
     local level="$1"
     local message="$2"
+    local context="${3:-}"
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+
+    # Get configured log level (default to INFO)
+    local configured_level="${UPKEP_LOGGING_LEVEL:-INFO}"
+
+    # Define log level priorities (lower number = higher priority)
+    local -A log_priorities=(
+        ["DEBUG"]=0
+        ["INFO"]=1
+        ["WARN"]=2
+        ["ERROR"]=3
+        ["SUCCESS"]=1  # Same as INFO
+    )
+
+    # Get numeric priorities for comparison
+    local current_priority=${log_priorities[$level]:-1}
+    local threshold_priority=${log_priorities[$configured_level]:-1}
+
+    # Filter out log messages below the configured threshold
+    if [[ $current_priority -lt $threshold_priority ]]; then
+        return 0  # Skip this message
+    fi
 
     case "$level" in
         "INFO") color="$BLUE" ;;
         "WARN") color="$YELLOW" ;;
         "ERROR") color="$RED" ;;
         "SUCCESS") color="$GREEN" ;;
+        "DEBUG") color="$MAGENTA" ;;
         *) color="$WHITE" ;;
     esac
 
-    echo -e "[$timestamp] ${color}[$level]${NC} $message"
+    # Format message with optional context
+    local formatted_message="$message"
+    if [[ -n "$context" ]]; then
+        formatted_message="[$context] $message"
+    fi
+
+    # Always show on console (current behavior unchanged)
+    echo -e "[$timestamp] ${color}[$level]${NC} $formatted_message"
+
+    # Optional file logging
+    if [[ "${UPKEP_LOG_TO_FILE:-false}" == "true" ]]; then
+        local log_file="${UPKEP_LOG_FILE:-$HOME/.upkep/upkep.log}"
+        local log_dir=$(dirname "$log_file")
+
+        # Ensure log directory exists
+        if [[ ! -d "$log_dir" ]]; then
+            mkdir -p "$log_dir" 2>/dev/null || true
+        fi
+
+        # Append to log file (without color codes)
+        echo "[$timestamp] [$level] $formatted_message" >> "$log_file" 2>/dev/null || true
+    fi
 }
 
 # Check if command exists
