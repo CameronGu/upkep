@@ -5,7 +5,7 @@ BASE_DIR="$(dirname "$0")"
 source "$BASE_DIR/core/config.sh"
 source "$BASE_DIR/modules/core/utils.sh"
 source "$BASE_DIR/modules/core/ascii_art.sh"
-source "$BASE_DIR/modules/core/state.sh"
+source "$BASE_DIR/core/state.sh"
 source "$BASE_DIR/modules/core/apt_update.sh"
 source "$BASE_DIR/modules/core/snap_update.sh"
 source "$BASE_DIR/modules/core/flatpak_update.sh"
@@ -13,6 +13,9 @@ source "$BASE_DIR/modules/core/cleanup.sh"
 
 # Initialize configuration system
 init_config
+
+# Initialize state management system
+init_state
 
 # ── Interval Configuration ───────────────────────────────────────────
 # Get configuration values from YAML config files
@@ -185,7 +188,7 @@ check_cleanup_interval() {
         echo "Cleanup within interval ($DAYS_SINCE_CLEANUP days < $CLEANUP_INTERVAL_DAYS days) – skipped"
         return 1
     fi
-    return 0
+        return 0
 }
 
 main() {
