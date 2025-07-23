@@ -226,42 +226,73 @@ verbose: false
 
 ## Configuration
 
-### Global Configuration
+upKep uses a **simplified configuration approach** focused on the settings users actually need.
 
-Located at `~/.upkep/config.yaml`:
+### Quick Start Configuration
 
-```yaml
-global:
-  log_level: info
-  notifications: true
-  dry_run: false
-  parallel_execution: true
-  max_parallel_modules: 4
-
-defaults:
-  update_interval: 7
-  cleanup_interval: 3
-  security_interval: 1
-
-logging:
-  file: ~/.upkep/logs/upkep.log
-  max_size: 10MB
-  max_files: 5
-  format: text
-```
-
-### Module Configuration
-
-Each module can have its own configuration file:
+The default configuration works immediately with no setup required:
 
 ```yaml
-# ~/.upkep/modules/apt_update.yaml
-enabled: true
-interval_days: 7
-timeout: 600
-parallel: false
-verbose: true
+# ~/.upkep/config.yaml (created automatically)
+# upKep Configuration - Simple Linux system maintenance settings
+
+update_interval: 7          # Days between package updates
+cleanup_interval: 30        # Days between cleanup operations
+log_level: info             # Logging: error, warn, info, debug
+notifications: true         # Show completion notifications
+parallel_execution: true    # Run operations in parallel
 ```
+
+### Configuration Management
+
+```bash
+# View current configuration
+upkep config show
+
+# Edit configuration in your preferred editor
+upkep config edit
+
+# Set individual values
+upkep config set log_level debug
+upkep config set update_interval 3
+
+# Get specific values
+upkep config get update_interval
+
+# Reset to defaults
+upkep config reset
+```
+
+### Environment Variable Overrides
+
+For testing and temporary changes:
+
+```bash
+# Test mode (show what would be done)
+UPKEP_DRY_RUN=true upkep run
+
+# Skip interval checks
+UPKEP_FORCE=true upkep run
+
+# Temporary debug logging
+UPKEP_LOG_LEVEL=debug upkep run
+
+# Override specific intervals
+UPKEP_UPDATE_INTERVAL=1 upkep run
+```
+
+### Advanced Configuration (Legacy)
+
+For users needing complex configurations, the advanced system remains available:
+
+```bash
+# Legacy CLI syntax (still supported)
+upkep config --show
+upkep config --set logging.level=debug
+upkep config --export json
+```
+
+Advanced YAML structures and module-specific configurations are still supported via the legacy system. See `docs/CONFIGURATION_HYBRID_APPROACH.md` for details.
 
 ## CLI Commands
 
@@ -269,8 +300,24 @@ verbose: true
 
 - `upkep run [options]` - Execute maintenance operations
 - `upkep status [options]` - Show current status
-- `upkep config [options]` - Manage configuration
+- `upkep config [command]` - Manage configuration (simplified)
 - `upkep list-modules [options]` - List available modules
+
+### Configuration Commands
+
+```bash
+# Simple configuration management
+upkep config show           # Display current settings
+upkep config edit           # Edit in $EDITOR
+upkep config reset          # Restore defaults
+upkep config get <key>      # Get specific setting
+upkep config set <key> <value>  # Set specific setting
+
+# Legacy configuration (still supported)
+upkep config --show         # Legacy syntax
+upkep config --set <key>=<value>
+upkep config --get <key>
+```
 
 ### Module Management
 

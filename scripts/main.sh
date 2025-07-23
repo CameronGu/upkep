@@ -2,7 +2,7 @@
 # main.sh - Main entry point for upKep Linux Maintainer
 
 BASE_DIR="$(dirname "$0")"
-source "$BASE_DIR/core/config.sh"
+source "$BASE_DIR/core/config_simple.sh"
 source "$BASE_DIR/modules/core/utils.sh"
 source "$BASE_DIR/modules/core/ascii_art.sh"
 source "$BASE_DIR/core/state.sh"
@@ -12,16 +12,16 @@ source "$BASE_DIR/modules/core/flatpak_update.sh"
 source "$BASE_DIR/modules/core/cleanup.sh"
 source "$BASE_DIR/core/cli.sh"
 
-# Initialize configuration system
-init_config
+# Initialize simplified configuration system
+init_simple_config
 
 # Initialize state management system
 init_state
 
 # ── Interval Configuration ───────────────────────────────────────────
-# Get configuration values from YAML config files
-UPDATE_INTERVAL_DAYS=$(get_global_config "defaults.update_interval" "7")
-CLEANUP_INTERVAL_DAYS=$(get_global_config "defaults.cleanup_interval" "3")
+# Get configuration values using simplified system
+UPDATE_INTERVAL_DAYS=$(get_update_interval)
+CLEANUP_INTERVAL_DAYS=$(get_cleanup_interval)
 
 # ── Status Variables ─────────────────────────────────────────────
 # These variables track the outcome of each maintenance step
@@ -52,7 +52,7 @@ is_subcommand() {
 # Map legacy flags to subcommands for backward compatibility
 map_legacy_to_subcommand() {
     local args=("$@")
-    
+
     # Check for legacy flags and convert to subcommands
     for arg in "${args[@]}"; do
         case "$arg" in
@@ -74,7 +74,7 @@ map_legacy_to_subcommand() {
                 ;;
         esac
     done
-    
+
     # If no legacy flags found, default to run command
     echo "run $*"
 }
@@ -309,7 +309,7 @@ elif is_subcommand "$1"; then
 else
     # Legacy flag format - use legacy processing for backward compatibility
     process_legacy_args "$@"
-    
+
     # Run main function if no interactive mode was triggered
     if [[ "$INTERACTIVE_MODE" == "false" ]]; then
         main

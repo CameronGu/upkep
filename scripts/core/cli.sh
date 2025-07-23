@@ -47,29 +47,39 @@ show_help() {
             echo "  upkep status --format=json"
             ;;
         "config")
-            echo "Usage: upkep config [options]"
+            echo "Usage: upkep config [command] [options]"
             echo ""
-            echo "Manage configuration settings"
+            echo "Manage configuration settings (simplified system)"
             echo ""
-            echo "Options:"
-            echo "  --show                  Show current configuration"
-            echo "  --set <key>=<value>     Set configuration value"
-            echo "  --get <key>             Get configuration value (supports env var overrides)"
-            echo "  --init                  Initialize configuration"
-            echo "  --validate              Validate configuration"
-            echo "  --export <format>       Export configuration"
+            echo "Commands:"
+            echo "  show                    Display current configuration"
+            echo "  edit                    Edit configuration in \$EDITOR"
+            echo "  reset                   Reset to default configuration"
+            echo "  get <key>               Get value of specific setting"
+            echo "  set <key> <value>       Set value of specific setting"
+            echo ""
+            echo "Legacy Options (still supported):"
+            echo "  --show                  Same as 'show'"
+            echo "  --set <key>=<value>     Same as 'set <key> <value>'"
+            echo "  --get <key>             Same as 'get <key>'"
+            echo ""
+            echo "Available settings:"
+            echo "  update_interval         Days between updates (default: 7)"
+            echo "  cleanup_interval        Days between cleanup (default: 30)"
+            echo "  log_level              error, warn, info, debug (default: info)"
+            echo "  notifications          true/false (default: true)"
+            echo "  parallel_execution     true/false (default: true)"
             echo ""
             echo "Environment Variable Overrides:"
             echo "  UPKEP_DRY_RUN=true      Enable dry run mode"
-            echo "  UPKEP_PARALLEL_EXECUTION=false  Disable parallel execution"
-            echo "  UPKEP_LOGGING_LEVEL=debug       Set log level"
+            echo "  UPKEP_FORCE=true        Skip interval checks"
+            echo "  UPKEP_LOG_LEVEL=debug   Override log level"
             echo ""
             echo "Examples:"
-            echo "  upkep config --show"
-            echo "  upkep config --set logging.level=debug"
-            echo "  upkep config --get logging.level"
-            echo "  UPKEP_LOGGING_LEVEL=debug upkep run     # Override log level"
-            echo "  UPKEP_DRY_RUN=true upkep run            # Test mode"
+            echo "  upkep config show"
+            echo "  upkep config set log_level debug"
+            echo "  upkep config get update_interval"
+            echo "  UPKEP_DRY_RUN=true upkep run     # Test mode"
             ;;
         "list-modules")
             echo "Usage: upkep list-modules [options]"
@@ -360,15 +370,14 @@ execute_config_command() {
         esac
     done
 
-    # Execute config action
+    # Execute config action using simplified system
     case "$action" in
         "show")
-            show_config
+            config_command "show"
             ;;
         "set")
             if [[ -n "$key" && -n "$value" ]]; then
-                set_global_config "$key" "$value"
-                echo "Set $key = $value"
+                config_command "set" "$key" "$value"
             else
                 echo "Usage: upkep config --set <key>=<value>"
                 return 1
@@ -376,25 +385,33 @@ execute_config_command() {
             ;;
         "get")
             if [[ -n "$key" ]]; then
-                local val=$(get_config "$key")
+                local val=$(config_command "get" "$key")
                 echo "$key = $val"
             else
                 echo "Usage: upkep config --get <key>"
                 return 1
             fi
             ;;
-        "init")
-            init_config
+        "init"|"reset")
+            config_command "reset"
+            ;;
+        "edit")
+            config_command "edit"
             ;;
         "validate")
-            validate_config "$GLOBAL_CONFIG"
+            if validate_config_basic; then
+                echo "Configuration is valid"
+            else
+                echo "Configuration validation failed"
+                return 1
+            fi
             ;;
         "export")
-            export_config "${format:-json}"
+            echo "Export functionality not available in simplified configuration"
+            echo "Use 'upkep config show' to view settings"
             ;;
         "")
-            echo "Usage: upkep config [options]"
-            echo "Use 'upkep help config' for detailed help"
+            config_command ""  # Show help
             return 1
             ;;
     esac

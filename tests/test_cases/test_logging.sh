@@ -18,7 +18,7 @@ export UPKEP_LOG_FILE="$HOME/.upkep/upkep.log"
 
 # Load required modules
 source "$(dirname "$0")/../../scripts/core/utils.sh"
-source "$(dirname "$0")/../../scripts/core/config/global.sh" 2>/dev/null || true
+source "$(dirname "$0")/../../scripts/core/config_simple.sh" 2>/dev/null || true
 
 # Test counter
 TESTS_PASSED=0

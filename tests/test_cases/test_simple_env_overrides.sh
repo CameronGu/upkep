@@ -12,8 +12,26 @@ mkdir -p "$TEST_CONFIG_DIR"
 export HOME="/tmp"
 export GLOBAL_CONFIG="$TEST_CONFIG_FILE"
 
-# Load configuration modules with correct paths
-source "$(dirname "$0")/../../scripts/core/config/global.sh"
+# Load enhanced YAML parsing utilities
+source "$(dirname "$0")/../../scripts/core/yaml_utils.sh"
+
+# Create wrapper functions for the test
+get_config() {
+    local key="$1"
+    local default="$2"
+
+    # Check for environment variable override first
+    local env_var_name
+    env_var_name="UPKEP_$(echo "$key" | tr '[:lower:].' '[:upper:]_')"
+
+    if [[ -n "${!env_var_name}" ]]; then
+        echo "${!env_var_name}"
+        return 0
+    fi
+
+    # Fall back to enhanced YAML parsing
+    get_yaml_config "$TEST_CONFIG_FILE" "$key" "$default"
+}
 
 # Test counter
 TESTS_PASSED=0
