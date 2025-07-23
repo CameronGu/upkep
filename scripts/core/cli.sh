@@ -311,7 +311,7 @@ execute_status_command() {
         # TODO: Show category status
     else
         # Show overall status
-        show_state
+        show_current_status
     fi
 }
 

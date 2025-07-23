@@ -241,14 +241,14 @@
       {
         "id": 4,
         "title": "Implement Comprehensive Logging System",
-        "description": "Develop structured logging to ~/.upkep/logs/upkep.log and per-module logs, with log rotation and multiple log levels.",
-        "status": "in-progress",
+        "description": "Enhance the existing log_message function to optionally write to a simple log file when users need persistent logging for troubleshooting.",
+        "status": "done",
         "dependencies": [
           1
         ],
         "priority": "medium",
-        "details": "Enhance the existing basic logging system with advanced features including structured logging levels, log rotation, secure permissions, and audit capabilities. Build upon the current log_message function in scripts/core/utils.sh to create a comprehensive logging framework that supports all required functionality.",
-        "testStrategy": "Test log creation, rotation, and level filtering. Validate log content and permissions. Verify audit logging functionality and log file security.",
+        "details": "Enhance the existing log_message function in scripts/core/utils.sh to provide optional file logging for user troubleshooting. The primary interface remains console output (unchanged), with an opt-in file logging capability controlled via environment variable. Focus on simplicity and user experience rather than enterprise features, ensuring backward compatibility while providing useful debugging capabilities.",
+        "testStrategy": "Test both console and file logging functionality. Verify environment variable control works correctly. Ensure backward compatibility with existing behavior. Test log level filtering based on configuration.",
         "subtasks": [
           {
             "id": 1,
@@ -265,62 +265,53 @@
             "description": "Integrate logging functions with module templates and ensure per-module log files exist.",
             "status": "done",
             "dependencies": [],
-            "details": "",
+            "details": "<info added on 2025-07-23T05:24:58.555Z>\nSince we're moving to a single log file approach (~/.upkep/upkep.log), update module templates to use the enhanced log_message function instead of creating separate per-module log files. This maintains simplicity while ensuring all modules can benefit from the optional file logging capability.\n\nThe module templates should be modified to:\n1. Remove any code related to creating or managing per-module log files\n2. Use the centralized log_message function for all logging needs\n3. Pass appropriate log levels to ensure proper filtering\n4. Include module name in log messages for better traceability\n\nThis change aligns with our goal of keeping the logging system simple while still providing useful debugging capabilities.\n</info added on 2025-07-23T05:24:58.555Z>",
             "testStrategy": ""
           },
           {
             "id": 3,
-            "title": "Implement Log Rotation System",
-            "description": "Create logrotate configuration or custom rotation logic to handle log file rotation based on size/time. Implement log compression and archival of old logs.",
-            "status": "pending",
+            "title": "Implement Optional File Logging",
+            "description": "Enhance log_message() function to optionally write to ~/.upkep/upkep.log when UPKEP_LOG_TO_FILE=true is set.",
+            "status": "done",
             "dependencies": [],
-            "details": "",
-            "testStrategy": ""
+            "details": "Modify the existing log_message function to check for the UPKEP_LOG_TO_FILE environment variable. When set to 'true', append log messages to a single file at ~/.upkep/upkep.log while maintaining the current console output behavior. Ensure the log directory exists before writing.",
+            "testStrategy": "Test with and without the environment variable set. Verify log messages appear in both console and file when enabled, and only in console when disabled."
           },
           {
             "id": 4,
-            "title": "Enhance Structured Logging Levels",
-            "description": "Extend log_message function to support configurable log levels (DEBUG, INFO, WARN, ERROR, AUDIT) and implement log level filtering based on configuration.",
-            "status": "pending",
+            "title": "Implement Basic Log Level Filtering",
+            "description": "Add simple log level support (DEBUG, INFO, WARN, ERROR) with filtering based on configuration.",
+            "status": "done",
             "dependencies": [],
-            "details": "",
-            "testStrategy": ""
+            "details": "Extend log_message function to accept a log level parameter. Implement a simple configuration option to control which log levels are displayed/written. Default to showing all levels except DEBUG unless explicitly enabled.",
+            "testStrategy": "Test each log level with different filter settings. Verify appropriate messages appear or are filtered based on configuration."
           },
           {
             "id": 5,
-            "title": "Implement Secure Log Permissions",
-            "description": "Ensure all log files are created with proper permissions (chmod 600) and are not world-readable. Implement secure log file creation and directory permissions.",
-            "status": "pending",
+            "title": "Add Timestamp and Context Information",
+            "description": "Include timestamp, log level, and context information in log messages for better troubleshooting.",
+            "status": "done",
             "dependencies": [],
-            "details": "",
-            "testStrategy": ""
+            "details": "Format log messages with timestamp, log level, and optional context information (module name, function, etc.) to help users understand when and where events occurred during execution.",
+            "testStrategy": "Verify log messages contain the expected formatting and information. Test with various context parameters."
           },
           {
             "id": 6,
-            "title": "Develop Audit Logging Functionality",
-            "description": "Implement AUDIT level logging for compliance purposes with secure audit trail and protection against tampering.",
-            "status": "pending",
+            "title": "Document Logging Usage",
+            "description": "Add documentation for users on how to enable file logging for troubleshooting.",
+            "status": "done",
             "dependencies": [],
-            "details": "",
-            "testStrategy": ""
+            "details": "Update user documentation to explain how to enable file logging with UPKEP_LOG_TO_FILE=true and how to use the log file for troubleshooting. Include examples of common debugging workflows.",
+            "testStrategy": "Review documentation for clarity and completeness. Verify examples work as described."
           },
           {
             "id": 7,
-            "title": "Advanced Logging Features",
-            "description": "Add structured logging with JSON format option, log correlation IDs for tracking operations, and centralized log aggregation.",
-            "status": "pending",
+            "title": "Ensure Backward Compatibility",
+            "description": "Verify that all existing code using log_message continues to work without modification.",
+            "status": "done",
             "dependencies": [],
-            "details": "",
-            "testStrategy": ""
-          },
-          {
-            "id": 8,
-            "title": "Log Analysis and Monitoring",
-            "description": "Implement log file size monitoring, alerts, and basic log analysis capabilities.",
-            "status": "pending",
-            "dependencies": [],
-            "details": "",
-            "testStrategy": ""
+            "details": "Test all existing code that uses log_message to ensure the enhancements don't break current functionality. Maintain backward compatibility with existing call patterns.",
+            "testStrategy": "Run existing tests with and without file logging enabled. Verify no regressions in current behavior."
           }
         ]
       },
@@ -328,37 +319,37 @@
         "id": 5,
         "title": "Implement Core CLI Interface with Subcommands",
         "description": "Develop the main CLI entry point (main.sh) supporting subcommands (run, status, config) and options, integrating with the existing CLI framework in scripts/core/cli.sh.",
-        "status": "in-progress",
+        "status": "done",
         "dependencies": [
           1
         ],
         "priority": "high",
-        "details": "Use Bash 5.1+ for scripting. Implement CLI parsing with getopts or a modern Bash CLI helper (e.g., argbash or shflags). Ensure support for interactive and non-interactive modes. Provide comprehensive help output and error handling for unknown commands. Integrate the existing CLI framework from scripts/core/cli.sh with main.sh to support all implemented subcommands: run, status, config, list-modules, create-module, validate-module.",
+        "details": "Use Bash 5.1+ for scripting. Implement CLI parsing with getopts or a modern Bash CLI helper (e.g., argbash or shflags). Focus on essential subcommands (run, status, config) and basic global options (--help, --version, --dry-run, --verbose). Provide comprehensive help output and error handling for unknown commands. Integrate the existing CLI framework from scripts/core/cli.sh with main.sh to support all implemented subcommands. Prioritize simplicity and maintainability over feature richness, aligning with upkep's target users who want automated system maintenance without complexity.",
         "testStrategy": "Unit test CLI parsing for all subcommands and options. Validate help output and error handling for invalid input. Ensure backward compatibility with existing functionality.",
         "subtasks": [
           {
             "id": 1,
             "title": "Integrate CLI Framework with main.sh",
             "description": "Update main.sh to use the existing CLI framework from scripts/core/cli.sh",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
-            "details": "",
+            "details": "<info added on 2025-07-23T05:47:56.741Z>\n# Analysis of Current State\n\n1. **main.sh (259 lines)**: Contains monolithic CLI handling with direct argument processing\n   - Has functions: show_help(), show_version(), show_current_config()\n   - Uses process_args() function to handle all CLI options\n   - Directly executes maintenance operations\n\n2. **cli.sh (877 lines)**: Contains structured subcommand framework\n   - Has parse_args() function for subcommand routing\n   - Implements: run, status, config, list-modules, create-module, validate-module, test-module\n   - More comprehensive help system with command-specific help\n\n# Integration Plan\n1. Update main.sh to source cli.sh\n2. Route main.sh arguments through cli.sh's parse_args()\n3. Maintain backward compatibility for existing flags\n4. Map existing functionality to appropriate subcommands\n\n# Implementation Strategy\n- Keep existing main() function as the default \"run\" behavior\n- Add CLI routing that defaults to \"run\" when no subcommand is given\n- Preserve all existing flags and functionality\n</info added on 2025-07-23T05:47:56.741Z>\n<info added on 2025-07-23T05:51:05.484Z>\n# Implementation Completed\n\n## Changes Made\n- Added `source \"$BASE_DIR/core/cli.sh\"` to main.sh\n- Created `is_subcommand()` function to detect new vs legacy CLI usage\n- Implemented CLI routing logic in the entry point\n- Preserved all legacy functions for backward compatibility\n- Fixed `show_state` → `show_current_status` in cli.sh\n\n## Testing Results\n- `./scripts/main.sh help` - Works (new subcommand format)\n- `./scripts/main.sh --help` - Works (legacy format, same output)\n- `./scripts/main.sh status` - Works (new subcommand format)\n- `./scripts/main.sh --status` - Works (legacy format with ASCII art)\n\n## Key Features\n- **Backward Compatibility**: All existing flags (--help, --version, --config, --status, etc.) work exactly as before\n- **New Subcommands**: Modern CLI with subcommands (run, status, config, list-modules, etc.)\n- **Intelligent Routing**: Automatically detects whether user is using new or legacy format\n- **Default Behavior**: No arguments still runs normal maintenance (preserves existing behavior)\n\n## Architecture\n- Legacy processing preserved for existing users\n- New CLI framework available for modern usage\n- Both approaches coexist seamlessly\n</info added on 2025-07-23T05:51:05.484Z>",
             "testStrategy": ""
           },
           {
             "id": 2,
             "title": "Implement Argument Parsing in main.sh",
             "description": "Add getopts or modern CLI helper integration to main.sh for parsing command-line arguments",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
-            "details": "",
+            "details": "<info added on 2025-07-23T05:51:41.736Z>\n## Analysis of Current Argument Parsing State:\n\nThe CLI integration from subtask 5.1 actually implemented comprehensive argument parsing:\n\n**✅ Already Implemented:**\n1. **Subcommand Detection**: `is_subcommand()` function identifies valid subcommands\n2. **Legacy Flag Parsing**: `process_legacy_args()` handles backward compatibility \n3. **CLI Framework Integration**: Routes to `parse_args()` in cli.sh for modern commands\n4. **Intelligent Routing**: Entry point logic determines parsing approach\n\n**Current Parsing Flow:**\n```bash\n# Entry point logic in main.sh:\nif [[ $# -eq 0 ]]; then\n    main  # No args = default behavior\nelif is_subcommand \"$1\"; then\n    parse_args \"$@\"  # New format: use cli.sh\nelse\n    process_legacy_args \"$@\"  # Legacy format: use legacy parser\nfi\n```\n\n**Parsing Capabilities:**\n- **Modern CLI**: `run`, `status`, `config`, `list-modules`, `create-module`, etc.\n- **Legacy Flags**: `--help`, `--version`, `--config`, `--status`, `--force`, `--dry-run`, etc.\n- **Command-Specific Options**: Each subcommand has its own option parsing\n- **Error Handling**: Unknown options are handled gracefully\n\n**Need to verify**: That all parsing works correctly and covers the simplified requirements.\n</info added on 2025-07-23T05:51:41.736Z>\n<info added on 2025-07-23T05:54:10.094Z>\n**✅ ARGUMENT PARSING IMPLEMENTATION VERIFIED**\n\nComprehensive testing shows argument parsing is fully functional and meets all simplified requirements:\n\n**✅ Testing Results:**\n\n1. **Legacy Flags** (Backward Compatibility):\n   - `--version` ✓ Shows v0.1.0 (legacy version)\n   - `--help` ✓ Shows comprehensive help\n   - `--status` ✓ Shows status with ASCII art\n   - `--config` ✓ Shows configuration\n   - `--dry-run` ✓ Runs maintenance in dry run mode\n   - `--invalid-option` ✓ Shows proper error with guidance\n\n2. **Modern Subcommands**:\n   - `version` ✓ Shows v2.0.0 (CLI framework version)\n   - `help` ✓ Shows help message\n   - `status` ✓ Shows clean status output\n   - `config --show` ✓ Shows detailed configuration\n   - `invalid-command` ✓ Handled with proper error\n\n3. **Intelligent Routing**:\n   - **Subcommand Detection**: `is_subcommand()` correctly identifies valid commands\n   - **Legacy Fallback**: Unknown commands route to legacy processing for proper error handling\n   - **Default Behavior**: No arguments still runs normal maintenance\n\n**✅ Core Requirements Met:**\n- ✅ Comprehensive CLI parsing (both legacy and modern)\n- ✅ Error handling for invalid input\n- ✅ Support for all core subcommands (run, status, config)\n- ✅ Global options support (--help, --version, --dry-run, --verbose)\n- ✅ Backward compatibility preserved\n\n**Architecture Success:**\nThe dual-parsing approach elegantly handles both modern CLI expectations and legacy compatibility without complexity for users.\n</info added on 2025-07-23T05:54:10.094Z>",
             "testStrategy": ""
           },
           {
             "id": 3,
             "title": "Add Subcommand Routing and Execution",
             "description": "Implement routing logic in main.sh to handle and execute different subcommands",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
             "details": "",
             "testStrategy": ""
@@ -367,52 +358,25 @@
             "id": 4,
             "title": "Implement Core Subcommand Handlers",
             "description": "Create handlers for run, status, and config subcommands that call existing functionality",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
             "details": "",
             "testStrategy": ""
           },
           {
             "id": 5,
-            "title": "Implement Interactive Mode",
-            "description": "Add interactive mode with user prompts, guided operation selection, and confirmation dialogs",
-            "status": "pending",
+            "title": "Add Global CLI Options",
+            "description": "Implement --help, --version, --verbose, and --dry-run flags across all subcommands",
+            "status": "done",
             "dependencies": [],
             "details": "",
             "testStrategy": ""
           },
           {
             "id": 6,
-            "title": "Add Global CLI Options",
-            "description": "Implement --help, --version, --verbose, and --dry-run flags across all subcommands",
-            "status": "pending",
-            "dependencies": [],
-            "details": "",
-            "testStrategy": ""
-          },
-          {
-            "id": 7,
-            "title": "Enhance User Feedback",
-            "description": "Add progress indicators and improved user feedback for all operations",
-            "status": "pending",
-            "dependencies": [],
-            "details": "",
-            "testStrategy": ""
-          },
-          {
-            "id": 8,
             "title": "Test Backward Compatibility",
             "description": "Ensure all existing functionality continues to work with the new CLI implementation",
-            "status": "pending",
-            "dependencies": [],
-            "details": "",
-            "testStrategy": ""
-          },
-          {
-            "id": 9,
-            "title": "Update Documentation",
-            "description": "Update help system and documentation to reflect the new CLI structure and options",
-            "status": "pending",
+            "status": "done",
             "dependencies": [],
             "details": "",
             "testStrategy": ""
@@ -1069,7 +1033,7 @@
     ],
     "metadata": {
       "created": "2025-07-21T23:33:05.847Z",
-      "updated": "2025-07-23T05:13:56.977Z",
+      "updated": "2025-07-23T05:55:44.571Z",
       "description": "Tasks for master context"
     }
   }

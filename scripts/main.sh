@@ -10,6 +10,7 @@ source "$BASE_DIR/modules/core/apt_update.sh"
 source "$BASE_DIR/modules/core/snap_update.sh"
 source "$BASE_DIR/modules/core/flatpak_update.sh"
 source "$BASE_DIR/modules/core/cleanup.sh"
+source "$BASE_DIR/core/cli.sh"
 
 # Initialize configuration system
 init_config
@@ -34,13 +35,66 @@ FLATPAK_STATUS="skipped"
 CLEANUP_STATUS="skipped"
 SKIP_NOTE=""
 
-# ── Help and Version Functions ─────────────────────────────────────
+# ── CLI Routing and Compatibility Functions ────────────────────────
+# Detect if arguments look like subcommands or legacy flags
+is_subcommand() {
+    local first_arg="$1"
+    case "$first_arg" in
+        run|status|config|list-modules|create-module|validate-module|test-module|help|version)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+# Map legacy flags to subcommands for backward compatibility
+map_legacy_to_subcommand() {
+    local args=("$@")
+    
+    # Check for legacy flags and convert to subcommands
+    for arg in "${args[@]}"; do
+        case "$arg" in
+            --help|-h)
+                echo "help"
+                return 0
+                ;;
+            --version|-v)
+                echo "version"
+                return 0
+                ;;
+            --config)
+                echo "config --show"
+                return 0
+                ;;
+            --status)
+                echo "status"
+                return 0
+                ;;
+        esac
+    done
+    
+    # If no legacy flags found, default to run command
+    echo "run $*"
+}
+
+# ── Legacy Functions (Preserved for Backward Compatibility) ─────────
 show_help() {
     echo "upKep Linux Maintainer - Automated system maintenance tool"
     echo ""
-    echo "Usage: $0 [OPTIONS]"
+    echo "Usage: $0 [COMMAND] [OPTIONS]"
     echo ""
-    echo "Options:"
+    echo "Commands:"
+    echo "  run              Execute maintenance operations (default)"
+    echo "  status           Display current status"
+    echo "  config           Manage configuration"
+    echo "  list-modules     List available modules"
+    echo "  create-module    Create a new module"
+    echo "  validate-module  Validate a module"
+    echo "  help             Show this help message"
+    echo ""
+    echo "Legacy Options (backward compatibility):"
     echo "  --help, -h          Show this help message"
     echo "  --version, -v       Show version information"
     echo "  --config            Show current configuration"
@@ -55,14 +109,12 @@ show_help() {
     echo ""
     echo "Examples:"
     echo "  $0                  Run normal maintenance operations"
-    echo "  $0 --help           Show this help"
-    echo "  $0 --config         Show configuration"
-    echo "  $0 --force          Force run all operations"
-    echo "  $0 --setup          Run setup wizard"
+    echo "  $0 run --force      Force run all operations"
+    echo "  $0 status           Show current status"
+    echo "  $0 config --show    Show configuration"
+    echo "  $0 help run         Show detailed help for run command"
     echo ""
-    echo "Configuration:"
-    echo "  Global config: ~/.upkep/config.yaml"
-    echo "  Module configs: ~/.upkep/modules/"
+    echo "For detailed help on commands, use: $0 help <command>"
 }
 
 show_version() {
@@ -95,10 +147,10 @@ configure_modules_interactively() {
     interactive_config "modules"
 }
 
-# ── Argument Processing ───────────────────────────────────────────
+# ── Legacy Argument Processing (Preserved) ──────────────────────────
 INTERACTIVE_MODE=false
 
-process_args() {
+process_legacy_args() {
     while [[ $# -gt 0 ]]; do
         case $1 in
             --help|-h)
@@ -191,6 +243,7 @@ check_cleanup_interval() {
         return 0
 }
 
+# ── Main Execution Function (Preserved) ─────────────────────────────
 main() {
     ascii_title
 
@@ -245,14 +298,20 @@ main() {
     draw_summary
 }
 
-# Process command line arguments
-process_args "$@"
-
-# Run main function
-if [[ "$INTERACTIVE_MODE" == "true" ]]; then
-    # Interactive mode was used, exit after the interactive function completes
-    exit 0
-else
-    # Run normal maintenance operations
+# ── CLI Entry Point ─────────────────────────────────────────────────
+# Determine whether to use new CLI framework or legacy processing
+if [[ $# -eq 0 ]]; then
+    # No arguments - run default maintenance
     main
+elif is_subcommand "$1"; then
+    # New subcommand format - use CLI framework
+    parse_args "$@"
+else
+    # Legacy flag format - use legacy processing for backward compatibility
+    process_legacy_args "$@"
+    
+    # Run main function if no interactive mode was triggered
+    if [[ "$INTERACTIVE_MODE" == "false" ]]; then
+        main
+    fi
 fi
