@@ -145,7 +145,10 @@ get_config() {
 get_config_value_enhanced_fallback() {
     local key="$1"
     local path_parts
-    IFS='.' read -ra path_parts <<< "$key"
+    IFS='.' read -r -a path_parts <<< "$key" 2>/dev/null || {
+        # Fallback for shells that don't support read -a
+        path_parts=($(echo "$key" | tr '.' ' '))
+    }
     local depth=${#path_parts[@]}
 
     # Handle different depths of nesting
@@ -295,7 +298,10 @@ get_yaml_deep_nested_key() {
 get_yaml_generic_path() {
     local key="$1"
     local path_parts
-    IFS='.' read -ra path_parts <<< "$key"
+    IFS='.' read -r -a path_parts <<< "$key" 2>/dev/null || {
+        # Fallback for shells that don't support read -a
+        path_parts=($(echo "$key" | tr '.' ' '))
+    }
     local current_level=0
     local in_path=true
     local value=""
@@ -388,7 +394,10 @@ set_global_config_enhanced_fallback() {
 
     # Handle different nesting levels
     local path_parts
-    IFS='.' read -ra path_parts <<< "$key"
+    IFS='.' read -r -a path_parts <<< "$key" 2>/dev/null || {
+        # Fallback for shells that don't support read -a
+        path_parts=($(echo "$key" | tr '.' ' '))
+    }
     local depth=${#path_parts[@]}
 
     case $depth in
@@ -526,7 +535,7 @@ validate_yaml_structure() {
         fi
 
         # Check for inconsistent indentation (basic check)
-        if [[ "$line" =~ ^[[:space:]]+ ]] && [[ ! "$line" =~ ^[[:space:]]{2}|^[[:space:]]{4} ]]; then
+        if [[ "$line" =~ ^[[:space:]]+ ]] && [[ ! "$line" =~ ^[[:space:]]{2} ]] && [[ ! "$line" =~ ^[[:space:]]{4} ]]; then
             local indent_count
             indent_count=$(echo "$line" | sed 's/[^[:space:]].*//' | wc -c)
             if [[ $((indent_count % 2)) -ne 1 ]]; then  # wc -c includes newline
@@ -723,4 +732,46 @@ secure_init_config() {
 
     # Validate permissions
     validate_all_config_permissions
+}
+
+# Simple startup validation - focuses on essential checks only
+validate_startup_config() {
+    echo "Validating configuration on startup..."
+
+    # Check if config file exists
+    if [[ ! -f "$GLOBAL_CONFIG" ]]; then
+        echo "Error: Global configuration file not found: $GLOBAL_CONFIG"
+        echo "Run 'upkep --setup' to initialize configuration"
+        return 1
+    fi
+
+    # Check basic file readability
+    if [[ ! -r "$GLOBAL_CONFIG" ]]; then
+        echo "Error: Cannot read configuration file: $GLOBAL_CONFIG"
+        return 1
+    fi
+
+    # Check required sections exist - simple and reliable
+    if ! grep -q "^defaults:" "$GLOBAL_CONFIG"; then
+        echo "Error: Missing required config section: defaults"
+        return 1
+    fi
+
+    if ! grep -q "^logging:" "$GLOBAL_CONFIG"; then
+        echo "Error: Missing required config section: logging"
+        return 1
+    fi
+
+    if ! grep -q "^notifications:" "$GLOBAL_CONFIG"; then
+        echo "Error: Missing required config section: notifications"
+        return 1
+    fi
+
+    if ! grep -q "^modules:" "$GLOBAL_CONFIG"; then
+        echo "Error: Missing required config section: modules"
+        return 1
+    fi
+
+    echo "Configuration validation passed"
+    return 0
 }

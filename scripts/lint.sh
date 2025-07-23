@@ -123,7 +123,7 @@ check_shell_script() {
         local shellcheck_output
         shellcheck_output=$(shellcheck -s bash -S style "$file" 2>&1)
         local shellcheck_exit=$?
-        
+
         if [[ $shellcheck_exit -eq 0 ]]; then
             print_status "PASS" "$file: shellcheck passed"
             return 0
@@ -131,11 +131,11 @@ check_shell_script() {
             # Check if we have critical issues (non-SC2317)
             local critical_issues
             critical_issues=$(echo "$shellcheck_output" | grep -v "SC2317" | grep -c "error\|warning")
-            
+
             # Check if we have SC2317 informational warnings
             local sc2317_count
             sc2317_count=$(echo "$shellcheck_output" | grep -c "SC2317")
-            
+
             if [[ $critical_issues -gt 0 ]]; then
                 # Real critical issues found
                 print_status "FAIL" "$file: shellcheck found issues [CRITICAL]"

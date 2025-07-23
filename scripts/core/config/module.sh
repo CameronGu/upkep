@@ -86,7 +86,10 @@ get_module_config_enhanced_fallback() {
 
     # Use the same enhanced parsing logic as global config
     local path_parts
-    IFS='.' read -ra path_parts <<< "$key"
+    IFS='.' read -r -a path_parts <<< "$key" 2>/dev/null || {
+        # Fallback for shells that don't support read -a
+        path_parts=($(echo "$key" | tr '.' ' '))
+    }
     local depth=${#path_parts[@]}
 
     case $depth in
@@ -162,7 +165,10 @@ get_module_yaml_generic() {
     local module_config="$1"
     local key="$2"
     local path_parts
-    IFS='.' read -ra path_parts <<< "$key"
+    IFS='.' read -r -a path_parts <<< "$key" 2>/dev/null || {
+        # Fallback for shells that don't support read -a
+        path_parts=($(echo "$key" | tr '.' ' '))
+    }
     local search_pattern
 
     # Simple approach: look for the final key in the path
@@ -255,7 +261,10 @@ set_module_config_enhanced_fallback() {
 
     # Handle different nesting levels (most module configs are simple)
     local path_parts
-    IFS='.' read -ra path_parts <<< "$key"
+    IFS='.' read -r -a path_parts <<< "$key" 2>/dev/null || {
+        # Fallback for shells that don't support read -a
+        path_parts=($(echo "$key" | tr '.' ' '))
+    }
     local depth=${#path_parts[@]}
 
     case $depth in

@@ -191,6 +191,14 @@ check_cleanup_interval() {
 main() {
     ascii_title
 
+    # Validate configuration on startup
+    if ! validate_startup_config; then
+        echo ""
+        echo "Configuration validation failed. Please fix the issues and try again."
+        echo "Run 'upkep --setup' to reconfigure or 'upkep --config' to view current config."
+        exit 1
+    fi
+
     # Check for configuration migrations
     if check_migration_needed; then
         echo ""
