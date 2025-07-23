@@ -342,6 +342,11 @@ set_global_config() {
         return 1
     fi
 
+    # Create automatic backup before making changes
+    if [[ -f "$GLOBAL_CONFIG" ]] && declare -f auto_backup >/dev/null 2>&1; then
+        auto_backup
+    fi
+
     # Try yq first if available (optional enhancement)
     if command -v yq >/dev/null 2>&1; then
         # Escape special characters and handle different value types

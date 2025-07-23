@@ -96,6 +96,11 @@ restore_config() {
         fi
     fi
 
+    # Create automatic backup before restore
+    if ([[ -f "$GLOBAL_CONFIG" ]] || [[ -d "$MODULE_CONFIG_DIR" ]]) && declare -f auto_backup >/dev/null 2>&1; then
+        auto_backup
+    fi
+
     # Create backup of current config before restore
     local current_backup
     current_backup=$(mktemp -d)

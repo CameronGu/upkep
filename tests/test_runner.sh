@@ -83,6 +83,7 @@ test_order=(
     "test_formatting.sh"
     "test_config_management.sh"
     "test_config_validation.sh"
+    "test_config_backup_system.sh"
     "test_enhanced_yaml_parsing.sh"
     "test_simple_env_overrides.sh"
     "test_state.sh"
