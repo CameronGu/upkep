@@ -71,8 +71,9 @@ logging:
   level: info
   file: /tmp/.upkep/upkep.log
 
+notifications: true
+
 dry_run: false
-parallel_execution: true
 
 modules:
   apt_update:
@@ -127,7 +128,7 @@ test_fallback_to_config() {
 
     # No env var set, should use config file value
     local value
-    value=$(get_config "parallel_execution" "false")
+    value=$(get_config "notifications" "false")
     [[ "$value" == "true" ]]
 }
 
@@ -139,6 +140,23 @@ test_fallback_to_default() {
     local value
     value=$(get_config "nonexistent.key" "default_value")
     [[ "$value" == "default_value" ]]
+}
+
+# Test notifications setting
+test_notifications_setting() {
+    echo "Testing notifications setting..."
+
+    # Test default value
+    value=$(get_config "notifications" "true")
+    assert_equals "true" "$value" "Default notifications should be true"
+
+    # Test environment variable override
+    export UPKEP_NOTIFICATIONS=false
+    value=$(get_config "notifications" "true")
+    assert_equals "false" "$value" "Environment variable should override notifications"
+
+    # Clean up
+    unset UPKEP_NOTIFICATIONS
 }
 
 # Cleanup function
@@ -164,6 +182,7 @@ main() {
     run_test "Key Formats" "test_key_formats"
     run_test "Fallback to Config" "test_fallback_to_config"
     run_test "Fallback to Default" "test_fallback_to_default"
+    run_test "Notifications Setting" "test_notifications_setting"
 
     # Clean up after tests
     cleanup

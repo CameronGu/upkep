@@ -139,11 +139,10 @@ The current configuration system has grown into an enterprise-grade solution tha
 ### ✅ Essential Configuration (Target: <50 lines)
 ```yaml
 # ~/.upkep/config.yaml (target: <15 lines)
-update_interval: 7        # days between package updates
-cleanup_interval: 30      # days between cleanup operations  
-log_level: info          # error, warn, info, debug
-notifications: true      # show completion notifications
-parallel_execution: true # run operations in parallel
+update_interval: 7          # days between package updates
+cleanup_interval: 30        # days between cleanup operations
+log_level: info             # logging level
+notifications: true         # show completion notifications
 ```
 
 ### ✅ Environment Variable Overrides (Target: <50 lines)

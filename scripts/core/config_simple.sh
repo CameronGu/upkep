@@ -11,8 +11,7 @@ DEFAULT_CONFIG="# upKep Configuration - Simple Linux system maintenance settings
 update_interval: 7          # Days between package updates
 cleanup_interval: 30        # Days between cleanup operations
 log_level: info             # Logging: error, warn, info, debug
-notifications: true         # Show completion notifications
-parallel_execution: true    # Run operations in parallel"
+notifications: true         # Show completion notifications"
 
 # Initialize configuration system
 init_simple_config() {
@@ -175,15 +174,10 @@ get_log_level() {
     get_config "log_level" "info"
 }
 
+# Get notifications setting
 get_notifications_enabled() {
     local value
     value=$(get_config "notifications" "true")
-    [[ "$value" == "true" ]]
-}
-
-get_parallel_execution() {
-    local value
-    value=$(get_config "parallel_execution" "true")
     [[ "$value" == "true" ]]
 }
 
@@ -215,7 +209,7 @@ config_command() {
             local key="$2"
             if [[ -z "$key" ]]; then
                 echo "Usage: upkep config get <key>"
-                echo "Available keys: update_interval, cleanup_interval, log_level, notifications, parallel_execution"
+                echo "Available keys: update_interval, cleanup_interval, log_level, notifications"
                 return 1
             fi
             get_config "$key" ""
@@ -225,7 +219,7 @@ config_command() {
             local value="$3"
             if [[ -z "$key" || -z "$value" ]]; then
                 echo "Usage: upkep config set <key> <value>"
-                echo "Available keys: update_interval, cleanup_interval, log_level, notifications, parallel_execution"
+                echo "Available keys: update_interval, cleanup_interval, log_level, notifications"
                 return 1
             fi
             set_config "$key" "$value"
@@ -246,6 +240,7 @@ config_command() {
             echo "  UPKEP_FORCE=true        Skip interval checks"
             echo "  UPKEP_LOG_LEVEL=debug   Temporary logging level"
             echo "  UPKEP_UPDATE_INTERVAL=1 Override update interval"
+            echo "  UPKEP_NOTIFICATIONS=false upkep run"
             return 1
             ;;
     esac
@@ -254,6 +249,6 @@ config_command() {
 # Initialize configuration on script load
 init_simple_config
 
-# Export commonly used functions for other scripts
+# Export functions for use in other scripts
 export -f get_config get_update_interval get_cleanup_interval get_log_level
-export -f is_dry_run is_force_mode get_notifications_enabled get_parallel_execution
+export -f is_dry_run is_force_mode get_notifications_enabled

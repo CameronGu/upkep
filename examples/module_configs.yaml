@@ -212,7 +212,6 @@ global:
   log_level: info
   notifications: true
   dry_run: false
-  parallel_execution: true
   max_parallel_modules: 4
 
 # Category Defaults

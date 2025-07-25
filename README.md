@@ -240,7 +240,6 @@ update_interval: 7          # Days between package updates
 cleanup_interval: 30        # Days between cleanup operations
 log_level: info             # Logging: error, warn, info, debug
 notifications: true         # Show completion notifications
-parallel_execution: true    # Run operations in parallel
 ```
 
 ### Configuration Management

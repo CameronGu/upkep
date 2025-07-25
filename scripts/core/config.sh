@@ -33,13 +33,6 @@ get_global_config() {
                 echo "false"
             fi
             ;;
-        "parallel_execution")
-            if get_parallel_execution; then
-                echo "true"
-            else
-                echo "false"
-            fi
-            ;;
         *)
             echo "$default"
             ;;
@@ -58,13 +51,6 @@ get_module_config() {
         "enabled") echo "true" ;;
         "interval_days") get_update_interval ;;
         "timeout") echo "600" ;;
-        "parallel")
-            if get_parallel_execution; then
-                echo "true"
-            else
-                echo "false"
-            fi
-            ;;
         "verbose")
             local log_level=$(get_log_level)
             if [[ "$log_level" == "debug" ]]; then

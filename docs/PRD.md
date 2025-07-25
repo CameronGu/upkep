@@ -345,13 +345,12 @@ global:
   log_level: info
   notifications: true
   dry_run: false
-  parallel_execution: true
   max_parallel_modules: 4
 
 # Default intervals (in days)
 defaults:
   update_interval: 7
-  cleanup_interval: 3
+  cleanup_interval: 30
   security_interval: 1
 
 # Logging configuration

@@ -11,7 +11,7 @@ upKep currently operates with **two parallel configuration systems** during the 
 **Used by:** Main execution path (`scripts/main.sh`)
 
 **Features:**
-- ✅ **5 essential settings:** `update_interval`, `cleanup_interval`, `log_level`, `notifications`, `parallel_execution`
+- ✅ **4 essential settings:** `update_interval`, `cleanup_interval`, `log_level`, `notifications`
 - ✅ **Single config file:** `~/.upkep/config.yaml` (7 lines)
 - ✅ **Environment overrides:** `UPKEP_DRY_RUN`, `UPKEP_FORCE`, etc.
 - ✅ **Simple CLI:** `upkep config show|edit|reset|get|set`
@@ -26,7 +26,6 @@ update_interval: 7          # Days between package updates
 cleanup_interval: 30        # Days between cleanup operations
 log_level: info             # Logging: error, warn, info, debug
 notifications: true         # Show completion notifications
-parallel_execution: true    # Run operations in parallel
 ```
 
 ### 2. Enhanced Configuration System (Legacy - Still Active)

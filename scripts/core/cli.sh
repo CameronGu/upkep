@@ -68,7 +68,6 @@ show_help() {
             echo "  cleanup_interval        Days between cleanup (default: 30)"
             echo "  log_level              error, warn, info, debug (default: info)"
             echo "  notifications          true/false (default: true)"
-            echo "  parallel_execution     true/false (default: true)"
             echo ""
             echo "Environment Variable Overrides:"
             echo "  UPKEP_DRY_RUN=true      Enable dry run mode"
