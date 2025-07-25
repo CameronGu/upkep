@@ -46,6 +46,9 @@ tests/tmp/
 docs/_build/
 docs/.doctrees/
 
+# Archived documentation
+docs/archive/
+
 # Package files
 *.tar.gz
 *.zip

@@ -15,7 +15,7 @@ by CameronGu
 * **A modular and test-driven architecture** for maintainability.
 * **State tracking** to prevent redundant operations (stored in `~/.upkep_state`).
 * **Clear CLI output and logging**, with visually styled summaries.
-* **A future-proof design**, evolving toward dynamic module loading and modern CLI packaging.
+* **A user-focused design** that prioritizes simplicity and reliability.
 
 ---
 
@@ -24,7 +24,7 @@ by CameronGu
 **upKep** solves the complexity of managing multiple package managers and cleanup routines by offering:
 
 * A **single unified command** to run all maintenance tasks.
-* **Automatic discovery of tasks** (planned via dynamic module loading).
+* **Automatic discovery of tasks** through modular architecture.
 * **State reflection** and interval-based task skipping.
 * **Developer-friendly extensibility** to allow custom modules.
 
@@ -35,9 +35,10 @@ by CameronGu
 * **Core Modules Implemented:** `apt_update.sh`, `snap_update.sh`, `flatpak_update.sh`, and `cleanup.sh`.
 * **Logging:** All runs tracked in `logs/run.log`, with individual logs per module.
 * **Testing:** Modular test cases for ASCII art, state logic, interval checks, flags, and formatting.
-* **Documentation:** Found under `docs/` (PRD, CHANGELOG, DESIGN, README).
+* **Documentation:** Found under `docs/` (PRD, DESIGN, README, etc.).
 * **Execution:** Managed with a `Makefile` for `run`, `build`, `test`, and `clean` operations.
 * **State Management:** User-specific state stored in `~/.upkep_state` (not version controlled).
+* **Configuration:** Simplified hybrid system with 7-line default config for 90% of users.
 
 ---
 
@@ -78,13 +79,12 @@ upKep/
 ├── scripts/
 │   ├── main.sh                 # Main entry point
 │   ├── modules/
-│   │   ├── utils.sh           # Utility functions
-│   │   ├── ascii_art.sh       # Visual branding
-│   │   ├── state.sh           # State management
-│   │   ├── apt_update.sh      # APT operations
-│   │   ├── snap_update.sh     # Snap operations
-│   │   ├── flatpak_update.sh  # Flatpak operations
-│   │   └── cleanup.sh         # Cleanup operations
+│   │   ├── core/              # Core maintenance modules
+│   │   │   ├── apt_update.sh
+│   │   │   ├── snap_update.sh
+│   │   │   ├── flatpak_update.sh
+│   │   │   └── cleanup.sh
+│   │   └── user/              # User-created modules
 │   └── upkep.sh               # Concatenated single-file version
 ├── tests/
 │   ├── test_runner.sh         # Test execution
@@ -116,108 +116,88 @@ upKep/
 
 ---
 
-## **7. Roadmap**
+## **7. Current Roadmap**
 
-The **upKep roadmap** prioritizes modularity, dynamic runtime behavior, and modern CLI packaging.
+The **upKep roadmap** prioritizes modularity, reliability, and user experience within the current Bash-based architecture.
 
-### **7.1 Dynamic Module Loading**
+### **7.1 Enhanced Module System**
 
-**Goal:** Transition from concatenated scripts to **dynamic runtime loading** of modules.
+**Goal:** Improve the current modular architecture for better maintainability and extensibility.
 
-* Separate `modules/core/` and `modules/user/`.
-* Auto-discover modules via scanning or a registry.
-* Use naming conventions like `module_<name>.sh` (or `.js` if migrated).
-* Each module will include metadata (`MODULE_NAME`, `DESCRIPTION`, `FLAGS`).
-* Implement a loader that imports modules at runtime.
+* **Module Discovery**: Implement automatic module discovery and loading
+* **Module Metadata**: Standardize module metadata (name, description, dependencies)
+* **Module Validation**: Add validation for module structure and requirements
+* **Module Documentation**: Generate documentation from module metadata
 
-### **7.2 Prompt Generator (Not AI)**
+### **7.2 Configuration System Evolution**
 
-**Goal:** Generate a **deterministic AI prompt template** for building new modules.
+**Goal:** Continue refining the hybrid configuration approach based on user feedback.
 
-* Command: `upkep suggest-prompt`.
-* Reads current state (flags, modules).
-* Outputs a pre-filled template like:
+* **User Feedback Integration**: Gather feedback on simplified vs legacy configuration usage
+* **Feature Consolidation**: Identify opportunities to further simplify the system
+* **Migration Path**: Plan potential full migration to unified simple system
+* **Documentation Updates**: Keep configuration documentation current
 
-  ```
-  "This project has the following modules and flags: [...]
-   Here is an example module template:
-   [code snippet]
-   I want a new module that [user description here]."
-  ```
-* Writes template to `prompt_for_new_module.txt`.
+### **7.3 Testing and Quality Assurance**
 
-### **7.3 Dynamic State Reflection**
+**Goal:** Maintain and improve the comprehensive testing framework.
 
-**Goal:** Reflect real-time system state for better module generation and documentation.
+* **Test Coverage**: Ensure 100% test coverage for all new features
+* **Integration Testing**: Expand integration tests for complex workflows
+* **Performance Testing**: Add performance benchmarks for critical operations
+* **User Acceptance Testing**: Develop user-focused test scenarios
 
-* Maintain `state.json` (or equivalent) in addition to existing state file.
-* Include flags, modules, and capabilities.
-* `suggest-prompt` will read from this state to create real-time templates.
+### **7.4 Documentation and User Experience**
 
-### **7.4 Package Feasibility (Node.js vs. Bash)**
+**Goal:** Improve documentation and user experience based on actual usage patterns.
 
-* **Why Node.js?**
-
-  * Easier dynamic module loading (`require()`/`import()`).
-  * Modern CLI UX libraries (commander, inquirer).
-  * Cross-platform packaging via `pkg`.
-  * Global install: `npm install -g upkep`.
-* **Migration Path:**
-
-  * **Phase 1:** Modularize current Bash scripts.
-  * **Phase 2:** Build a Node.js CLI loader for Bash modules.
-  * **Phase 3:** Migrate core modules to JavaScript.
-  * **Phase 4:** Package as an NPM CLI with optional binaries.
-
-### **7.5 Setup Command**
-
-**Goal:** Help users create custom modules.
-
-* Command: `upkep setup`
-* Initializes `modules/user/`.
-* Provides `module_template.sh` (or `.js`).
-* Optionally validates new modules with `tests/validate_module`.
+* **User Guides**: Create step-by-step guides for common use cases
+* **Troubleshooting**: Develop comprehensive troubleshooting documentation
+* **Examples**: Provide real-world examples and use cases
+* **Community Feedback**: Establish feedback channels for user input
 
 ---
 
-## **8. Roadmap Phases**
+## **8. Key Decisions**
 
-### **Phase 1 (Short-Term)**
-
-* Implement a **module loader** for Bash.
-* Add `--list-modules` and `--describe <module>`.
-* Implement `suggest-prompt` command.
-
-### **Phase 2 (Mid-Term)**
-
-* Migrate state to `state.json` (in addition to existing state file).
-* Add a build system (or npm script) to package modules into a standalone CLI.
-* Introduce testing for module validation (Jest or equivalent).
-
-### **Phase 3 (Long-Term)**
-
-* Transition fully to Node.js.
-* Publish as an NPM package (`npm install -g upkep`).
-* Support hybrid Bash/JS user modules.
-
----
-
-## **9. Key Decisions**
-
-### **9.1 State Management**
+### **8.1 State Management**
 - **Decision**: Store state in user's home directory (`~/.upkep_state`)
 - **Rationale**: System-wide tool that should persist across installations
 - **Implication**: State is user-specific and not version controlled
 
-### **9.2 Architecture**
-- **Decision**: Modular Bash architecture with future Node.js migration path
-- **Rationale**: Leverages existing Unix tools while planning for modern CLI capabilities
+### **8.2 Architecture**
+- **Decision**: Modular Bash architecture focused on simplicity and reliability
+- **Rationale**: Leverages existing Unix tools while maintaining user-friendly experience
 - **Implication**: Maintains backward compatibility while enabling future enhancements
 
-### **9.3 Testing Strategy**
+### **8.3 Testing Strategy**
 - **Decision**: Comprehensive test suite with mock support
 - **Rationale**: Ensures reliability for system maintenance operations
 - **Implication**: All new modules must include corresponding tests
+
+### **8.4 Configuration Approach**
+- **Decision**: Hybrid configuration system (simple + legacy)
+- **Rationale**: Serves both simple use cases (90%) and advanced needs (10%)
+- **Implication**: Maintains flexibility while prioritizing simplicity
+
+---
+
+## **9. Success Metrics**
+
+### **9.1 Code Quality**
+- **Test Coverage**: Maintain 100% test pass rate
+- **Code Complexity**: Keep modules under 200 lines each
+- **Documentation**: Ensure all features are documented
+
+### **9.2 User Experience**
+- **Setup Time**: <30 seconds for new users
+- **Configuration**: <10 lines for 90% of use cases
+- **Reliability**: Zero breaking changes for existing users
+
+### **9.3 Maintainability**
+- **Module Development**: <1 hour to create new modules
+- **Bug Resolution**: <24 hours for critical issues
+- **Feature Addition**: <1 week for simple features
 
 ---
 
