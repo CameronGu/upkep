@@ -10,27 +10,26 @@
 git clone <repository-url>
 cd upkep
 
-# Run the maintenance tool
-make run
+# Build and install
+make build install
 
-# Or build a single-file version
-make build
-./scripts/upkep.sh
+# Or run directly
+./scripts/main.sh
 ```
 
 ### Basic Usage
 ```bash
 # Run all maintenance tasks
-./scripts/main.sh
+upkep run
 
 # Check status without making changes
-./scripts/main.sh --status
+upkep status
 
 # Force run all tasks (skip interval checks)
-./scripts/main.sh --force
+UPKEP_FORCE=true upkep run
 
 # Show help
-./scripts/main.sh --help
+upkep help
 ```
 
 ## Documentation Structure
@@ -41,7 +40,7 @@ make build
 - **[DESIGN.md](DESIGN.md)** - UI/UX design specifications and visual guidelines
 
 ### ⚙️ **Configuration**
-- **[CONFIGURATION/CONFIGURATION_SYSTEM_EVOLUTION.md](CONFIGURATION/CONFIGURATION_SYSTEM_EVOLUTION.md)** - Configuration system evolution and current approach
+- **[CONFIGURATION/CONFIGURATION_SYSTEM_REFERENCE.md](CONFIGURATION/CONFIGURATION_SYSTEM_REFERENCE.md)** - Comprehensive configuration system reference (current)
 - **[CONFIGURATION/INTERVALS.md](CONFIGURATION/INTERVALS.md)** - Maintenance interval recommendations and best practices
 
 ### 🛠️ **Development**
@@ -122,7 +121,9 @@ make clean
 
 ## Configuration
 
-### Simple Configuration (Recommended)
+upKep uses a simplified configuration system. See the [Configuration Reference](CONFIGURATION/CONFIGURATION_SYSTEM_REFERENCE.md) for complete details.
+
+#### Simple Configuration (Recommended)
 ```yaml
 # ~/.upkep/config.yaml
 update_interval: 7          # Days between package updates
@@ -131,7 +132,7 @@ log_level: info             # Logging level
 notifications: true         # Show completion notifications
 ```
 
-### Environment Variables
+#### Environment Variables
 ```bash
 # Override settings temporarily
 UPKEP_DRY_RUN=true          # Test mode
