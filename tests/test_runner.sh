@@ -79,6 +79,7 @@ fi
 # Run tests in specific order for better organization
 test_order=(
     "test_utils.sh"
+    "test_enhanced_styling.sh"
     "test_logging.sh"
     "test_ascii_art.sh"
     "test_formatting.sh"

@@ -1,9 +1,7 @@
 ---
 description: Guidelines for executing upkep tasks with focus on simplicity, user value, and comprehensive testing
-globs: scripts/**/*.sh, tests/**/*.sh, config/**/*
-alwaysApply: true
+alwaysApply: false
 ---
-
 ## Pre-Implementation Analysis
 
 **Before coding any feature or change:**

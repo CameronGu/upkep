@@ -82,18 +82,18 @@ The central interface component displaying all maintenance modules in a scannabl
 
 **Structure:**
 ```bash
-╭─────────────── SYSTEM MAINTENANCE STATUS ───────────────╮
+╭─────────────── SYSTEM MAINTENANCE STATUS ────────────────╮
 │ Module                │ Last Run    │ Status  │ Next Due │
 ├───────────────────────┼─────────────┼─────────┼──────────┤
 │ Package Updates       │             │         │          │
-│ ├─ APT               │ 2 days ago  │ ✅ Done │ 5 days   │
-│ ├─ Snap              │ 2 days ago  │ ✅ Done │ 5 days   │
-│ └─ Flatpak           │ 6 days ago  │ ⚠️  Due  │ Now      │
+│ ├─ APT                │ 2 days ago  │ ✅ Done │ 5 days   │
+│ ├─ Snap               │ 2 days ago  │ ✅ Done │ 5 days   │
+│ └─ Flatpak            │ 6 days ago  │ ⚠️  Due │ Now      │
 │ System Cleanup        │             │         │          │
-│ ├─ Package Cache     │ 1 day ago   │ ✅ Done │ 2 days   │
-│ └─ Temp Files        │ 4 days ago  │ ⚠️  Due  │ Now      │
+│ ├─ Package Cache      │ 1 day ago   │ ✅ Done │ 2 days   │
+│ └─ Temp Files         │ 4 days ago  │ ⚠️  Due │ Now      │
 │ Custom Modules        │             │         │          │
-│ └─ Docker Cleanup    │ Never       │ 📋 New  │ Setup    │
+│ └─ Docker Cleanup     │ Never       │ 📋 New  │ Setup    │
 ╰───────────────────────┴─────────────┴─────────┴──────────╯
 ```
 
@@ -111,12 +111,12 @@ Taskmaster-style information boxes that appear after module execution.
 ```bash
 ╭─────────────────── APT UPDATE COMPLETE ───────────────────╮
 │                                                           │
-│ ✅ 12 packages updated successfully                        │
-│ ⏱️  Execution time: 42 seconds                             │
-│ 📦 Updates: firefox (91.0), git (2.34), python3 (3.9.7) │
+│ ✅ 12 packages updated successfully                       │
+│ ⏱️  Execution time: 42 seconds                            │
+│ 📦 Updates: firefox (91.0), git (2.34), python3 (3.9.7)   │
 │ 🔄 3 packages held back due to dependencies               │
 │                                                           │
-│ Next update due: 5 days (based on 7-day interval)        │
+│ Next update due: 5 days (based on 7-day interval)         │
 ╰───────────────────────────────────────────────────────────╯
 ```
 
@@ -136,8 +136,8 @@ Taskmaster-style information boxes that appear after module execution.
 ```bash
 ╭──────────────────── SNAP UPDATE FAILED ───────────────────╮
 │                                                           │
-│ ❌ Failed to refresh snaps                                 │
-│ ⏱️  Execution time: 15 seconds                             │
+│ ❌ Failed to refresh snaps                                │
+│ ⏱️  Execution time: 15 seconds                            │
 │ 🔍 Error: network timeout during download                 │
 │ 💡 Suggestion: Check internet connection and retry        │
 │                                                           │
@@ -176,8 +176,8 @@ Main status screen combining multiple modules in a comprehensive view.
 ```bash
 ╭───────────────────── upKep System Status ─────────────────────╮
 │                                                               │
-│ 🖥️  System: Ubuntu 22.04 LTS │ 🕒 Last run: 2 hours ago       │
-│ 💾 Disk: 89.4GB free         │ 📊 Total modules: 7           │
+│ 🖥️  System: Ubuntu 22.04 LTS │ 🖥️ Last run: 2 hours ago       │
+│ 💾 Disk: 89.4GB free         │ 📊 Total modules: 7            │
 │                                                               │
 ╰───────────────────────────────────────────────────────────────╯
 
@@ -349,10 +349,10 @@ Yesterday     ⚠️ Flatpak update skipped (interval not met)
 **System Context Header:**
 ```bash
 ╭─────────────────── upKep v2.1.0 ───────────────────╮
-│ 🖥️  Ubuntu 22.04.3 LTS │ 🕒 Session: 14:32:10    │  
-│ 🔧 7 modules loaded     │ 📊 Last run: 2h ago     │
-│ 💾 89.4GB free         │ ⚡ 2 operations due     │
-╰─────────────────────────────────────────────────────╯
+│ 🖥️  Ubuntu 22.04.3 LTS │ 🕒 Session: 14:32:10      │  
+│ 🔧 7 modules loaded    │ 📊 Last run: 2h ago       │
+│ 💾 89.4GB free         │ ⚡ 2 operations due        │
+╰────────────────────────────────────────────────────╯
 ```
 
 ### 6.2 Section Headers & Dividers

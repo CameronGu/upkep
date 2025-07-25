@@ -9,7 +9,7 @@ A modular, extensible system maintenance tool for Linux that automates common ma
 - **Comprehensive Logging**: Multi-level logging with rotation and structured output
 - **State Management**: Persistent state tracking for modules and global operations
 - **Configuration Management**: YAML-based configuration with validation
-- **Visual Interface**: Rich terminal output with progress indicators and status boxes
+- **Enhanced Visual Interface**: Terminal-first design with semantic colors, dynamic boxes, and Unicode-aware alignment
 - **AI Integration**: AI prompt generation for module development
 - **Extensible**: Easy to create custom modules with templates
 
@@ -163,7 +163,10 @@ upkep/
 - Help and documentation
 
 ### Utilities (`utils.sh`)
-- Visual formatting and progress indicators
+- Enhanced visual formatting with terminal-first design
+- Semantic color system with automatic fallbacks
+- Dynamic box drawing with Unicode-aware alignment
+- Progress indicators and status displays
 - System information gathering
 - File and directory validation
 - Network and connectivity checks
@@ -292,6 +295,46 @@ upkep config --export json
 ```
 
 Advanced YAML structures and module-specific configurations are still supported via the legacy system. See `docs/CONFIGURATION_HYBRID_APPROACH.md` for details.
+
+## Enhanced Visual Design
+
+upKep features a comprehensive terminal-first visual design system inspired by Taskmaster, providing rich, semantic feedback for all operations.
+
+### Visual Features
+
+- **Semantic Color System**: Automatic color detection with fallbacks (24-bit → 256 → 8 → none)
+- **Dynamic Box Drawing**: Unicode-aware alignment with automatic width adaptation
+- **Status Icons**: Consistent emoji-based status indicators with ASCII fallbacks
+- **Progress Indicators**: Enhanced spinners and real-time feedback
+- **Responsive Design**: Adapts to terminal size and capabilities
+
+### Quick Examples
+
+```bash
+# Module status display
+draw_box "info" "APT UPDATE" \
+    "✅ 12 packages updated successfully" \
+    "⏰ Execution time: 45 seconds" \
+    "📊 Performance: Excellent"
+
+# Error reporting
+draw_box "error" "UPDATE FAILED" \
+    "❌ Network timeout during download" \
+    "🔍 Check internet connection and retry"
+
+# Progress with spinner
+spinner $! &
+# ... do work ...
+kill $spinner_pid 2>/dev/null
+echo -e "\r${SUCCESS_GREEN}✔ Success${RESET}"
+```
+
+### For Developers
+
+- **Comprehensive Guide**: See `docs/STYLING_SYSTEM_GUIDE.md` for detailed usage
+- **Quick Reference**: See `docs/STYLING_QUICK_REFERENCE.md` for common patterns
+- **Visual Testing**: Run `bash tests/visual_check.sh` to see all design elements
+- **Box Drawing Demo**: Run `bash tests/box_drawing_demo.sh` for interactive examples
 
 ## CLI Commands
 
