@@ -79,4 +79,4 @@ else
 fi
 
 echo "🎉 All enhanced styling tests passed!"
-exit 0 
+exit 0

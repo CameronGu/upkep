@@ -68,4 +68,4 @@ echo "Emoji with text: $(get_display_width "✅Done")"
 echo "Text with emoji: $(get_display_width "Done✅")"
 echo
 
-echo "=== Unicode Width Test Complete ===" 
+echo "=== Unicode Width Test Complete ==="

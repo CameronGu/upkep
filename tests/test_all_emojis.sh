@@ -10,16 +10,16 @@ echo
 emojis=(
     # Status icons
     "✅" "❌" "⚠️" "⏳" "🔄" "⏭️" "📋" "🎯"
-    
+
     # Timing and info
     "⏰" "⏱️" "📊" "💡" "🔧" "📦" "🗑️" "🔍"
-    
+
     # System and actions
     "🖥️" "💾" "⚡" "📅" "🕐" "🕒" "📁" "🧹"
-    
+
     # Package management
     "📦" "🔄" "📋" "🎯" "💡" "🔧" "📊" "🗑️"
-    
+
     # Additional ones from visual_check.sh
     "⏸️" "📋" "🎯" "🔧" "📦" "🗑️" "🔍" "⏭️"
     "📅" "🕐" "🕒" "📁" "🧹" "📦" "🔄" "📋"
@@ -33,7 +33,7 @@ for emoji in "${emojis[@]}"; do
     char_count=${#emoji}
     display_width=$(get_display_width "$emoji")
     difference=$((display_width - char_count))
-    
+
     # Determine if this emoji is problematic
     if [[ $difference -gt 1 ]]; then
         status="❌ PROBLEMATIC"
@@ -42,7 +42,7 @@ for emoji in "${emojis[@]}"; do
     else
         status="✅ NORMAL"
     fi
-    
+
     printf "%-4s | %-10s | %-13s | %-10s | %s\n" \
         "$emoji" "$char_count" "$display_width" "$difference" "$status"
 done
@@ -65,7 +65,7 @@ for test_string in "${problematic_tests[@]}"; do
     echo "  Character count: ${#test_string}"
     echo "  Display width: $(get_display_width "$test_string")"
     echo "  Difference: $(( $(get_display_width "$test_string") - ${#test_string} ))"
-    
+
     # Test in a box to see visual alignment
     echo "  Box output:"
     box_text_line "warning" "$test_string"
@@ -105,7 +105,7 @@ for emoji in "${emojis[@]}"; do
     char_count=${#emoji}
     display_width=$(get_display_width "$emoji")
     difference=$((display_width - char_count))
-    
+
     if [[ $difference -gt 1 ]]; then
         echo "  $emoji: $char_count chars, $display_width display width (diff: $difference)"
         problematic_found=true
@@ -128,4 +128,4 @@ if [[ "$problematic_found" == "true" ]]; then
     echo "  📋 → 📝 (clipboard emoji)"
 fi
 
-echo "=== Test Complete ===" 
+echo "=== Test Complete ==="
