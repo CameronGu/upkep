@@ -489,10 +489,10 @@
       },
       {
         "id": 7,
-        "title": "Develop Dynamic Module Loader System",
-        "description": "Create a dynamic module loader (module_loader.sh) to auto-discover and load modules from core and user directories at runtime.",
-        "details": "Implement module discovery using Bash globbing and source. Maintain an in-memory registry of loaded modules and metadata. Ensure backward compatibility with existing static modules. Support hot-reloading for development. Document module interface requirements.",
-        "testStrategy": "Test module discovery, loading, and registry population. Validate backward compatibility with legacy modules.",
+        "title": "Develop Simple Module Loader System",
+        "description": "Create a simple module loader (module_loader.sh) to discover and load modules from core and user directories using basic Bash file discovery.",
+        "details": "Implement simple module discovery using Bash globbing to find .sh files in modules/core/ and modules/user/. Use basic sourcing without complex registry or metadata. Ensure backward compatibility with existing modules. Remove hot-reloading complexity - simple restart is more reliable. Document basic module interface requirements (run_<module>() function).",
+        "testStrategy": "Test module discovery and loading from both directories. Validate that modules with run_<module>() functions are properly loaded and executable.",
         "priority": "high",
         "dependencies": [
           5
@@ -501,34 +501,34 @@
         "subtasks": [
           {
             "id": 1,
-            "title": "Implement Module Discovery Logic",
-            "description": "Develop logic to automatically discover available modules in a specified directory or configuration at runtime.",
+            "title": "Implement Simple Module Discovery Logic",
+            "description": "Develop basic logic to discover .sh files in modules/core/ and modules/user/ directories using Bash globbing.",
             "dependencies": [],
-            "details": "Use mechanisms such as FileSystemWatcher (for .NET) or directory scanning (for Python/Node.js) to detect new or existing modules. Ensure the logic can handle both initial discovery and ongoing monitoring for new modules.",
+            "details": "Use simple 'for file in modules/core/*.sh modules/user/*.sh' pattern to discover modules. No complex monitoring or FileSystemWatcher needed - simple directory scanning on startup.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Test discovery of modules in both core and user directories"
           },
           {
             "id": 2,
-            "title": "Load Modules Dynamically at Runtime",
-            "description": "Enable the system to load discovered modules into memory as needed during application execution.",
+            "title": "Load Modules Using Simple Sourcing",
+            "description": "Enable the system to load discovered modules using basic Bash source command with error handling.",
             "dependencies": [
               1
             ],
-            "details": "Implement dynamic loading using platform-specific APIs (e.g., Assembly.Load in .NET, importlib in Python, require in Node.js). Ensure proper error handling for failed loads and support for unloading if necessary.",
+            "details": "Use 'source' command to load each discovered .sh file. Add basic error handling for failed loads but avoid complex unloading mechanisms.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Test successful loading and basic error handling for invalid modules"
           },
           {
             "id": 3,
-            "title": "Maintain In-Memory Registry",
-            "description": "Create and manage an in-memory registry to track loaded modules and their metadata.",
+            "title": "Remove Complex Registry Requirements",
+            "description": "Eliminate in-memory registry complexity in favor of simple function existence checks.",
             "dependencies": [
               5
             ],
-            "details": "Design a registry structure that allows efficient lookup, addition, and removal of modules. Store relevant metadata such as module name, version, and status.",
+            "details": "Instead of maintaining complex metadata registry, use simple 'type -t run_<module>' checks to verify module functions are available after loading.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Test that loaded modules can be detected using function existence checks"
           },
           {
             "id": 4,
@@ -537,36 +537,36 @@
             "dependencies": [
               7
             ],
-            "details": "Define and enforce a stable module interface or contract. Provide shims or adapters if necessary to support legacy modules.",
+            "details": "Maintain simple module interface contract: modules must provide run_<module_name>() function. No complex shims needed - keep interface simple.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Test that existing modules continue to work with simplified loader"
           },
           {
             "id": 5,
-            "title": "Add Hot-Reloading Support",
-            "description": "Enable modules to be reloaded at runtime without restarting the application.",
+            "title": "Remove Hot-Reloading Complexity",
+            "description": "Eliminate hot-reloading feature in favor of simple restart approach for development.",
             "dependencies": [
               7
             ],
-            "details": "Monitor the module directory for changes and reload affected modules in place. Ensure state consistency and handle potential errors during reloads.",
+            "details": "Remove complex file monitoring and in-place reloading. For development, simple script restart is more reliable and easier to understand.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Verify that module changes require restart but system remains stable"
           },
           {
             "id": 6,
-            "title": "Document Module Interface",
-            "description": "Create comprehensive documentation for the expected module interface and integration guidelines.",
+            "title": "Document Simple Module Interface",
+            "description": "Create clear documentation for the basic module interface requirements.",
             "dependencies": [
               3
             ],
-            "details": "Describe required exports, initialization patterns, lifecycle hooks, and compatibility requirements. Include examples for both core and user modules.",
+            "details": "Document that modules must: 1) Be .sh files in modules/core/ or modules/user/, 2) Provide run_<module_name>() function, 3) Handle their own error reporting. Keep examples simple.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Validate documentation with simple example modules"
           },
           {
             "id": 7,
-            "title": "Test Module Loader with Core and User Modules",
-            "description": "Develop and execute tests to validate the module loader with both built-in and third-party modules.",
+            "title": "Test Simple Module Loader",
+            "description": "Develop and execute tests to validate the simplified module loader with core and user modules.",
             "dependencies": [
               5,
               7,
@@ -574,18 +574,18 @@
               8,
               9
             ],
-            "details": "Write unit and integration tests covering discovery, loading, registry management, backward compatibility, and hot-reloading scenarios. Ensure robust error handling and edge case coverage.",
+            "details": "Write focused tests covering discovery, loading, and function availability. Test both core and user modules. Ensure robust error handling for missing or invalid modules.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Test module discovery, loading, and execution with both valid and invalid modules"
           }
         ]
       },
       {
         "id": 8,
-        "title": "Build Package Manager Update Modules (APT, Snap, Flatpak)",
-        "description": "Implement core modules for APT, Snap, and Flatpak updates with error handling and reporting.",
-        "details": "Create apt_update.sh, snap_update.sh, and flatpak_update.sh in modules/core/. Use robust error handling (set -euo pipefail). Capture and report errors with clear messages. Support dry-run mode. Ensure modules implement run_<module>() interface.",
-        "testStrategy": "Test each module for successful updates, error scenarios, and dry-run output. Mock package managers for CI testing.",
+        "title": "Build Basic Package Manager Update Modules",
+        "description": "Implement simple core modules for APT, Snap, and Flatpak updates with basic error handling and clear reporting.",
+        "details": "Create apt_update.sh, snap_update.sh, and flatpak_update.sh in modules/core/. Use basic error handling (set -euo pipefail). Capture and report errors with clear success/fail/skip messages. Support dry-run mode via UPKEP_DRY_RUN. Ensure modules implement simple run_<module>() interface.",
+        "testStrategy": "Test each module for successful updates, error scenarios, and dry-run output. Mock package managers for safe CI testing.",
         "priority": "high",
         "dependencies": [
           7,
@@ -596,10 +596,10 @@
       },
       {
         "id": 9,
-        "title": "Develop System Cleanup Modules",
-        "description": "Implement cleanup modules for apt autoremove, apt clean, and extensible custom cleanup scripts.",
-        "details": "Create cleanup.sh in modules/core/. Support additional cleanup operations via user modules. Ensure interface compliance. Allow users to add custom scripts in modules/user/.",
-        "testStrategy": "Test cleanup operations, including custom user scripts. Validate error handling and reporting.",
+        "title": "Develop Basic System Cleanup Modules",
+        "description": "Implement simple cleanup modules for apt autoremove, apt clean, and basic custom cleanup scripts.",
+        "details": "Create cleanup.sh in modules/core/ with basic apt autoremove and apt clean operations. Support simple additional cleanup operations via user modules in modules/user/. Ensure interface compliance with run_cleanup() function. Keep user customization simple - no complex script management.",
+        "testStrategy": "Test cleanup operations including basic user scripts. Validate error handling and clear reporting.",
         "priority": "high",
         "dependencies": [
           7,
@@ -610,10 +610,10 @@
       },
       {
         "id": 10,
-        "title": "Implement Interval and Execution Policy Management",
-        "description": "Add interval-based execution logic to skip operations within configured intervals and display skip messages.",
-        "details": "Store interval settings in YAML config (see Task 10). Use Bash date arithmetic for interval checks. Display clear skip messages with time remaining. Support per-module and per-category intervals. Allow dynamic adjustment based on system state.",
-        "testStrategy": "Test interval enforcement, skip logic, and dynamic adjustment. Validate correct messaging for skipped operations.",
+        "title": "Implement Basic Interval Management",
+        "description": "Add simple interval-based execution logic to skip operations within configured intervals and display clear skip messages.",
+        "details": "Store basic interval settings in simplified YAML config. Use simple Bash date arithmetic for interval checks. Display clear skip messages with time remaining. Support basic per-module intervals. Remove complex dynamic adjustment - simple fixed intervals are more reliable.",
+        "testStrategy": "Test interval enforcement and skip logic. Validate clear messaging for skipped operations.",
         "priority": "medium",
         "dependencies": [
           3
@@ -625,67 +625,67 @@
             "title": "Implement interval storage and retrieval from YAML",
             "description": "Develop functionality to store interval data in a YAML file and retrieve it within the script, ensuring compatibility with Bash parsing tools.",
             "dependencies": [],
-            "details": "Use tools like yq or custom Bash functions to read and write interval values for modules/categories from a YAML configuration file.",
+            "details": "Use simple YAML parsing (avoiding complex yq dependencies where possible) to read basic interval values for modules from configuration file.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Test reading interval values from simplified YAML config"
           },
           {
             "id": 2,
             "title": "Add Bash date arithmetic for interval checks",
-            "description": "Integrate Bash date arithmetic to calculate and compare time intervals for each module/category based on the retrieved YAML data.",
+            "description": "Integrate simple Bash date arithmetic to calculate and compare time intervals for each module based on the retrieved YAML data.",
             "dependencies": [
               1
             ],
-            "details": "Utilize Bash date commands (e.g., date, expr) to determine if the required interval has elapsed since the last execution for each module/category.",
+            "details": "Use basic Bash date commands to determine if required interval has elapsed since last execution. Keep arithmetic simple and reliable.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Test interval calculations with various time periods"
           },
           {
             "id": 3,
             "title": "Display skip messages with time remaining",
-            "description": "Implement logic to display informative skip messages, including the time remaining until the next allowed execution for each module/category.",
+            "description": "Implement logic to display clear skip messages, including the time remaining until the next allowed execution for each module.",
             "dependencies": [
               5
             ],
-            "details": "Calculate the remaining time using Bash arithmetic and output user-friendly messages when a module/category is skipped due to interval constraints.",
+            "details": "Calculate remaining time using simple Bash arithmetic and output user-friendly messages when a module is skipped due to interval constraints.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Test skip message clarity and accuracy"
           },
           {
             "id": 4,
-            "title": "Support per-module/category intervals",
-            "description": "Extend the interval logic to handle distinct intervals for each module or category, as defined in the YAML configuration.",
+            "title": "Support basic per-module intervals",
+            "description": "Extend the interval logic to handle distinct intervals for each module as defined in the simplified YAML configuration.",
             "dependencies": [
               1,
               5,
               7
             ],
-            "details": "Ensure the script can read and apply different interval values for each module/category, allowing for granular control.",
+            "details": "Ensure the script can read and apply different interval values for each module, allowing for basic granular control without complex category management.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Test different interval values for different modules"
           },
           {
             "id": 5,
-            "title": "Enable dynamic adjustment based on system state",
-            "description": "Add functionality to dynamically adjust interval values or skip logic based on current system state or runtime conditions.",
+            "title": "Remove Dynamic Adjustment Complexity",
+            "description": "Eliminate complex dynamic adjustment features in favor of simple, predictable fixed intervals.",
             "dependencies": [
               1,
               5,
               7,
               3
             ],
-            "details": "Incorporate checks for system metrics or external signals to modify interval enforcement or execution behavior in real time.",
+            "details": "Remove complex system state monitoring and dynamic interval modification. Fixed intervals are more predictable and reliable for personal Linux maintenance.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Verify that intervals remain consistent and predictable"
           }
         ]
       },
       {
         "id": 11,
-        "title": "Enable Modular Architecture and User Module Support",
-        "description": "Support dynamic loading, validation, and sharing of user-created modules with a simple interface and optional sharing mechanisms.",
-        "details": "Document module interface (run_<module_name>()). Implement module validation (structure, permissions). Provide guided module creation tool (dialog/whiptail). Support sharing via GitHub Gist (curl API). Add basic security scanning for shared modules (shellcheck, regex checks).",
-        "testStrategy": "Test user module loading, validation, and sharing. Validate security scanning and guided creation flow.",
+        "title": "Enable Simple User Module Support",
+        "description": "Support basic loading and creation of user-created modules with simple interface and basic templates.",
+        "details": "Document simple module interface (run_<module_name>()). Implement basic module validation (file exists, has required function). Provide simple module creation templates. Remove complex sharing mechanisms and security scanning - keep user modules local and simple.",
+        "testStrategy": "Test user module loading and validation. Validate simple creation templates work correctly.",
         "priority": "medium",
         "dependencies": [
           7,
@@ -695,95 +695,95 @@
         "subtasks": [
           {
             "id": 1,
-            "title": "Document Module Interface",
-            "description": "Define and document the expected structure, required methods, and properties for modules to ensure consistency and interoperability.",
+            "title": "Document Simple Module Interface",
+            "description": "Define and document the basic structure and required function for modules to ensure consistency.",
             "dependencies": [],
-            "details": "Specify interface requirements such as initializer/finalizer functions, public/private members, and usage guidelines.",
+            "details": "Specify simple interface requirements: .sh file in modules/user/, run_<module_name>() function, basic error handling. Keep examples simple and focused.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Validate documentation with simple example modules"
           },
           {
             "id": 2,
-            "title": "Implement Module Validation",
-            "description": "Develop logic to validate that modules conform to the documented interface and structural requirements.",
+            "title": "Implement Basic Module Validation",
+            "description": "Develop simple logic to validate that modules have required function and basic structure.",
             "dependencies": [
               1
             ],
-            "details": "Create validation routines that check for required functions, properties, and correct initialization/finalization patterns.",
+            "details": "Create basic validation: file exists, is readable, contains run_<module_name>() function. No complex structural analysis needed.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Test validation with valid and invalid module examples"
           },
           {
             "id": 3,
-            "title": "Add Guided Module Creation Tool",
-            "description": "Build a user-facing tool that assists users in creating new modules following the documented interface and validation rules.",
+            "title": "Provide Simple Module Templates",
+            "description": "Create basic templates that help users create new modules following the simple interface.",
             "dependencies": [
               1,
               5
             ],
-            "details": "Provide step-by-step guidance, templates, and real-time validation feedback during module creation.",
+            "details": "Provide simple template files showing basic module structure. No complex guided creation tool - simple copy-and-modify approach.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Test that templates create working modules"
           },
           {
             "id": 4,
-            "title": "Support Module Sharing via GitHub Gist",
-            "description": "Enable users to share modules by exporting and importing them through GitHub Gist integration.",
+            "title": "Remove Complex Sharing Features",
+            "description": "Eliminate GitHub Gist integration and complex sharing mechanisms in favor of simple local modules.",
             "dependencies": [
               1,
               5,
               7
             ],
-            "details": "Implement authentication, gist creation, and retrieval workflows for seamless sharing and loading of modules.",
+            "details": "Remove complex sharing infrastructure. Users can share modules manually if needed. Focus on local module creation and usage.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Verify that sharing complexity is removed while local modules work"
           },
           {
             "id": 5,
-            "title": "Integrate Security Scanning",
-            "description": "Incorporate automated security scanning to detect vulnerabilities or malicious code in user modules before loading or sharing.",
+            "title": "Remove Security Scanning Complexity",
+            "description": "Eliminate automated security scanning in favor of simple user responsibility for their own modules.",
             "dependencies": [
               5,
               3
             ],
-            "details": "Leverage static analysis tools or third-party APIs to scan module code and report issues to users.",
+            "details": "Remove complex security scanning infrastructure. Users are responsible for their own modules. Keep system simple and focused on core functionality.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Verify security scanning complexity is removed"
           },
           {
             "id": 6,
-            "title": "Test User Module Loading",
-            "description": "Develop and execute tests to ensure modules can be dynamically loaded, validated, and initialized correctly in the application.",
+            "title": "Test Simple User Module Loading",
+            "description": "Develop and execute tests to ensure modules can be loaded and validated correctly.",
             "dependencies": [
               5,
               8
             ],
-            "details": "Test various scenarios including valid, invalid, and malicious modules to verify robustness and security.",
+            "details": "Test basic scenarios: valid modules load and execute, invalid modules are rejected with clear messages. Keep tests simple and focused.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Test module loading with various valid and invalid examples"
           },
           {
             "id": 7,
-            "title": "Validate Sharing and Creation Flows",
-            "description": "Perform end-to-end testing of module creation and sharing workflows to ensure usability, correctness, and security.",
+            "title": "Validate Simple Creation Flow",
+            "description": "Test that the simplified module creation process works correctly for typical users.",
             "dependencies": [
               7,
               3,
               8,
               9
             ],
-            "details": "Simulate user journeys from module creation to sharing and loading, verifying all validation and security checks are enforced.",
+            "details": "Test end-to-end flow: copy template, modify for specific need, place in modules/user/, verify it loads and runs correctly.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Test complete user workflow from template to working module"
           }
         ]
       },
       {
         "id": 12,
-        "title": "Implement Robust Error Handling and Recovery",
-        "description": "Add comprehensive error handling, retry mechanisms, rollback, and diagnostics for all operations and modules.",
-        "details": "Standardize error reporting across modules. Implement automatic retries for transient errors (with exponential backoff). Add rollback logic for failed operations (where feasible). Provide detailed diagnostics and error classification. Support state recovery from errors.",
-        "testStrategy": "Simulate failures and verify error handling, retries, and rollback. Check diagnostic output and state recovery.",
+        "title": "Implement Basic Error Handling",
+        "description": "Add simple error handling with clear success/fail/skip messages and basic retry for transient errors.",
+        "details": "Standardize simple error reporting across modules (success/fail/skip with clear messages). Implement basic retries for transient errors (simple retry count, no exponential backoff complexity). Remove complex rollback and diagnostics - focus on clear error messages and reliable operation.",
+        "testStrategy": "Test error scenarios and verify clear messaging. Check basic retry functionality works correctly.",
         "priority": "high",
         "dependencies": [
           8,
@@ -794,95 +794,95 @@
         "subtasks": [
           {
             "id": 1,
-            "title": "Standardize Error Reporting",
-            "description": "Define and implement a consistent format for error messages and logs across the system.",
+            "title": "Standardize Simple Error Reporting",
+            "description": "Define and implement a simple, consistent format for success/fail/skip messages across the system.",
             "dependencies": [],
-            "details": "Establish error codes, message structures, and logging conventions to ensure all errors are reported in a uniform and descriptive manner.",
+            "details": "Establish simple message formats: SUCCESS, FAILED, SKIPPED with clear descriptions. No complex error codes or logging conventions needed.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Test that all modules use consistent message formats"
           },
           {
             "id": 2,
-            "title": "Implement Retry Logic with Backoff",
-            "description": "Develop mechanisms to automatically retry failed operations using exponential backoff strategies.",
+            "title": "Implement Basic Retry Logic",
+            "description": "Develop simple retry mechanisms for failed operations using basic retry counts.",
             "dependencies": [
               1
             ],
-            "details": "Integrate retry logic into critical workflows, ensuring retries are logged and respect system limits to avoid cascading failures.",
+            "details": "Add simple retry logic: retry failed operations up to 3 times with 5-second delays. No exponential backoff complexity needed for personal Linux maintenance.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Test retry logic with simulated transient failures"
           },
           {
             "id": 3,
-            "title": "Add Rollback Mechanisms",
-            "description": "Introduce rollback procedures to revert system state in case of unrecoverable errors.",
+            "title": "Remove Complex Rollback Mechanisms",
+            "description": "Eliminate complex rollback procedures in favor of simple error reporting and user decision-making.",
             "dependencies": [
               5
             ],
-            "details": "Design and implement transactional or compensating actions to restore previous state when operations fail after partial completion.",
+            "details": "Remove complex transactional rollback logic. For personal Linux maintenance, clear error messages and user control are more appropriate than automatic rollback.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Verify rollback complexity is removed while error handling remains clear"
           },
           {
             "id": 4,
-            "title": "Provide Diagnostics and Error Classification",
-            "description": "Enhance error handling with detailed diagnostics and categorize errors for easier troubleshooting.",
+            "title": "Simplify Diagnostics and Error Classification",
+            "description": "Provide basic error information without complex classification or diagnostics.",
             "dependencies": [
               1
             ],
-            "details": "Capture stack traces, context, and metadata for each error; classify errors by type, severity, and recoverability.",
+            "details": "Capture basic error information: what failed, simple reason why. No complex stack traces, metadata, or error categorization needed.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Test that error messages are clear and helpful without being complex"
           },
           {
             "id": 5,
-            "title": "Integrate with State Recovery",
-            "description": "Ensure error handling mechanisms interact correctly with state management and recovery processes.",
+            "title": "Remove State Recovery Complexity",
+            "description": "Eliminate complex state management and recovery in favor of simple operation status tracking.",
             "dependencies": [
               7,
               3
             ],
-            "details": "Coordinate rollback and retry logic with state recovery modules to maintain data consistency and system reliability.",
+            "details": "Remove complex state recovery mechanisms. Simple status tracking (last run time, success/failure) is sufficient for personal maintenance tasks.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Verify state complexity is removed while basic status tracking works"
           },
           {
             "id": 6,
-            "title": "Test Error Scenarios",
-            "description": "Develop and execute tests to simulate various error conditions and validate error handling behavior.",
+            "title": "Test Basic Error Scenarios",
+            "description": "Develop and execute tests to validate simple error handling behavior.",
             "dependencies": [
               8
             ],
-            "details": "Create unit, integration, and end-to-end tests covering common and edge-case failures, including retries and rollbacks.",
+            "details": "Create focused tests covering common failure scenarios, retry behavior, and clear error messaging. Keep tests simple and practical.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Test various error conditions and verify appropriate responses"
           },
           {
             "id": 7,
-            "title": "Validate Rollback",
-            "description": "Verify that rollback mechanisms correctly restore system state after failures.",
+            "title": "Remove Complex Rollback Testing",
+            "description": "Eliminate complex rollback testing in favor of simple error message validation.",
             "dependencies": [],
-            "details": "Test rollback logic under different failure scenarios to ensure no residual side effects or data inconsistencies remain.",
+            "details": "Remove complex rollback test scenarios. Focus on testing that error messages are clear and operations fail gracefully.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Test that errors are handled gracefully without complex rollback"
           },
           {
             "id": 8,
-            "title": "Document Error Handling Patterns",
-            "description": "Create comprehensive documentation outlining error handling strategies, patterns, and usage guidelines.",
+            "title": "Document Simple Error Handling Patterns",
+            "description": "Create basic documentation outlining simple error handling approach and patterns.",
             "dependencies": [],
-            "details": "Detail standardized error reporting, retry and rollback logic, diagnostics, and integration points for future maintainability.",
+            "details": "Document simple error handling: success/fail/skip messages, basic retry logic, clear error reporting. Keep documentation focused and practical.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Validate documentation matches implemented error handling"
           }
         ]
       },
       {
         "id": 13,
-        "title": "Optimize Performance and Resource Management",
-        "description": "Implement performance optimizations, parallel execution of independent modules, and resource monitoring/throttling.",
-        "details": "Use Bash job control (&, wait) for parallel execution where safe. Monitor resource usage with /proc and ps. Throttle operations if system load is high. Cache module metadata for faster loading. Profile execution time and memory usage. Document performance metrics.",
-        "testStrategy": "Benchmark full runs, measure resource usage, and validate parallel execution. Test throttling under load.",
+        "title": "Implement Simple Sequential Execution",
+        "description": "Implement simple sequential execution of modules with basic resource monitoring, removing parallel execution complexity.",
+        "details": "Remove complex parallel execution, job control, and resource throttling. Use simple sequential execution which is more reliable and predictable for personal Linux maintenance. Add basic resource monitoring for informational purposes only. Remove complex caching and profiling - simple execution timing is sufficient.",
+        "testStrategy": "Test sequential execution of modules. Validate basic resource monitoring provides useful information without complexity.",
         "priority": "medium",
         "dependencies": [
           7,
@@ -894,90 +894,90 @@
         "subtasks": [
           {
             "id": 1,
-            "title": "Implement Parallel Execution",
-            "description": "Design and develop the system to support concurrent execution of tasks or processes, ensuring thread/process safety and minimizing contention.",
+            "title": "Remove Parallel Execution Complexity",
+            "description": "Eliminate complex parallel execution in favor of simple, reliable sequential execution.",
             "dependencies": [],
-            "details": "Select appropriate parallelization strategies and frameworks (e.g., thread pools, parallel loops). Ensure tasks are independent to avoid race conditions and shared state issues. Optimize the granularity of parallelism to balance overhead and performance.",
+            "details": "Remove Bash job control, thread pools, and parallel execution logic. Sequential execution is simpler, more predictable, and sufficient for personal Linux maintenance tasks.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Verify that modules execute sequentially and system remains stable"
           },
           {
             "id": 2,
-            "title": "Monitor Resource Usage",
-            "description": "Integrate monitoring tools to track CPU, memory, and I/O usage during parallel execution.",
+            "title": "Add Basic Resource Monitoring",
+            "description": "Integrate simple resource monitoring to display basic system information during execution.",
             "dependencies": [
               1
             ],
-            "details": "Implement resource monitoring at both system and application levels. Collect metrics such as CPU utilization, memory consumption, and disk/network I/O. Ensure monitoring does not introduce significant overhead.",
+            "details": "Add simple monitoring of CPU and memory usage for informational purposes. No complex thresholds or throttling - just basic visibility into system state.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Test that basic resource information is displayed clearly"
           },
           {
             "id": 3,
-            "title": "Add Throttling Logic",
-            "description": "Develop mechanisms to limit the number of concurrent tasks based on available resources and system thresholds.",
+            "title": "Remove Complex Throttling Logic",
+            "description": "Eliminate complex resource-based throttling in favor of simple sequential execution.",
             "dependencies": [
               5
             ],
-            "details": "Use resource usage data to dynamically adjust the degree of parallelism. Implement logic to queue or delay tasks when resource limits are approached, preventing system overload.",
+            "details": "Remove complex load monitoring and throttling mechanisms. Sequential execution naturally prevents resource overload without complex management.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Verify throttling complexity is removed while execution remains stable"
           },
           {
             "id": 4,
-            "title": "Cache Module Metadata",
-            "description": "Implement a caching layer for frequently accessed module metadata to reduce redundant computation and improve performance.",
+            "title": "Remove Complex Caching",
+            "description": "Eliminate complex metadata caching in favor of simple module loading each time.",
             "dependencies": [
               1
             ],
-            "details": "Design cache invalidation and consistency strategies. Choose appropriate cache storage (in-memory, distributed, etc.) and ensure thread-safe access in parallel environments.",
+            "details": "Remove complex cache invalidation and consistency strategies. Simple module loading on each run is more reliable and easier to understand.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Verify caching complexity is removed while performance remains acceptable"
           },
           {
             "id": 5,
-            "title": "Profile Execution Time and Memory",
-            "description": "Instrument the system to collect detailed timing and memory usage data for each parallel task.",
+            "title": "Add Simple Execution Timing",
+            "description": "Implement basic timing information for each module execution.",
             "dependencies": [
               1
             ],
-            "details": "Use profiling tools or custom instrumentation to measure execution time and memory footprint. Aggregate and store profiling data for analysis.",
+            "details": "Add simple start/end time tracking for each module. Display execution time in user-friendly format. No complex profiling or memory analysis needed.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Test that execution timing is displayed clearly and accurately"
           },
           {
             "id": 6,
-            "title": "Document Performance Metrics",
-            "description": "Create comprehensive documentation of all collected performance metrics, including resource usage, execution times, and cache hit rates.",
+            "title": "Remove Complex Performance Documentation",
+            "description": "Eliminate complex performance metrics documentation in favor of simple execution summaries.",
             "dependencies": [
               5,
               8
             ],
-            "details": "Summarize key findings, provide visualizations (charts, tables), and explain the impact of parallelism and caching on performance. Ensure documentation is accessible and up-to-date.",
+            "details": "Remove complex performance analysis and visualization. Simple execution summaries (time taken, success/failure) are sufficient for personal use.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Verify performance complexity is removed while basic summaries remain useful"
           },
           {
             "id": 7,
-            "title": "Test Under Load",
-            "description": "Conduct load testing to evaluate system behavior and stability under high concurrency and resource utilization.",
+            "title": "Test Simple Sequential Execution",
+            "description": "Test the simplified sequential execution approach under normal conditions.",
             "dependencies": [
               7,
               3,
               8
             ],
-            "details": "Simulate realistic and peak workloads. Monitor for bottlenecks, failures, and performance degradation. Use results to refine throttling, caching, and parallel execution strategies.",
+            "details": "Test that modules execute in order, timing information is accurate, and basic resource monitoring provides useful feedback without overwhelming the user.",
             "status": "pending",
-            "testStrategy": ""
+            "testStrategy": "Test sequential execution with multiple modules and verify clear output"
           }
         ]
       },
       {
         "id": 14,
-        "title": "Develop Test Suite and Continuous Integration",
-        "description": "Create a comprehensive test suite (unit, integration, visual) and set up CI for automated testing and code quality checks.",
-        "details": "Use Bats (Bash Automated Testing System, latest version) for unit/integration tests. Add visual output checks (compare snapshots). Integrate shellcheck and shfmt for linting/formatting. Set up GitHub Actions or GitLab CI for automated runs. Mock system commands for safe testing.",
-        "testStrategy": "Run all tests in CI. Validate coverage, linting, and visual output. Ensure tests pass on multiple Linux distros.",
+        "title": "Develop Comprehensive Test Suite Following Existing Patterns",
+        "description": "Create a comprehensive test suite using existing test patterns in tests/test_cases/ with focus on reliability and maintainability.",
+        "details": "Follow existing test patterns in tests/test_cases/ directory. Use consistent test structure and naming. Focus on unit and integration tests for core functionality. Add basic visual output validation. Integrate shellcheck for code quality. Set up simple CI for automated testing. Mock system commands for safe testing following existing mock patterns.",
+        "testStrategy": "Run all tests following existing test runner patterns. Validate 100% test success rate. Ensure tests pass on multiple Linux distributions using existing CI patterns.",
         "priority": "high",
         "dependencies": [
           8,
@@ -990,10 +990,10 @@
       },
       {
         "id": 15,
-        "title": "Write Documentation and Usage Examples",
-        "description": "Produce comprehensive documentation, including API docs, module development guides, and usage examples.",
-        "details": "Use Markdown for docs. Cover CLI usage, configuration, module creation, troubleshooting, and contribution guidelines. Provide example modules and configurations. Generate man pages with help2man. Ensure docs are accessible and up-to-date.",
-        "testStrategy": "Manual review and automated link checks. Validate examples by running them as tests.",
+        "title": "Write Clear User Documentation",
+        "description": "Produce clear, user-focused documentation covering essential usage, configuration, and module creation for Linux users.",
+        "details": "Use Markdown for documentation following existing patterns. Cover essential CLI usage (run/status/config commands), basic configuration, simple module creation, and common troubleshooting. Provide practical examples and simple configurations. Focus on Linux users running personal/development machines. Keep documentation concise and actionable.",
+        "testStrategy": "Manual review for clarity and accuracy. Validate examples by running them as tests. Ensure documentation matches actual functionality.",
         "priority": "medium",
         "dependencies": [
           5,
