@@ -355,7 +355,7 @@ get_component_width() {
     local component="$1"
     local type="${component%%:*}"
     local value="${component#*:}"
-    
+
     case "$type" in
         "emoji")
             local emoji_data="${EMOJI_MAP[$value]}"
@@ -389,7 +389,7 @@ render_component() {
     local component="$1"
     local type="${component%%:*}"
     local value="${component#*:}"
-    
+
     case "$type" in
         "emoji")
             local emoji_data="${EMOJI_MAP[$value]}"
@@ -429,16 +429,16 @@ compose_line() {
     local target_width="${1:-0}"
     shift
     local components=("$@")
-    
+
     local result=""
     local current_width=0
     local current_color=""
-    
+
     # Render all components and calculate total width
     for component in "${components[@]}"; do
         local type="${component%%:*}"
         local value="${component#*:}"
-        
+
         case "$type" in
             "color")
                 # Handle color codes specially
@@ -457,24 +457,24 @@ compose_line() {
                 # Render other components normally
                 local rendered=$(render_component "$component")
                 local width=$(get_component_width "$component")
-                
+
                 result="${result}${rendered}"
                 current_width=$((current_width + width))
                 ;;
         esac
     done
-    
+
     # Add padding if needed
     if [[ $target_width -gt $current_width ]]; then
         local padding_needed=$((target_width - current_width))
         result="${result}$(printf '%*s' "$padding_needed" '')"
     fi
-    
+
     # Reset color at the end
     if [[ -n "$current_color" ]]; then
         result="${result}\033[0m"
     fi
-    
+
     echo -e "$result"
 }
 
@@ -526,22 +526,22 @@ create_status_line() {
     local status="$1"
     local message="$2"
     local count="${3:-}"
-    
+
     local components=(
         "$(make_color_component "$status")"
         "$(make_emoji_component "$status")"
         "$(make_text_component "$message")"
     )
-    
+
     if [[ -n "$count" ]]; then
         components+=(
             "$(make_spacing_component "2")"
             "$(make_text_component "($count)")"
         )
     fi
-    
+
     components+=("$(make_color_component "reset")")
-    
+
     compose_line 0 "${components[@]}"
 }
 
@@ -550,10 +550,10 @@ create_table_row() {
     local target_width="$1"
     shift
     local columns=("$@")
-    
+
     local components=()
     local first=true
-    
+
     for column in "${columns[@]}"; do
         if [[ "$first" == "true" ]]; then
             first=false
@@ -562,7 +562,7 @@ create_table_row() {
         fi
         components+=("$(make_text_component "$column")")
     done
-    
+
     compose_line "$target_width" "${components[@]}"
 }
 
@@ -571,10 +571,10 @@ create_header_row() {
     local target_width="$1"
     shift
     local columns=("$@")
-    
+
     local components=()
     local first=true
-    
+
     for column in "${columns[@]}"; do
         if [[ "$first" == "true" ]]; then
             first=false
@@ -585,7 +585,7 @@ create_header_row() {
         components+=("$(make_text_component "$column")")
         components+=("$(make_color_component "reset")")
     done
-    
+
     compose_line "$target_width" "${components[@]}"
 }
 
@@ -597,19 +597,19 @@ create_status_table_row() {
     local status_type="$4"
     local status_text="$5"
     local next_due="$6"
-    
+
     # Calculate column widths based on typical content
     local module_width=15
     local last_run_width=12
     local status_width=10
     local next_due_width=10
-    
+
     # Pad each column to its target width
     local padded_module=$(printf "%-${module_width}s" "$module")
     local padded_last_run=$(printf "%-${last_run_width}s" "$last_run")
     local padded_status=$(printf "%-${status_width}s" "$(get_emoji "$status_type") $status_text")
     local padded_next_due=$(printf "%-${next_due_width}s" "$next_due")
-    
+
     local components=(
         "$(make_text_component "$padded_module")"
         "$(make_spacing_component "2")"
@@ -621,7 +621,7 @@ create_status_table_row() {
         "$(make_spacing_component "2")"
         "$(make_text_component "$padded_next_due")"
     )
-    
+
     compose_line "$target_width" "${components[@]}"
 }
 
@@ -630,19 +630,19 @@ create_aligned_header_row() {
     local target_width="$1"
     shift
     local columns=("$@")
-    
+
     # Calculate column widths based on typical content
     local module_width=15
     local last_run_width=12
     local status_width=10
     local next_due_width=10
-    
+
     # Pad each column to its target width
     local padded_module=$(printf "%-${module_width}s" "${columns[0]}")
     local padded_last_run=$(printf "%-${last_run_width}s" "${columns[1]}")
     local padded_status=$(printf "%-${status_width}s" "${columns[2]}")
     local padded_next_due=$(printf "%-${next_due_width}s" "${columns[3]}")
-    
+
     local components=(
         "$(make_color_component "bold")"
         "$(make_text_component "$padded_module")"
@@ -660,7 +660,7 @@ create_aligned_header_row() {
         "$(make_text_component "$padded_next_due")"
         "$(make_color_component "reset")"
     )
-    
+
     compose_line "$target_width" "${components[@]}"
 }
 
@@ -671,17 +671,17 @@ create_simple_table_row() {
     local status_type="$3"
     local status_text="$4"
     local packages="$5"
-    
+
     # Calculate column widths for 3-column layout
     local package_width=15
     local status_width=15  # Increased from 12 to 15 to accommodate emoji + text
     local packages_width=10
-    
+
     # Pad each column to its target width
     local padded_package=$(printf "%-${package_width}s" "$package_manager")
     local padded_status=$(printf "%-${status_width}s" "$(get_emoji "$status_type") $status_text")
     local padded_packages=$(printf "%-${packages_width}s" "$packages")
-    
+
     local components=(
         "$(make_text_component "$padded_package")"
         "$(make_spacing_component "2")"
@@ -691,7 +691,7 @@ create_simple_table_row() {
         "$(make_spacing_component "2")"
         "$(make_text_component "$padded_packages")"
     )
-    
+
     compose_line "$target_width" "${components[@]}"
 }
 
@@ -700,17 +700,17 @@ create_simple_header_row() {
     local target_width="$1"
     shift
     local columns=("$@")
-    
+
     # Calculate column widths for 3-column layout
     local package_width=15
     local status_width=15  # Increased from 12 to 15 to match data rows
     local packages_width=10
-    
+
     # Pad each column to its target width
     local padded_package=$(printf "%-${package_width}s" "${columns[0]}")
     local padded_status=$(printf "%-${status_width}s" "${columns[1]}")
     local padded_packages=$(printf "%-${packages_width}s" "${columns[2]}")
-    
+
     local components=(
         "$(make_color_component "bold")"
         "$(make_text_component "$padded_package")"
@@ -724,7 +724,7 @@ create_simple_header_row() {
         "$(make_text_component "$padded_packages")"
         "$(make_color_component "reset")"
     )
-    
+
     compose_line "$target_width" "${components[@]}"
 }
 
@@ -763,12 +763,12 @@ draw_box() {
     local title="${2:-}"
     local color="${3:-}"
     local width="${4:-0}"
-    
+
     # Calculate box width
     if [[ $width -eq 0 ]]; then
         width=$((${#text} + 4))  # text + padding
     fi
-    
+
     # Get color codes
     local color_code=""
     local reset_code=""
@@ -779,7 +779,7 @@ draw_box() {
             reset_code="\033[0m"
         fi
     fi
-    
+
     # Build top border
     local top_border=""
     if [[ -n "$title" ]]; then
@@ -811,7 +811,7 @@ draw_box() {
         done
         top_border="${top_border}┐"
     fi
-    
+
     # Build content line
     local content_line="│ $text"
     local content_padding=$((width - ${#text} - 3))
@@ -823,14 +823,14 @@ draw_box() {
     else
         content_line="${content_line}│"
     fi
-    
+
     # Build bottom border
     local bottom_border="└"
     for ((i=0; i<width-2; i++)); do
         bottom_border="${bottom_border}─"
     done
     bottom_border="${bottom_border}┘"
-    
+
     # Output with colors
     echo -e "${color_code}${top_border}${reset_code}"
     echo -e "${color_code}${content_line}${reset_code}"
@@ -842,7 +842,7 @@ draw_status_box() {
     local status="$1"
     local text="$2"
     local title="${3:-}"
-    
+
     # Map status to color
     local color=""
     case "$status" in
@@ -854,7 +854,7 @@ draw_status_box() {
         "running") color="running" ;;
         *) color="info" ;;
     esac
-    
+
     draw_box "$text" "$title" "$color"
 }
 
@@ -869,14 +869,14 @@ get_text_width() {
 calculate_column_width() {
     local column_values=("$@")
     local max_width=0
-    
+
     for value in "${column_values[@]}"; do
         local width=$(get_text_width "$value")
         if [[ $width -gt $max_width ]]; then
             max_width=$width
         fi
     done
-    
+
     echo $max_width
 }
 
@@ -886,23 +886,23 @@ create_auto_table_row() {
     local column_widths=("${@:2:3}")  # First 3 widths
     shift 4  # Skip target_width and 3 widths
     local columns=("$@")
-    
+
     local components=()
     local first=true
-    
+
     for i in "${!columns[@]}"; do
         if [[ "$first" == "true" ]]; then
             first=false
         else
             components+=("$(make_spacing_component "2")")
         fi
-        
+
         local column_width="${column_widths[$i]}"
         local column_value="${columns[$i]}"
         local padded_column=$(printf "%-${column_width}s" "$column_value")
         components+=("$(make_text_component "$padded_column")")
     done
-    
+
     compose_line "$target_width" "${components[@]}"
 }
 
@@ -912,24 +912,24 @@ create_auto_header_row() {
     local column_widths=("${@:2:3}")  # First 3 widths
     shift 4  # Skip target_width and 3 widths
     local columns=("$@")
-    
+
     local components=()
     local first=true
-    
+
     for i in "${!columns[@]}"; do
         if [[ "$first" == "true" ]]; then
             first=false
         else
             components+=("$(make_spacing_component "2")")
         fi
-        
+
         local column_width="${column_widths[$i]}"
         local padded_column=$(printf "%-${column_width}s" "${columns[$i]}")
         components+=("$(make_color_component "bold")")
         components+=("$(make_text_component "$padded_column")")
         components+=("$(make_color_component "reset")")
     done
-    
+
     compose_line "$target_width" "${components[@]}"
 }
 
@@ -942,16 +942,16 @@ create_auto_status_table_row() {
     local status_type="$8"
     local status_text="$9"
     local next_due="${10}"
-    
+
     # Create status text with emoji
     local status_with_emoji="$(get_emoji "$status_type") $status_text"
-    
+
     # Pad each column to its calculated width
     local padded_module=$(printf "%-${column_widths[0]}s" "$module")
     local padded_last_run=$(printf "%-${column_widths[1]}s" "$last_run")
     local padded_status=$(printf "%-${column_widths[2]}s" "$status_with_emoji")
     local padded_next_due=$(printf "%-${column_widths[3]}s" "$next_due")
-    
+
     local components=(
         "$(make_text_component "$padded_module")"
         "$(make_spacing_component "2")"
@@ -963,7 +963,7 @@ create_auto_status_table_row() {
         "$(make_spacing_component "2")"
         "$(make_text_component "$padded_next_due")"
     )
-    
+
     compose_line "$target_width" "${components[@]}"
 }
 
@@ -974,33 +974,33 @@ create_component_table_row() {
     local status_type="$3"
     local status_text="$4"
     local packages="$5"
-    
+
     # Calculate maximum column widths
     local max_module_width=$(calculate_column_width "Package Manager" "$module")
     local max_packages_width=$(calculate_column_width "Packages" "$packages")
-    
+
     # For status column, calculate the actual maximum width needed
     # We need to calculate the width of emoji + space + text for each status type
     local emoji_width1=$(get_component_width "$(make_emoji_component "success")")
     local emoji_width2=$(get_component_width "$(make_emoji_component "warning")")
     local text_width1=$(get_text_width "Updated")
     local text_width2=$(get_text_width "Held")
-    
+
     local status_width1=$((emoji_width1 + 1 + text_width1))  # ✅ Updated
     local status_width2=$((emoji_width2 + 1 + text_width2))  # ❗ Held
-    
+
     local max_status_width=$((status_width1 > status_width2 ? status_width1 : status_width2))
-    
+
     # Pad all columns to their maximum widths
     local padded_module=$(printf "%-${max_module_width}s" "$module")
     local padded_packages=$(printf "%-${max_packages_width}s" "$packages")
-    
+
     # For status, we need to pad the text part to ensure consistent alignment
     local emoji_width=$(get_component_width "$(make_emoji_component "$status_type")")
     local text_width=$(get_text_width "$status_text")
     local current_status_width=$((emoji_width + 1 + text_width))  # emoji + space + text
     local status_padding=$((max_status_width - current_status_width))
-    
+
     # Build components using the component system
     local components=(
         "$(make_text_component "$padded_module")"
@@ -1009,17 +1009,17 @@ create_component_table_row() {
         "$(make_spacing_component "1")"
         "$(make_text_component "$status_text")"
     )
-    
+
     # Add padding after status text if needed
     if [[ $status_padding -gt 0 ]]; then
         components+=("$(make_spacing_component "$status_padding")")
     fi
-    
+
     components+=(
         "$(make_spacing_component "2")"
         "$(make_text_component "$padded_packages")"
     )
-    
+
     compose_line "$target_width" "${components[@]}"
 }
 
@@ -1029,12 +1029,12 @@ create_component_header_row() {
     local module_width="$2"
     local status_width="$3"
     local packages_width="$4"
-    
+
     # Pad headers to match data column widths
     local padded_module=$(printf "%-${module_width}s" "Package Manager")
     local padded_status=$(printf "%-${status_width}s" "Status")
     local padded_packages=$(printf "%-${packages_width}s" "Packages")
-    
+
     local components=(
         "$(make_color_component "bold")"
         "$(make_text_component "$padded_module")"
@@ -1048,6 +1048,6 @@ create_component_header_row() {
         "$(make_text_component "$padded_packages")"
         "$(make_color_component "reset")"
     )
-    
+
     compose_line "$target_width" "${components[@]}"
 }

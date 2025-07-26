@@ -172,4 +172,4 @@ row2_line=$(compose_line 50 "${row2_components[@]}")
 echo "$row2_line"
 
 echo
-echo "=== Demo Complete ===" 
+echo "=== Demo Complete ==="
