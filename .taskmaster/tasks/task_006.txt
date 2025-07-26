@@ -1,11 +1,220 @@
 # Task ID: 6
 # Title: Design Visual Feedback and Styled CLI Output
-# Status: pending
+# Status: in-progress
 # Dependencies: 5
 # Priority: medium
-# Description: Provide rich CLI output with progress indicators, styled summaries, ASCII art branding, and color-coded statuses.
+# Description: Provide rich CLI output with progress indicators, styled summaries, ASCII art branding, and color-coded statuses based on the comprehensive UI Design Document.
 # Details:
-Use tput and ANSI escape codes for color and formatting. Implement progress spinners and summary boxes. Add ASCII art branding via ascii_art.sh. Support output formats: table (column), JSON, YAML (yq). Ensure accessibility (colorblind-friendly palettes).
+Implement the Taskmaster-inspired visual design as specified in docs/DESIGN.md, including: terminal-first dark theme with semantic color palette, module overview tables with hierarchical display, execution summary boxes (success/warning/error variants), real-time progress indicators, enhanced ASCII branding and section headers, status icon system, and multi-format output support (human-readable, JSON, YAML). Use tput and ANSI escape codes for color and formatting. Follow the 4-phase implementation roadmap outlined in the design document. Ensure accessibility with colorblind-friendly palettes.
 
 # Test Strategy:
-Visual inspection and automated snapshot tests for CLI output. Test accessibility with different terminal themes.
+Visual inspection and automated snapshot tests for CLI output. Test accessibility with different terminal themes. Verify implementation against the specifications in docs/DESIGN.md. Test all component variants and output formats.
+
+# Subtasks:
+## 1. Implement base styling system using tput and ANSI escape codes [done]
+### Dependencies: None
+### Description: 
+### Details:
+
+
+## 2. Create terminal-first dark theme with semantic color palette [done]
+### Dependencies: None
+### Description: 
+### Details:
+<info added on 2025-07-22T20:48:19.454Z>
+Implement the terminal-first dark theme as specified in docs/DESIGN.md Section 2.1, using the following color palette:
+
+Base Colors:
+- PRIMARY_BG="#1a1a1a" (Deep black background)
+- PRIMARY_FG="#f8f8f2" (High-contrast white text)
+- ACCENT_CYAN="#8be9fd" (Headers, section dividers)
+- ACCENT_MAGENTA="#bd93f9" (Progress, emphasis)
+
+Semantic Status Colors:
+- SUCCESS_GREEN="#50fa7b" (Completed tasks, successful operations)
+- WARNING_YELLOW="#f1fa8c" (Skipped tasks, pending actions)
+- ERROR_RED="#ff5555" (Failed operations, critical issues)
+- INFO_BLUE="#6272a4" (Informational content, metadata)
+
+Include colorblind-friendly alternatives as specified in Section 9.2 for accessibility, with appropriate contrast ratios and alternative visual indicators beyond color alone.
+
+Update scripts/modules/core/utils.sh with these enhanced color definitions, ensuring compatibility with both modern terminals supporting 24-bit color and legacy terminals with limited color support.
+</info added on 2025-07-22T20:48:19.454Z>
+
+## 3. Develop module overview tables with hierarchical display [pending]
+### Dependencies: None
+### Description: 
+### Details:
+<info added on 2025-07-22T20:48:46.916Z>
+Implement the Module Overview Table component that displays system maintenance status in a structured, hierarchical format. The table should:
+
+- Use box-drawing characters to create a visually appealing bordered table
+- Support hierarchical indentation with ├─ and └─ characters for nested operations
+- Include columns for Module, Last Run, Status, and Next Due information
+- Implement color-coded status indicators (green for success, yellow for due, red for failed)
+- Format timestamps in a time-relative manner (e.g., "2 days ago", "Now", "5 days")
+- Adapt to different terminal widths (80-140 characters) per responsive design requirements
+
+Create the necessary drawing functions in scripts/modules/core/utils.sh that handle:
+- Table border generation with appropriate Unicode box-drawing characters
+- Dynamic column width calculation based on terminal size
+- Header and row formatting with proper alignment and padding
+- Status indicator colorization using terminal escape sequences
+- Support for nested module representation with proper indentation
+
+The implementation should follow the example structure provided in the design document and conform to the component library specifications in Section 10.1.
+</info added on 2025-07-22T20:48:46.916Z>
+
+## 4. Implement execution summary boxes (success/warning/error variants) [pending]
+### Dependencies: None
+### Description: 
+### Details:
+<info added on 2025-07-22T20:49:02.338Z>
+Implement execution summary boxes for success, warning, and error states following the design specifications in docs/DESIGN.md Section 3.2. Create a draw_status_box() function in utils.sh that renders bordered boxes with:
+
+1. Success Box (Green):
+   - Title with operation name
+   - Success message with count of completed actions
+   - Execution time measurement
+   - Package/item details with version information
+   - Next scheduled run information
+
+2. Warning/Skip Box (Yellow):
+   - Skip reason clearly stated
+   - Configured interval information
+   - Override instructions for manual execution
+   - Status-aware formatting with warning emoji (⚠️)
+
+3. Error Box (Red):
+   - Error title and summary
+   - Detailed error message
+   - Troubleshooting suggestions
+   - Log file paths for further investigation
+   - Error code when available
+
+All boxes should maintain consistent formatting with:
+- Color-coded borders and text based on status
+- Appropriate emoji indicators (✅, ⚠️, ❌)
+- Information presented in logical hierarchy
+- Proper spacing and alignment
+- Unicode box-drawing characters for borders
+
+The function should accept parameters for box type, title, and content details to generate appropriate output based on execution context.
+</info added on 2025-07-22T20:49:02.338Z>
+
+## 5. Create real-time progress indicators and step-by-step feedback [pending]
+### Dependencies: None
+### Description: 
+### Details:
+
+
+## 6. Enhance ASCII branding and section headers via ascii_art.sh [pending]
+### Dependencies: None
+### Description: 
+### Details:
+
+
+## 7. Implement status icon system with comprehensive mapping [pending]
+### Dependencies: None
+### Description: 
+### Details:
+<info added on 2025-07-22T20:49:15.994Z>
+declare -A STATUS_ICONS=(
+    ["success"]="✅"
+    ["failed"]="❌" 
+    ["warning"]="⚠️"
+    ["pending"]="⏳"
+    ["running"]="🔄"
+    ["paused"]="⏸️"
+    ["skip"]="⏭️"
+    ["new"]="📋"
+    ["timing"]="⏱️"
+    ["stats"]="📊"
+    ["suggestion"]="💡"
+    ["action"]="🎯"
+    ["config"]="🔧"
+    ["package"]="📦"
+    ["cleanup"]="🗑️"
+    ["details"]="🔍"
+)
+
+declare -A STATUS_COLORS=(
+    ["success"]="green"
+    ["failed"]="red"
+    ["warning"]="yellow"
+    ["pending"]="blue"
+    ["running"]="cyan"
+    ["paused"]="magenta"
+    ["skip"]="white"
+    ["new"]="blue"
+    ["timing"]="cyan"
+    ["stats"]="blue"
+    ["suggestion"]="green"
+    ["action"]="yellow"
+    ["config"]="magenta"
+    ["package"]="blue"
+    ["cleanup"]="red"
+    ["details"]="cyan"
+)
+
+# Function to format status with icon, color and text
+format_status() {
+    local status="$1"
+    local message="${2:-}"
+    local icon="${STATUS_ICONS[$status]:-}"
+    local color="${STATUS_COLORS[$status]:-white}"
+    
+    # Apply color using tput or ANSI escape codes
+    case "$color" in
+        "green")  color_code=$(tput setaf 2) ;;
+        "red")    color_code=$(tput setaf 1) ;;
+        "yellow") color_code=$(tput setaf 3) ;;
+        "blue")   color_code=$(tput setaf 4) ;;
+        "cyan")   color_code=$(tput setaf 6) ;;
+        "magenta") color_code=$(tput setaf 5) ;;
+        "white")  color_code=$(tput setaf 7) ;;
+        *)        color_code=$(tput setaf 7) ;;
+    esac
+    
+    reset_code=$(tput sgr0)
+    
+    # Format with consistent spacing
+    if [ -n "$message" ]; then
+        echo "${color_code}${icon} ${message}${reset_code}"
+    else
+        echo "${color_code}${icon}${reset_code}"
+    fi
+}
+</info added on 2025-07-22T20:49:15.994Z>
+
+## 8. Add multi-format output support (human-readable, JSON, YAML) [pending]
+### Dependencies: None
+### Description: 
+### Details:
+
+
+## 9. Ensure accessibility with colorblind-friendly palettes [pending]
+### Dependencies: None
+### Description: 
+### Details:
+
+
+## 10. Follow the 4-phase implementation roadmap from docs/DESIGN.md [pending]
+### Dependencies: None
+### Description: 
+### Details:
+
+
+## 11. Add user-friendly colorblind mode activation [pending]
+### Dependencies: None
+### Description: Implement a simple command-line flag or interactive prompt to enable colorblind mode without requiring shell configuration edits
+### Details:
+Create a UX-focused solution for colorblind mode activation that doesn't require users to edit their shell configuration. Options to consider:
+
+1. Command-line flag: --colorblind or -c
+2. Interactive prompt on first run asking about accessibility preferences
+3. Simple subcommand: upkep colorblind on/off
+4. Configuration file setting that persists user preference
+
+The solution should be discoverable, simple to use, and follow upkep's principle of user-focused design. Consider adding a help message that mentions the accessibility feature.
+

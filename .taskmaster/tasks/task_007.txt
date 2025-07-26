@@ -1,55 +1,55 @@
 # Task ID: 7
-# Title: Develop Dynamic Module Loader System
+# Title: Develop Simple Module Loader System
 # Status: pending
 # Dependencies: 5
 # Priority: high
-# Description: Create a dynamic module loader (module_loader.sh) to auto-discover and load modules from core and user directories at runtime.
+# Description: Create a simple module loader (module_loader.sh) to discover and load modules from core and user directories using basic Bash file discovery.
 # Details:
-Implement module discovery using Bash globbing and source. Maintain an in-memory registry of loaded modules and metadata. Ensure backward compatibility with existing static modules. Support hot-reloading for development. Document module interface requirements.
+Implement simple module discovery using Bash globbing to find .sh files in modules/core/ and modules/user/. Use basic sourcing without complex registry or metadata. Ensure backward compatibility with existing modules. Remove hot-reloading complexity - simple restart is more reliable. Document basic module interface requirements (run_<module>() function).
 
 # Test Strategy:
-Test module discovery, loading, and registry population. Validate backward compatibility with legacy modules.
+Test module discovery and loading from both directories. Validate that modules with run_<module>() functions are properly loaded and executable.
 
 # Subtasks:
-## 1. Implement Module Discovery Logic [pending]
+## 1. Implement Simple Module Discovery Logic [pending]
 ### Dependencies: None
-### Description: Develop logic to automatically discover available modules in a specified directory or configuration at runtime.
+### Description: Develop basic logic to discover .sh files in modules/core/ and modules/user/ directories using Bash globbing.
 ### Details:
-Use mechanisms such as FileSystemWatcher (for .NET) or directory scanning (for Python/Node.js) to detect new or existing modules. Ensure the logic can handle both initial discovery and ongoing monitoring for new modules.
+Use simple 'for file in modules/core/*.sh modules/user/*.sh' pattern to discover modules. No complex monitoring or FileSystemWatcher needed - simple directory scanning on startup.
 
-## 2. Load Modules Dynamically at Runtime [pending]
+## 2. Load Modules Using Simple Sourcing [pending]
 ### Dependencies: 7.1
-### Description: Enable the system to load discovered modules into memory as needed during application execution.
+### Description: Enable the system to load discovered modules using basic Bash source command with error handling.
 ### Details:
-Implement dynamic loading using platform-specific APIs (e.g., Assembly.Load in .NET, importlib in Python, require in Node.js). Ensure proper error handling for failed loads and support for unloading if necessary.
+Use 'source' command to load each discovered .sh file. Add basic error handling for failed loads but avoid complex unloading mechanisms.
 
-## 3. Maintain In-Memory Registry [pending]
+## 3. Remove Complex Registry Requirements [pending]
 ### Dependencies: 7.5
-### Description: Create and manage an in-memory registry to track loaded modules and their metadata.
+### Description: Eliminate in-memory registry complexity in favor of simple function existence checks.
 ### Details:
-Design a registry structure that allows efficient lookup, addition, and removal of modules. Store relevant metadata such as module name, version, and status.
+Instead of maintaining complex metadata registry, use simple 'type -t run_<module>' checks to verify module functions are available after loading.
 
 ## 4. Ensure Backward Compatibility [pending]
 ### Dependencies: 7.7
 ### Description: Implement mechanisms to ensure new module loader changes do not break compatibility with existing modules.
 ### Details:
-Define and enforce a stable module interface or contract. Provide shims or adapters if necessary to support legacy modules.
+Maintain simple module interface contract: modules must provide run_<module_name>() function. No complex shims needed - keep interface simple.
 
-## 5. Add Hot-Reloading Support [pending]
+## 5. Remove Hot-Reloading Complexity [pending]
 ### Dependencies: 7.7
-### Description: Enable modules to be reloaded at runtime without restarting the application.
+### Description: Eliminate hot-reloading feature in favor of simple restart approach for development.
 ### Details:
-Monitor the module directory for changes and reload affected modules in place. Ensure state consistency and handle potential errors during reloads.
+Remove complex file monitoring and in-place reloading. For development, simple script restart is more reliable and easier to understand.
 
-## 6. Document Module Interface [pending]
+## 6. Document Simple Module Interface [pending]
 ### Dependencies: 7.3
-### Description: Create comprehensive documentation for the expected module interface and integration guidelines.
+### Description: Create clear documentation for the basic module interface requirements.
 ### Details:
-Describe required exports, initialization patterns, lifecycle hooks, and compatibility requirements. Include examples for both core and user modules.
+Document that modules must: 1) Be .sh files in modules/core/ or modules/user/, 2) Provide run_<module_name>() function, 3) Handle their own error reporting. Keep examples simple.
 
-## 7. Test Module Loader with Core and User Modules [pending]
+## 7. Test Simple Module Loader [pending]
 ### Dependencies: 7.5, 7.7, 7.3, 7.8, 7.9
-### Description: Develop and execute tests to validate the module loader with both built-in and third-party modules.
+### Description: Develop and execute tests to validate the simplified module loader with core and user modules.
 ### Details:
-Write unit and integration tests covering discovery, loading, registry management, backward compatibility, and hot-reloading scenarios. Ensure robust error handling and edge case coverage.
+Write focused tests covering discovery, loading, and function availability. Test both core and user modules. Ensure robust error handling for missing or invalid modules.
 

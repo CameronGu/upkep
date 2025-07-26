@@ -1,0 +1,79 @@
+# Task ID: 17
+# Title: Fix Remaining Linting Issues
+# Status: pending
+# Dependencies: 16
+# Priority: high
+# Description: Address all remaining linting issues identified by the enhanced linter, including line count violations, shebang violations, permission warnings, and ShellCheck issues.
+# Details:
+This task involves systematically addressing all remaining linting issues identified by the enhanced linter:
+
+1. **Refactor Large Core Files**:
+   - Break down large core files (cli.sh, prompt_generator.sh, state.sh, utils.sh) that exceed 300 lines of code
+   - Extract logical groups of functions into separate module files
+   - Ensure proper imports and dependencies between the new modules
+   - Maintain backward compatibility with existing function calls
+   - Example refactoring approach for utils.sh:
+     ```bash
+     # Original utils.sh (400+ lines)
+     # Split into:
+     # - utils_logging.sh (logging functions)
+     # - utils_filesystem.sh (file operations)
+     # - utils_validation.sh (input validation)
+     # - utils.sh (core utilities, imports the above)
+     ```
+
+2. **Add Shebangs to Empty Mock Files**:
+   - Identify all empty mock files used for testing
+   - Add proper shebang lines to each file: `#!/usr/bin/env bash`
+   - Ensure consistency across all mock files
+
+3. **Fix File Permissions**:
+   - Set executable files (scripts, test runners) to 755 permissions
+   - Set non-executable files (configs, data files) to 644 permissions
+   - Use `find` and `chmod` to apply permissions systematically:
+     ```bash
+     # For executable files
+     find ./scripts -type f -name "*.sh" -exec chmod 755 {} \;
+     # For non-executable files
+     find ./config -type f -exec chmod 644 {} \;
+     ```
+
+4. **Address Remaining ShellCheck Issues**:
+   - Run ShellCheck with `--enable=all` to identify all potential issues
+   - Fix any remaining warnings or errors
+   - Document any intentional ShellCheck suppressions with clear comments
+
+5. **Update Linting Documentation**:
+   - Document the refactoring changes in the project's development guide
+   - Update any module dependency diagrams to reflect the new structure
+   - Add comments to explain complex sections of refactored code
+
+# Test Strategy:
+1. **Automated Verification**:
+   - Run the linting system against the entire codebase after each fix
+   - Verify that the number of linting issues decreases after each change
+   - Final run should show zero linting issues
+   - Execute: `./scripts/lint.sh --verbose`
+
+2. **Refactoring Tests**:
+   - For each refactored file, run the existing test suite to ensure functionality is preserved
+   - Create new unit tests for any newly extracted modules
+   - Verify that all functions remain accessible through their original paths
+   - Test command: `./tests/run_all_tests.sh`
+
+3. **Permission Verification**:
+   - Use a script to verify all file permissions match the expected patterns:
+     ```bash
+     find ./scripts -type f -name "*.sh" -not -perm 755 | wc -l  # Should be 0
+     find ./config -type f -not -perm 644 | wc -l  # Should be 0
+     ```
+
+4. **ShellCheck Validation**:
+   - Run ShellCheck with strict settings on all shell scripts
+   - Verify zero warnings/errors or only documented suppressions
+   - Command: `shellcheck --enable=all --shell=bash scripts/**/*.sh`
+
+5. **Manual Review**:
+   - Conduct a code review of all refactored files
+   - Ensure logical separation of concerns in the new module structure
+   - Verify that documentation accurately reflects the new organization

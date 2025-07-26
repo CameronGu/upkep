@@ -43,6 +43,43 @@ The system provides semantic colors with automatic fallback support:
 "info"          # Informational content, metadata
 ```
 
+### Colorblind Accessibility
+
+The system includes comprehensive colorblind support:
+
+```bash
+# Check if colorblind mode is active
+if is_colorblind_mode; then
+    echo "Using high-contrast colors"
+fi
+
+# Get colorblind-friendly indicator
+local indicator=$(get_colorblind_indicator "success")
+# Returns "[SUCCESS]" when colorblind mode is active
+
+# Create accessible status line
+create_accessible_status_line "success" "Task completed" "45"
+# Includes text indicators when colorblind mode is enabled
+```
+
+**Colorblind Mode Colors:**
+- **Success**: Bright green (`#00d700`) with `[SUCCESS]` text
+- **Error**: Pure red (`#ff0000`) with `[ERROR]` text
+- **Warning**: Golden yellow (`#ffd700`) with `[WARNING]` text  
+- **Info**: Bright blue (`#0087ff`) with `[INFO]` text
+
+**Activation Methods:**
+```bash
+# Command-line flag (immediate)
+./upkep.sh --colorblind
+
+# Subcommand (persistent)
+./upkep.sh colorblind on
+
+# Environment variable (session-only)
+UPKEP_COLORBLIND=1 ./upkep.sh
+```
+
 ### Color Usage
 
 ```bash

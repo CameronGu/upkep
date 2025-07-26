@@ -9,6 +9,9 @@
 - Configuration system evolution
 - Comprehensive styling system
 - Test-driven development workflow
+- **Colorblind accessibility mode** with high-contrast colors and text indicators
+- Multiple activation methods for colorblind mode (CLI flags, subcommands, environment variables)
+- Persistent colorblind preferences saved to configuration
 
 ### Changed
 - Simplified configuration approach

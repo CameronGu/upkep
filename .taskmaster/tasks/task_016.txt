@@ -1,0 +1,67 @@
+# Task ID: 16
+# Title: Implement Comprehensive Linting System
+# Status: done
+# Dependencies: 1, 5, 7
+# Priority: medium
+# Description: Implement a comprehensive linting system for the upKep project with standard rules including 300 LOC limit per file, shell script best practices, and automated validation.
+# Details:
+Create a robust linting system for the upKep project to ensure code quality and consistency:
+
+1. Select and integrate ShellCheck (v0.8.0+) as the primary linting tool for shell script validation.
+2. Implement additional custom linting rules using awk/grep:
+   - Enforce 300 lines of code maximum per file
+   - Verify proper shebang lines (#!/usr/bin/env bash)
+   - Check for required header comments and license information
+   - Validate function naming conventions (snake_case)
+   - Ensure proper error handling with set -e or trap statements
+
+3. Create a dedicated lint.sh script in scripts/tools/ that:
+   - Runs all linting checks on specified files or the entire codebase
+   - Provides clear, actionable error messages with line numbers
+   - Supports auto-fixing common issues where possible
+   - Includes a --strict mode for CI/CD pipelines
+
+4. Configure integration with common editors (VS Code, Vim, etc.) via .editorconfig and tool-specific config files.
+
+5. Add pre-commit hook template in scripts/tools/hooks/ that runs linting before commits.
+
+6. Create documentation in docs/development/linting.md explaining:
+   - All linting rules with examples of good/bad code
+   - How to run linting manually
+   - How to set up editor integration
+   - How to add custom rules
+
+7. Implement a GitHub Actions workflow (.github/workflows/lint.yml) to run linting on all PRs.
+
+8. Add configuration files:
+   - .shellcheckrc for ShellCheck configuration
+   - .lintr for custom linting rules
+   - .editorconfig for editor settings
+
+9. Ensure all existing code passes the new linting rules or document necessary exceptions.
+
+# Test Strategy:
+1. Unit Testing:
+   - Create test files that intentionally violate each linting rule
+   - Verify that the linting system correctly identifies all violations
+   - Test the auto-fix functionality for rules that support it
+
+2. Integration Testing:
+   - Run the linting system against the entire codebase
+   - Verify that the output is properly formatted and actionable
+   - Test the pre-commit hook with both valid and invalid changes
+
+3. CI/CD Testing:
+   - Configure a test GitHub Actions workflow
+   - Verify that PRs with linting violations are properly flagged
+   - Test that the workflow succeeds with compliant code
+
+4. Performance Testing:
+   - Measure execution time on the full codebase
+   - Ensure linting completes in a reasonable time (< 30 seconds)
+   - Test with incremental linting to verify only changed files are checked
+
+5. Documentation Testing:
+   - Verify that all linting rules are properly documented
+   - Test that the documentation examples accurately reflect the implemented rules
+   - Ensure editor integration instructions work across different environments

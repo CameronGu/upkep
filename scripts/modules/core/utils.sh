@@ -3,59 +3,126 @@
 # Implements Taskmaster-inspired visual design with terminal-first dark theme
 
 # =============================================================================
+# TERMINAL-FIRST DARK THEME DOCUMENTATION
+# =============================================================================
+#
+# This file implements a comprehensive terminal-first dark theme with:
+#
+# 1. SEMANTIC COLOR PALETTE:
+#    - PRIMARY_BG (#1a1a1a): Deep black background for terminal-first design
+#    - PRIMARY_FG (#f8f8f2): High-contrast white text for readability
+#    - ACCENT_CYAN (#8be9fd): Headers, section dividers, emphasis
+#    - ACCENT_MAGENTA (#bd93f9): Progress indicators, special emphasis
+#    - SUCCESS_GREEN (#50fa7b): Completed tasks, successful operations
+#    - WARNING_YELLOW (#f1fa8c): Skipped tasks, pending actions
+#    - ERROR_RED (#ff5555): Failed operations, critical issues
+#    - INFO_BLUE (#6272a4): Informational content, metadata
+#
+# 2. COLORBLIND ACCESSIBILITY:
+#    - Environment variable: UPKEP_COLORBLIND=1 or UPKEP_COLORBLIND=true
+#    - Alternative high-contrast colors for colorblind users
+#    - Text indicators ([SUCCESS], [ERROR], etc.) when colorblind mode is active
+#    - Emoji indicators work alongside colors for additional visual cues
+#
+# 3. TERMINAL COMPATIBILITY:
+#    - Automatic detection of 24-bit, 256, 8-color, or no-color terminals
+#    - Graceful fallback to appropriate color support
+#    - Unicode-aware width calculation for proper alignment
+#
+# 4. USAGE EXAMPLES:
+#    # Basic status line with semantic colors
+#    create_status_line "success" "Task completed" "45"
+#
+#    # Themed section header with accent colors
+#    create_section_header "System Update"
+#
+#    # Colorblind-friendly status line
+#    export UPKEP_COLORBLIND=1
+#    create_accessible_status_line "success" "Task completed" "45"
+#
+#    # Themed status box
+#    create_themed_status_box "success" "Update Complete" "All packages updated successfully"
+#
+# =============================================================================
+
+# =============================================================================
 # COLOR SYSTEM - Terminal-first dark theme with semantic color palette
 # =============================================================================
 
 # Base ANSI escape codes
-RESET=$(printf "\e[0m")
-BOLD="\e[1m"
-DIM="\e[2m"
-ITALIC="\e[3m"
-UNDERLINE="\e[4m"
-BLINK="\e[5m"
-REVERSE="\e[7m"
-HIDDEN="\e[8m"
+RESET="\033[0m"
+BOLD="\033[1m"
+DIM="\033[2m"
+ITALIC="\033[3m"
+UNDERLINE="\033[4m"
+BLINK="\033[5m"
+REVERSE="\033[7m"
+HIDDEN="\033[8m"
 
 # Legacy color support (8-bit)
-WHITE="\e[97m"
-RED="\e[31m"
-GREEN="\e[32m"
-YELLOW="\e[33m"
-BLUE="\e[34m"
-MAGENTA="\e[35m"
-CYAN="\e[36m"
-GRAY="\e[90m"
+WHITE="\033[97m"
+RED="\033[31m"
+GREEN="\033[32m"
+YELLOW="\033[33m"
+BLUE="\033[34m"
+MAGENTA="\033[35m"
+CYAN="\033[36m"
+GRAY="\033[90m"
 
 # Enhanced color palette from DESIGN.md
 # Primary colors for terminal-first dark theme
-PRIMARY_BG="\e[48;2;26;26;26m"    # #1a1a1a - Deep black background
-PRIMARY_FG="\e[38;2;248;248;242m" # #f8f8f2 - High-contrast white text
-ACCENT_CYAN="\e[38;2;139;233;253m"   # #8be9fd - Headers, section dividers
-ACCENT_MAGENTA="\e[38;2;189;147;249m" # #bd93f9 - Progress, emphasis
+PRIMARY_BG="\033[48;2;26;26;26m"    # #1a1a1a - Deep black background
+PRIMARY_FG="\033[38;2;248;248;242m" # #f8f8f2 - High-contrast white text
+ACCENT_CYAN="\033[38;2;139;233;253m"   # #8be9fd - Headers, section dividers
+ACCENT_MAGENTA="\033[38;2;189;147;249m" # #bd93f9 - Progress, emphasis
 
 # Semantic status colors (colorblind-friendly alternatives)
-SUCCESS_GREEN="\e[38;2;80;250;123m"   # #50fa7b - Completed tasks, successful operations
-WARNING_YELLOW="\e[38;2;241;250;140m" # #f1fa8c - Skipped tasks, pending actions
-ERROR_RED="\e[38;2;255;85;85m"        # #ff5555 - Failed operations, critical issues
-INFO_BLUE="\e[38;2;98;114;164m"       # #6272a4 - Informational content, metadata
+SUCCESS_GREEN="\033[38;2;80;250;123m"   # #50fa7b - Completed tasks, successful operations
+WARNING_YELLOW="\033[38;2;241;250;140m" # #f1fa8c - Skipped tasks, pending actions
+ERROR_RED="\033[38;2;255;85;85m"        # #ff5555 - Failed operations, critical issues
+INFO_BLUE="\033[38;2;98;114;164m"       # #6272a4 - Informational content, metadata
 
 # Colorblind-friendly alternatives (high contrast)
-SUCCESS_GREEN_ALT="\e[38;2;0;215;0m"  # #00d700 - Bright green, distinct from red
-WARNING_YELLOW_ALT="\e[38;2;255;215;0m" # #ffd700 - Golden yellow, high contrast
-ERROR_RED_ALT="\e[38;2;255;0;0m"      # #ff0000 - Pure red, maximum contrast
-INFO_BLUE_ALT="\e[38;2;0;135;255m"    # #0087ff - Bright blue, distinct
+PRIMARY_FG_ALT="\033[38;2;255;255;255m" # #ffffff - Pure white for maximum contrast
+ACCENT_CYAN_ALT="\033[38;2;0;255;255m"  # #00ffff - Bright cyan for high contrast
+ACCENT_MAGENTA_ALT="\033[38;2;255;0;255m" # #ff00ff - Bright magenta for high contrast
+SUCCESS_GREEN_ALT="\033[38;2;0;215;0m"  # #00d700 - Bright green, distinct from red
+WARNING_YELLOW_ALT="\033[38;2;255;215;0m" # #ffd700 - Golden yellow, high contrast
+ERROR_RED_ALT="\033[38;2;255;0;0m"      # #ff0000 - Pure red, maximum contrast
+INFO_BLUE_ALT="\033[38;2;0;135;255m"    # #0087ff - Bright blue, distinct
 
 # =============================================================================
 # COLOR DETECTION AND FALLBACK SYSTEM
 # =============================================================================
 
+# Detect colorblind mode from environment variable or config file
+is_colorblind_mode() {
+    # Check environment variable first (highest priority)
+    if [[ "${UPKEP_COLORBLIND:-0}" == "1" ]] || [[ "${UPKEP_COLORBLIND:-0}" == "true" ]]; then
+        return 0
+    fi
+
+    # Check config file if environment variable is not set
+    if [[ -z "${UPKEP_COLORBLIND:-}" ]]; then
+        # Try to get from config file (only if config system is available)
+        if command -v get_colorblind_enabled >/dev/null 2>&1; then
+            if get_colorblind_enabled; then
+                return 0
+            fi
+        fi
+    fi
+
+    return 1
+}
+
 # Detect terminal color support
 detect_color_support() {
-    local colors
+    local colors=8  # Default fallback
+
+    # Try to get colors if tput exists
     if command -v tput >/dev/null 2>&1; then
+        # Try to get colors with a simple approach
         colors=$(tput colors 2>/dev/null || echo 8)
-    else
-        colors=8
     fi
 
     # Check if terminal supports 24-bit color
@@ -73,38 +140,86 @@ detect_color_support() {
     fi
 }
 
-# Get color code with fallback support
+# Get color code with fallback support and colorblind mode
 get_color() {
     local color_name="$1"
     local color_support=$(detect_color_support)
 
+    # Check colorblind mode properly
+    local colorblind=false
+    if is_colorblind_mode; then
+        colorblind=true
+    fi
+
     case "$color_support" in
         "24bit")
             case "$color_name" in
-                "primary_bg") printf "%b" "$PRIMARY_BG" ;;
-                "primary_fg") printf "%b" "$PRIMARY_FG" ;;
-                "accent_cyan") printf "%b" "$ACCENT_CYAN" ;;
-                "accent_magenta") printf "%b" "$ACCENT_MAGENTA" ;;
-                "success") printf "%b" "$SUCCESS_GREEN" ;;
-                "warning") printf "%b" "$WARNING_YELLOW" ;;
-                "error") printf "%b" "$ERROR_RED" ;;
-                "info") printf "%b" "$INFO_BLUE" ;;
-                *) printf "%b" "$WHITE" ;;
+                "primary_bg") echo "$PRIMARY_BG" ;;
+                "primary_fg")
+                    if [[ "$colorblind" == "true" ]]; then
+                        echo "$PRIMARY_FG_ALT"
+                    else
+                        echo "$PRIMARY_FG"
+                    fi
+                    ;;
+                "accent_cyan")
+                    if [[ "$colorblind" == "true" ]]; then
+                        echo "$ACCENT_CYAN_ALT"
+                    else
+                        echo "$ACCENT_CYAN"
+                    fi
+                    ;;
+                "accent_magenta")
+                    if [[ "$colorblind" == "true" ]]; then
+                        echo "$ACCENT_MAGENTA_ALT"
+                    else
+                        echo "$ACCENT_MAGENTA"
+                    fi
+                    ;;
+                "success")
+                    if [[ "$colorblind" == "true" ]]; then
+                        echo "$SUCCESS_GREEN_ALT"
+                    else
+                        echo "$SUCCESS_GREEN"
+                    fi
+                    ;;
+                "warning")
+                    if [[ "$colorblind" == "true" ]]; then
+                        echo "$WARNING_YELLOW_ALT"
+                    else
+                        echo "$WARNING_YELLOW"
+                    fi
+                    ;;
+                "error")
+                    if [[ "$colorblind" == "true" ]]; then
+                        echo "$ERROR_RED_ALT"
+                    else
+                        echo "$ERROR_RED"
+                    fi
+                    ;;
+                "info")
+                    if [[ "$colorblind" == "true" ]]; then
+                        echo "$INFO_BLUE_ALT"
+                    else
+                        echo "$INFO_BLUE"
+                    fi
+                    ;;
+                *) echo "$WHITE" ;;
             esac
             ;;
         "256"|"8")
             case "$color_name" in
-                "success") printf "%b" "$GREEN" ;;
-                "warning") printf "%b" "$YELLOW" ;;
-                "error") printf "%b" "$RED" ;;
-                "info") printf "%b" "$BLUE" ;;
-                "accent_cyan") printf "%b" "$CYAN" ;;
-                "accent_magenta") printf "%b" "$MAGENTA" ;;
-                *) printf "%b" "$WHITE" ;;
+                "success") echo "$GREEN" ;;
+                "warning") echo "$YELLOW" ;;
+                "error") echo "$RED" ;;
+                "info") echo "$BLUE" ;;
+                "accent_cyan") echo "$CYAN" ;;
+                "accent_magenta") echo "$MAGENTA" ;;
+                *) echo "$WHITE" ;;
             esac
             ;;
         *)
-            printf "" # No color support
+            echo "" # No color support
             ;;
     esac
 }
@@ -316,6 +431,11 @@ declare -A COLOR_MAP=(
     ["cyan"]="36"
     ["white"]="37"
     ["gray"]="90"
+    # Semantic theme colors (will be handled by get_color function)
+    ["primary_bg"]="primary_bg"
+    ["primary_fg"]="primary_fg"
+    ["accent_cyan"]="accent_cyan"
+    ["accent_magenta"]="accent_magenta"
 )
 
 # =============================================================================
@@ -406,10 +526,20 @@ render_component() {
             echo "$value"
             ;;
         "color")
-            local color_code="${COLOR_MAP[$value]}"
-            if [[ -n "$color_code" ]]; then
-                echo -e "\033[${color_code}m"
-            fi
+            # Handle semantic theme colors and legacy colors
+            case "$value" in
+                "primary_bg"|"primary_fg"|"accent_cyan"|"accent_magenta"|"success"|"warning"|"error"|"info")
+                    # Use get_color function for semantic colors
+                    printf "%b" "$(get_color "$value")"
+                    ;;
+                *)
+                    # Use legacy COLOR_MAP for other colors
+                    local color_code="${COLOR_MAP[$value]}"
+                    if [[ -n "$color_code" ]]; then
+                        echo -e "\033[${color_code}m"
+                    fi
+                    ;;
+            esac
             ;;
         "spacing")
             printf '%*s' "$value" ''
@@ -442,16 +572,32 @@ compose_line() {
         case "$type" in
             "color")
                 # Handle color codes specially
-                local color_code="${COLOR_MAP[$value]}"
-                if [[ -n "$color_code" ]]; then
-                    if [[ "$value" == "reset" ]]; then
-                        result="${result}\033[0m"
-                        current_color=""
-                    else
-                        result="${result}\033[${color_code}m"
-                        current_color="\033[${color_code}m"
-                    fi
-                fi
+                case "$value" in
+                    "primary_bg"|"primary_fg"|"accent_cyan"|"accent_magenta"|"success"|"warning"|"error"|"info")
+                        # Use get_color function for semantic colors
+                        local color_code=$(get_color "$value")
+                        if [[ "$value" == "reset" ]]; then
+                            result="${result}\033[0m"
+                            current_color=""
+                        else
+                            result="${result}${color_code}"
+                            current_color="${color_code}"
+                        fi
+                        ;;
+                    *)
+                        # Handle legacy colors
+                        local color_code="${COLOR_MAP[$value]}"
+                        if [[ -n "$color_code" ]]; then
+                            if [[ "$value" == "reset" ]]; then
+                                result="${result}\033[0m"
+                                current_color=""
+                            else
+                                result="${result}\033[${color_code}m"
+                                current_color="\033[${color_code}m"
+                            fi
+                        fi
+                        ;;
+                esac
                 ;;
             *)
                 # Render other components normally
@@ -581,6 +727,7 @@ create_header_row() {
         else
             components+=("$(make_spacing_component "2")")
         fi
+        components+=("$(make_color_component "accent_cyan")")
         components+=("$(make_color_component "bold")")
         components+=("$(make_text_component "$column")")
         components+=("$(make_color_component "reset")")
@@ -644,18 +791,22 @@ create_aligned_header_row() {
     local padded_next_due=$(printf "%-${next_due_width}s" "${columns[3]}")
 
     local components=(
+        "$(make_color_component "accent_cyan")"
         "$(make_color_component "bold")"
         "$(make_text_component "$padded_module")"
         "$(make_color_component "reset")"
         "$(make_spacing_component "2")"
+        "$(make_color_component "accent_cyan")"
         "$(make_color_component "bold")"
         "$(make_text_component "$padded_last_run")"
         "$(make_color_component "reset")"
         "$(make_spacing_component "2")"
+        "$(make_color_component "accent_cyan")"
         "$(make_color_component "bold")"
         "$(make_text_component "$padded_status")"
         "$(make_color_component "reset")"
         "$(make_spacing_component "2")"
+        "$(make_color_component "accent_cyan")"
         "$(make_color_component "bold")"
         "$(make_text_component "$padded_next_due")"
         "$(make_color_component "reset")"
@@ -712,20 +863,220 @@ create_simple_header_row() {
     local padded_packages=$(printf "%-${packages_width}s" "${columns[2]}")
 
     local components=(
+        "$(make_color_component "accent_cyan")"
         "$(make_color_component "bold")"
         "$(make_text_component "$padded_package")"
         "$(make_color_component "reset")"
         "$(make_spacing_component "2")"
+        "$(make_color_component "accent_cyan")"
         "$(make_color_component "bold")"
         "$(make_text_component "$padded_status")"
         "$(make_color_component "reset")"
         "$(make_spacing_component "2")"
+        "$(make_color_component "accent_cyan")"
         "$(make_color_component "bold")"
         "$(make_text_component "$padded_packages")"
         "$(make_color_component "reset")"
     )
 
     compose_line "$target_width" "${components[@]}"
+}
+
+# =============================================================================
+# THEMED OUTPUT FUNCTIONS
+# =============================================================================
+
+# Create a themed section header with accent colors
+create_section_header() {
+    local title="$1"
+    local width="${2:-0}"
+
+    if [[ $width -eq 0 ]]; then
+        width=$(get_terminal_width)
+    fi
+
+    # Calculate padding for centering
+    local title_length=${#title}
+    local padding=$(( (width - title_length - 4) / 2 ))
+
+    local components=(
+        "$(make_color_component "accent_cyan")"
+        "$(make_text_component "$(printf '%*s' "$padding" '')")"
+        "$(make_text_component "── $title ──")"
+        "$(make_color_component "reset")"
+    )
+
+    compose_line "$width" "${components[@]}"
+}
+
+# Create a themed divider line
+create_divider() {
+    local width="${1:-0}"
+    local style="${2:-single}"
+
+    if [[ $width -eq 0 ]]; then
+        width=$(get_terminal_width)
+    fi
+
+    local divider_char
+    case "$style" in
+        "double") divider_char="═" ;;
+        "thick") divider_char="━" ;;
+        "dotted") divider_char="┄" ;;
+        *) divider_char="─" ;;
+    esac
+
+    local components=(
+        "$(make_color_component "accent_magenta")"
+        "$(make_text_component "$(repeat_char "$divider_char" "$width")")"
+        "$(make_color_component "reset")"
+    )
+
+    compose_line "$width" "${components[@]}"
+}
+
+# Create a themed status box with primary colors
+create_themed_status_box() {
+    local status="$1"
+    local title="$2"
+    local message="$3"
+    local width="${4:-0}"
+
+    if [[ $width -eq 0 ]]; then
+        width=$(get_box_width)
+    fi
+
+    # Create box with status-appropriate colors
+    local box_color
+    case "$status" in
+        "success") box_color="success" ;;
+        "error") box_color="error" ;;
+        "warning") box_color="warning" ;;
+        "info") box_color="info" ;;
+        *) box_color="accent_cyan" ;;
+    esac
+
+    # Top border with title
+    local top_border=""
+    if [[ -n "$title" ]]; then
+        local title_with_spaces=$((${#title} + 4))  # "─ $title ─"
+        local title_padding=$((width - title_with_spaces - 2))
+        if [[ $title_padding -gt 0 ]]; then
+            local left_pad=$((title_padding / 2))
+            local right_pad=$((title_padding - left_pad))
+            top_border="┌"
+            for ((i=0; i<left_pad; i++)); do
+                top_border="${top_border}─"
+            done
+            top_border="${top_border}─ $title ─"
+            for ((i=0; i<right_pad; i++)); do
+                top_border="${top_border}─"
+            done
+            top_border="${top_border}┐"
+        else
+            top_border="┌─ $title ─┐"
+        fi
+    else
+        top_border="┌"
+        for ((i=0; i<width-2; i++)); do
+            top_border="${top_border}─"
+        done
+        top_border="${top_border}┐"
+    fi
+
+    # Content line
+    local content_line="│ $message"
+    local content_padding=$((width - ${#message} - 3))
+    if [[ $content_padding -gt 0 ]]; then
+        for ((i=0; i<content_padding; i++)); do
+            content_line="${content_line} "
+        done
+        content_line="${content_line}│"
+    else
+        content_line="${content_line}│"
+    fi
+
+    # Bottom border
+    local bottom_border="└"
+    for ((i=0; i<width-2; i++)); do
+        bottom_border="${bottom_border}─"
+    done
+    bottom_border="${bottom_border}┘"
+
+    # Output with themed colors
+    local components_top=(
+        "$(make_color_component "$box_color")"
+        "$(make_text_component "$top_border")"
+        "$(make_color_component "reset")"
+    )
+
+    local components_content=(
+        "$(make_color_component "$box_color")"
+        "$(make_text_component "$content_line")"
+        "$(make_color_component "reset")"
+    )
+
+    local components_bottom=(
+        "$(make_color_component "$box_color")"
+        "$(make_text_component "$bottom_border")"
+        "$(make_color_component "reset")"
+    )
+
+    compose_line "$width" "${components_top[@]}"
+    compose_line "$width" "${components_content[@]}"
+    compose_line "$width" "${components_bottom[@]}"
+}
+
+# =============================================================================
+# ACCESSIBILITY FUNCTIONS
+# =============================================================================
+
+# Get alternative visual indicator for colorblind users
+get_colorblind_indicator() {
+    local status="$1"
+    local colorblind=$(is_colorblind_mode)
+
+    if [[ "$colorblind" == "true" ]]; then
+        case "$status" in
+            "success") echo "[SUCCESS]" ;;
+            "error") echo "[ERROR]" ;;
+            "warning") echo "[WARNING]" ;;
+            "info") echo "[INFO]" ;;
+            "pending") echo "[PENDING]" ;;
+            "running") echo "[RUNNING]" ;;
+            *) echo "[$status]" ;;
+        esac
+    else
+        echo ""
+    fi
+}
+
+# Create a colorblind-friendly status line with text indicators
+create_accessible_status_line() {
+    local status="$1"
+    local message="$2"
+    local count="${3:-}"
+
+    local colorblind_indicator=$(get_colorblind_indicator "$status")
+
+    local components=(
+        "$(make_color_component "$status")"
+        "$(make_emoji_component "$status")"
+        "$(make_text_component "$colorblind_indicator")"
+        "$(make_spacing_component "1")"
+        "$(make_text_component "$message")"
+    )
+
+    if [[ -n "$count" ]]; then
+        components+=(
+            "$(make_spacing_component "2")"
+            "$(make_text_component "($count)")"
+        )
+    fi
+
+    components+=("$(make_color_component "reset")")
+
+    compose_line 0 "${components[@]}"
 }
 
 # =============================================================================
@@ -769,15 +1120,12 @@ draw_box() {
         width=$((${#text} + 4))  # text + padding
     fi
 
-    # Get color codes
+    # Get color codes using get_color function for proper colorblind support
     local color_code=""
     local reset_code=""
     if [[ -n "$color" ]]; then
-        local color_num="${COLOR_MAP[$color]}"
-        if [[ -n "$color_num" ]]; then
-            color_code="\033[${color_num}m"
-            reset_code="\033[0m"
-        fi
+        color_code=$(get_color "$color")
+        reset_code="\033[0m"
     fi
 
     # Build top border
@@ -925,6 +1273,7 @@ create_auto_header_row() {
 
         local column_width="${column_widths[$i]}"
         local padded_column=$(printf "%-${column_width}s" "${columns[$i]}")
+        components+=("$(make_color_component "accent_cyan")")
         components+=("$(make_color_component "bold")")
         components+=("$(make_text_component "$padded_column")")
         components+=("$(make_color_component "reset")")
@@ -1036,14 +1385,17 @@ create_component_header_row() {
     local padded_packages=$(printf "%-${packages_width}s" "Packages")
 
     local components=(
+        "$(make_color_component "accent_cyan")"
         "$(make_color_component "bold")"
         "$(make_text_component "$padded_module")"
         "$(make_color_component "reset")"
         "$(make_spacing_component "2")"
+        "$(make_color_component "accent_cyan")"
         "$(make_color_component "bold")"
         "$(make_text_component "$padded_status")"
         "$(make_color_component "reset")"
         "$(make_spacing_component "2")"
+        "$(make_color_component "accent_cyan")"
         "$(make_color_component "bold")"
         "$(make_text_component "$padded_packages")"
         "$(make_color_component "reset")"

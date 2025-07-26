@@ -1,11 +1,11 @@
 # Task ID: 14
-# Title: Develop Test Suite and Continuous Integration
+# Title: Develop Comprehensive Test Suite Following Existing Patterns
 # Status: pending
 # Dependencies: 8, 9, 6, 12
 # Priority: high
-# Description: Create a comprehensive test suite (unit, integration, visual) and set up CI for automated testing and code quality checks.
+# Description: Create a comprehensive test suite using existing test patterns in tests/test_cases/ with focus on reliability and maintainability.
 # Details:
-Use Bats (Bash Automated Testing System, latest version) for unit/integration tests. Add visual output checks (compare snapshots). Integrate shellcheck and shfmt for linting/formatting. Set up GitHub Actions or GitLab CI for automated runs. Mock system commands for safe testing.
+Follow existing test patterns in tests/test_cases/ directory. Use consistent test structure and naming. Focus on unit and integration tests for core functionality. Add basic visual output validation. Integrate shellcheck for code quality. Set up simple CI for automated testing. Mock system commands for safe testing following existing mock patterns.
 
 # Test Strategy:
-Run all tests in CI. Validate coverage, linting, and visual output. Ensure tests pass on multiple Linux distros.
+Run all tests following existing test runner patterns. Validate 100% test success rate. Ensure tests pass on multiple Linux distributions using existing CI patterns.

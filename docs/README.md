@@ -63,6 +63,7 @@ upKep is a Linux system maintenance script that automates routine package update
 - **State Tracking**: Prevents redundant operations with intelligent interval checking
 - **Multiple Package Managers**: Supports APT, Snap, and Flatpak updates
 - **Clean Output**: Beautiful, structured terminal output with progress indicators
+- **Accessibility**: Colorblind-friendly mode with high-contrast colors and text indicators
 - **Simple Configuration**: Minimal setup with sensible defaults
 
 ### Core Principles

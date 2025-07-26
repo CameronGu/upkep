@@ -1,11 +1,65 @@
 # Task ID: 4
 # Title: Implement Comprehensive Logging System
-# Status: pending
+# Status: done
 # Dependencies: 1
 # Priority: medium
-# Description: Develop structured logging to ~/.upkep/logs/upkep.log and per-module logs, with log rotation and multiple log levels.
+# Description: Enhance the existing log_message function to optionally write to a simple log file when users need persistent logging for troubleshooting.
 # Details:
-Use Bash functions for logging with levels (INFO, WARN, ERROR, AUDIT). Implement log rotation using logrotate or custom Bash logic. Include timestamps and operation results. Ensure logs are not world-readable. Support audit logging for compliance.
+Enhance the existing log_message function in scripts/core/utils.sh to provide optional file logging for user troubleshooting. The primary interface remains console output (unchanged), with an opt-in file logging capability controlled via environment variable. Focus on simplicity and user experience rather than enterprise features, ensuring backward compatibility while providing useful debugging capabilities.
 
 # Test Strategy:
-Test log creation, rotation, and level filtering. Validate log content and permissions.
+Test both console and file logging functionality. Verify environment variable control works correctly. Ensure backward compatibility with existing behavior. Test log level filtering based on configuration.
+
+# Subtasks:
+## 1. Basic Logging Implementation [done]
+### Dependencies: None
+### Description: Implement basic logging function in scripts/core/utils.sh and create log directory structure.
+### Details:
+
+
+## 2. Module Logging Integration [done]
+### Dependencies: None
+### Description: Integrate logging functions with module templates and ensure per-module log files exist.
+### Details:
+<info added on 2025-07-23T05:24:58.555Z>
+Since we're moving to a single log file approach (~/.upkep/upkep.log), update module templates to use the enhanced log_message function instead of creating separate per-module log files. This maintains simplicity while ensuring all modules can benefit from the optional file logging capability.
+
+The module templates should be modified to:
+1. Remove any code related to creating or managing per-module log files
+2. Use the centralized log_message function for all logging needs
+3. Pass appropriate log levels to ensure proper filtering
+4. Include module name in log messages for better traceability
+
+This change aligns with our goal of keeping the logging system simple while still providing useful debugging capabilities.
+</info added on 2025-07-23T05:24:58.555Z>
+
+## 3. Implement Optional File Logging [done]
+### Dependencies: None
+### Description: Enhance log_message() function to optionally write to ~/.upkep/upkep.log when UPKEP_LOG_TO_FILE=true is set.
+### Details:
+Modify the existing log_message function to check for the UPKEP_LOG_TO_FILE environment variable. When set to 'true', append log messages to a single file at ~/.upkep/upkep.log while maintaining the current console output behavior. Ensure the log directory exists before writing.
+
+## 4. Implement Basic Log Level Filtering [done]
+### Dependencies: None
+### Description: Add simple log level support (DEBUG, INFO, WARN, ERROR) with filtering based on configuration.
+### Details:
+Extend log_message function to accept a log level parameter. Implement a simple configuration option to control which log levels are displayed/written. Default to showing all levels except DEBUG unless explicitly enabled.
+
+## 5. Add Timestamp and Context Information [done]
+### Dependencies: None
+### Description: Include timestamp, log level, and context information in log messages for better troubleshooting.
+### Details:
+Format log messages with timestamp, log level, and optional context information (module name, function, etc.) to help users understand when and where events occurred during execution.
+
+## 6. Document Logging Usage [done]
+### Dependencies: None
+### Description: Add documentation for users on how to enable file logging for troubleshooting.
+### Details:
+Update user documentation to explain how to enable file logging with UPKEP_LOG_TO_FILE=true and how to use the log file for troubleshooting. Include examples of common debugging workflows.
+
+## 7. Ensure Backward Compatibility [done]
+### Dependencies: None
+### Description: Verify that all existing code using log_message continues to work without modification.
+### Details:
+Test all existing code that uses log_message to ensure the enhancements don't break current functionality. Maintain backward compatibility with existing call patterns.
+

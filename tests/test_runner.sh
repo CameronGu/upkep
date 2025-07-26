@@ -82,6 +82,8 @@ test_order=(
     "test_enhanced_styling.sh"
     "test_formatting.sh"
     "test_summary_box.sh"
+    "test_dark_theme_simple.sh"
+    "test_colorblind_mode.sh"
 
     # Configuration system tests
     "test_simple_config_system.sh"

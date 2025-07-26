@@ -11,7 +11,8 @@ DEFAULT_CONFIG="# upKep Configuration - Simple Linux system maintenance settings
 update_interval: 7          # Days between package updates
 cleanup_interval: 30        # Days between cleanup operations
 log_level: info             # Logging: error, warn, info, debug
-notifications: true         # Show completion notifications"
+notifications: true         # Show completion notifications
+colorblind: false           # Enable colorblind-friendly colors"
 
 # Initialize configuration system
 init_simple_config() {
@@ -31,6 +32,14 @@ init_simple_config() {
 get_config() {
     local key="$1"
     local default="$2"
+
+    # Special handling for colorblind mode
+    if [[ "$key" == "colorblind" ]]; then
+        if [[ -n "${UPKEP_COLORBLIND}" ]]; then
+            echo "${UPKEP_COLORBLIND}"
+            return 0
+        fi
+    fi
 
     # Check for environment variable override (UPKEP_KEY_NAME format)
     local env_var="UPKEP_$(echo "$key" | tr '[:lower:].' '[:upper:]_')"
@@ -112,6 +121,7 @@ show_config() {
     echo "UPKEP_LOG_LEVEL=${UPKEP_LOG_LEVEL:-not set}"
     echo "UPKEP_UPDATE_INTERVAL=${UPKEP_UPDATE_INTERVAL:-not set}"
     echo "UPKEP_CLEANUP_INTERVAL=${UPKEP_CLEANUP_INTERVAL:-not set}"
+    echo "UPKEP_COLORBLIND=${UPKEP_COLORBLIND:-not set}"
 }
 
 # Reset configuration to defaults
@@ -179,6 +189,13 @@ get_notifications_enabled() {
     local value
     value=$(get_config "notifications" "true")
     [[ "$value" == "true" ]]
+}
+
+# Get colorblind setting
+get_colorblind_enabled() {
+    local value
+    value=$(get_config "colorblind" "false")
+    [[ "$value" == "true" || "$value" == "1" ]]
 }
 
 # Check if dry run mode is enabled (via environment variable)

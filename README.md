@@ -10,6 +10,7 @@ A modular, extensible system maintenance tool for Linux that automates common ma
 - **State Management**: Persistent state tracking for modules and global operations
 - **Configuration Management**: YAML-based configuration with validation
 - **Enhanced Visual Interface**: Terminal-first design with semantic colors, dynamic boxes, and Unicode-aware alignment
+- **Accessibility**: Colorblind-friendly mode with high-contrast colors and text indicators
 - **AI Integration**: AI prompt generation for module development
 - **Extensible**: Easy to create custom modules with templates
 
@@ -40,6 +41,9 @@ upkep list-modules
 
 # Show configuration
 upkep config --show
+
+# Enable colorblind-friendly mode
+upkep colorblind on
 ```
 
 ## Troubleshooting
@@ -243,6 +247,7 @@ update_interval: 7          # Days between package updates
 cleanup_interval: 30        # Days between cleanup operations
 log_level: info             # Logging: error, warn, info, debug
 notifications: true         # Show completion notifications
+colorblind: false           # Enable colorblind-friendly colors
 ```
 
 ### Configuration Management
@@ -281,6 +286,9 @@ UPKEP_LOG_LEVEL=debug upkep run
 
 # Override specific intervals
 UPKEP_UPDATE_INTERVAL=1 upkep run
+
+# Enable colorblind mode for this session
+UPKEP_COLORBLIND=1 upkep run
 ```
 
 ### Advanced Configuration (Legacy)
@@ -307,6 +315,7 @@ upKep features a comprehensive terminal-first visual design system inspired by T
 - **Status Icons**: Consistent emoji-based status indicators with ASCII fallbacks
 - **Progress Indicators**: Enhanced spinners and real-time feedback
 - **Responsive Design**: Adapts to terminal size and capabilities
+- **Accessibility**: Colorblind-friendly mode with high-contrast colors and text indicators
 
 ### Quick Examples
 
@@ -336,6 +345,65 @@ echo -e "\r${SUCCESS_GREEN}✔ Success${RESET}"
 - **Visual Testing**: Run `bash tests/visual_check.sh` to see all design elements
 - **Box Drawing Demo**: Run `bash tests/box_drawing_demo.sh` for interactive examples
 
+## Accessibility
+
+upKep includes comprehensive accessibility features to ensure all users can effectively use the tool.
+
+### Colorblind Mode
+
+For users with color vision deficiencies, upKep provides a colorblind-friendly mode that:
+
+- **Uses high-contrast colors**: Bright green, pure red, golden yellow, and bright blue
+- **Adds text indicators**: `[SUCCESS]`, `[ERROR]`, `[WARNING]`, `[INFO]` alongside colors
+- **Maintains emoji indicators**: Additional visual cues beyond color alone
+- **Works with all terminals**: Automatic detection and fallback support
+
+#### Activating Colorblind Mode
+
+**Method 1: Command-line flag (immediate use)**
+```bash
+# Enable for this session
+upkep --colorblind
+upkep -c
+
+# Disable for this session
+upkep --no-colorblind
+```
+
+**Method 2: Subcommand (persistent setting)**
+```bash
+# Enable permanently
+upkep colorblind on
+
+# Disable permanently
+upkep colorblind off
+
+# Check current status
+upkep colorblind status
+
+# Get help
+upkep colorblind help
+```
+
+**Method 3: Environment variable (session-only)**
+```bash
+# Enable for current session
+UPKEP_COLORBLIND=1 upkep run
+
+# Disable for current session
+unset UPKEP_COLORBLIND
+```
+
+#### What Changes in Colorblind Mode
+
+When colorblind mode is enabled:
+- **Success indicators**: Bright green (`#00d700`) with `[SUCCESS]` text
+- **Error indicators**: Pure red (`#ff0000`) with `[ERROR]` text  
+- **Warning indicators**: Golden yellow (`#ffd700`) with `[WARNING]` text
+- **Info indicators**: Bright blue (`#0087ff`) with `[INFO]` text
+
+The mode automatically saves your preference to the configuration file for future sessions.
+
 ## CLI Commands
 
 ### Core Commands
@@ -344,6 +412,7 @@ echo -e "\r${SUCCESS_GREEN}✔ Success${RESET}"
 - `upkep status [options]` - Show current status
 - `upkep config [command]` - Manage configuration (simplified)
 - `upkep list-modules [options]` - List available modules
+- `upkep colorblind [action]` - Manage colorblind accessibility mode
 
 ### Configuration Commands
 

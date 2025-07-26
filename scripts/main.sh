@@ -40,7 +40,7 @@ SKIP_NOTE=""
 is_subcommand() {
     local first_arg="$1"
     case "$first_arg" in
-        run|status|config|list-modules|create-module|validate-module|test-module|help|version)
+        run|status|config|list-modules|create-module|validate-module|test-module|help|version|colorblind)
             return 0
             ;;
         *)
@@ -106,6 +106,8 @@ show_help() {
     echo "  --module-config     Configure modules interactively"
     echo "  --migrate           Check and run configuration migrations"
     echo "  --migration-history Show migration history"
+    echo "  --colorblind, -c    Enable colorblind-friendly colors"
+    echo "  --no-colorblind     Disable colorblind mode"
     echo ""
     echo "Examples:"
     echo "  $0                  Run normal maintenance operations"
@@ -198,6 +200,16 @@ process_legacy_args() {
             --migration-history)
                 show_migration_history
                 exit 0
+                ;;
+            --colorblind|-c)
+                export UPKEP_COLORBLIND=1
+                echo "✅ Colorblind mode enabled for this session"
+                shift
+                ;;
+            --no-colorblind)
+                unset UPKEP_COLORBLIND
+                echo "✅ Colorblind mode disabled for this session"
+                shift
                 ;;
             *)
                 echo "Unknown option: $1"

@@ -1,55 +1,55 @@
 # Task ID: 11
-# Title: Enable Modular Architecture and User Module Support
+# Title: Enable Simple User Module Support
 # Status: pending
 # Dependencies: 7, 2
 # Priority: medium
-# Description: Support dynamic loading, validation, and sharing of user-created modules with a simple interface and optional sharing mechanisms.
+# Description: Support basic loading and creation of user-created modules with simple interface and basic templates.
 # Details:
-Document module interface (run_<module_name>()). Implement module validation (structure, permissions). Provide guided module creation tool (dialog/whiptail). Support sharing via GitHub Gist (curl API). Add basic security scanning for shared modules (shellcheck, regex checks).
+Document simple module interface (run_<module_name>()). Implement basic module validation (file exists, has required function). Provide simple module creation templates. Remove complex sharing mechanisms and security scanning - keep user modules local and simple.
 
 # Test Strategy:
-Test user module loading, validation, and sharing. Validate security scanning and guided creation flow.
+Test user module loading and validation. Validate simple creation templates work correctly.
 
 # Subtasks:
-## 1. Document Module Interface [pending]
+## 1. Document Simple Module Interface [pending]
 ### Dependencies: None
-### Description: Define and document the expected structure, required methods, and properties for modules to ensure consistency and interoperability.
+### Description: Define and document the basic structure and required function for modules to ensure consistency.
 ### Details:
-Specify interface requirements such as initializer/finalizer functions, public/private members, and usage guidelines.
+Specify simple interface requirements: .sh file in modules/user/, run_<module_name>() function, basic error handling. Keep examples simple and focused.
 
-## 2. Implement Module Validation [pending]
+## 2. Implement Basic Module Validation [pending]
 ### Dependencies: 11.1
-### Description: Develop logic to validate that modules conform to the documented interface and structural requirements.
+### Description: Develop simple logic to validate that modules have required function and basic structure.
 ### Details:
-Create validation routines that check for required functions, properties, and correct initialization/finalization patterns.
+Create basic validation: file exists, is readable, contains run_<module_name>() function. No complex structural analysis needed.
 
-## 3. Add Guided Module Creation Tool [pending]
+## 3. Provide Simple Module Templates [pending]
 ### Dependencies: 11.1, 11.5
-### Description: Build a user-facing tool that assists users in creating new modules following the documented interface and validation rules.
+### Description: Create basic templates that help users create new modules following the simple interface.
 ### Details:
-Provide step-by-step guidance, templates, and real-time validation feedback during module creation.
+Provide simple template files showing basic module structure. No complex guided creation tool - simple copy-and-modify approach.
 
-## 4. Support Module Sharing via GitHub Gist [pending]
+## 4. Remove Complex Sharing Features [pending]
 ### Dependencies: 11.1, 11.5, 11.7
-### Description: Enable users to share modules by exporting and importing them through GitHub Gist integration.
+### Description: Eliminate GitHub Gist integration and complex sharing mechanisms in favor of simple local modules.
 ### Details:
-Implement authentication, gist creation, and retrieval workflows for seamless sharing and loading of modules.
+Remove complex sharing infrastructure. Users can share modules manually if needed. Focus on local module creation and usage.
 
-## 5. Integrate Security Scanning [pending]
+## 5. Remove Security Scanning Complexity [pending]
 ### Dependencies: 11.5, 11.3
-### Description: Incorporate automated security scanning to detect vulnerabilities or malicious code in user modules before loading or sharing.
+### Description: Eliminate automated security scanning in favor of simple user responsibility for their own modules.
 ### Details:
-Leverage static analysis tools or third-party APIs to scan module code and report issues to users.
+Remove complex security scanning infrastructure. Users are responsible for their own modules. Keep system simple and focused on core functionality.
 
-## 6. Test User Module Loading [pending]
+## 6. Test Simple User Module Loading [pending]
 ### Dependencies: 11.5, 11.8
-### Description: Develop and execute tests to ensure modules can be dynamically loaded, validated, and initialized correctly in the application.
+### Description: Develop and execute tests to ensure modules can be loaded and validated correctly.
 ### Details:
-Test various scenarios including valid, invalid, and malicious modules to verify robustness and security.
+Test basic scenarios: valid modules load and execute, invalid modules are rejected with clear messages. Keep tests simple and focused.
 
-## 7. Validate Sharing and Creation Flows [pending]
+## 7. Validate Simple Creation Flow [pending]
 ### Dependencies: 11.7, 11.3, 11.8, 11.9
-### Description: Perform end-to-end testing of module creation and sharing workflows to ensure usability, correctness, and security.
+### Description: Test that the simplified module creation process works correctly for typical users.
 ### Details:
-Simulate user journeys from module creation to sharing and loading, verifying all validation and security checks are enforced.
+Test end-to-end flow: copy template, modify for specific need, place in modules/user/, verify it loads and runs correctly.
 

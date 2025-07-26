@@ -21,9 +21,9 @@ echo
 # =============================================================================
 echo "2. Terminal-First Dark Theme Color Palette:"
 echo "Primary Colors:"
-echo -e "${PRIMARY_FG}Primary FG (High-contrast white text)${RESET}"
-echo -e "${ACCENT_CYAN}Accent Cyan (Headers, section dividers)${RESET}"
-echo -e "${ACCENT_MAGENTA}Accent Magenta (Progress, emphasis)${RESET}"
+echo -e "$(get_color "primary_fg")Primary FG (High-contrast white text)${RESET}"
+echo -e "$(get_color "accent_cyan")Accent Cyan (Headers, section dividers)${RESET}"
+echo -e "$(get_color "accent_magenta")Accent Magenta (Progress, emphasis)${RESET}"
 echo
 
 echo "Semantic Status Colors:"

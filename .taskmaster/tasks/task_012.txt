@@ -1,61 +1,61 @@
 # Task ID: 12
-# Title: Implement Robust Error Handling and Recovery
+# Title: Implement Basic Error Handling
 # Status: pending
 # Dependencies: 8, 9, 3
 # Priority: high
-# Description: Add comprehensive error handling, retry mechanisms, rollback, and diagnostics for all operations and modules.
+# Description: Add simple error handling with clear success/fail/skip messages and basic retry for transient errors.
 # Details:
-Standardize error reporting across modules. Implement automatic retries for transient errors (with exponential backoff). Add rollback logic for failed operations (where feasible). Provide detailed diagnostics and error classification. Support state recovery from errors.
+Standardize simple error reporting across modules (success/fail/skip with clear messages). Implement basic retries for transient errors (simple retry count, no exponential backoff complexity). Remove complex rollback and diagnostics - focus on clear error messages and reliable operation.
 
 # Test Strategy:
-Simulate failures and verify error handling, retries, and rollback. Check diagnostic output and state recovery.
+Test error scenarios and verify clear messaging. Check basic retry functionality works correctly.
 
 # Subtasks:
-## 1. Standardize Error Reporting [pending]
+## 1. Standardize Simple Error Reporting [pending]
 ### Dependencies: None
-### Description: Define and implement a consistent format for error messages and logs across the system.
+### Description: Define and implement a simple, consistent format for success/fail/skip messages across the system.
 ### Details:
-Establish error codes, message structures, and logging conventions to ensure all errors are reported in a uniform and descriptive manner.
+Establish simple message formats: SUCCESS, FAILED, SKIPPED with clear descriptions. No complex error codes or logging conventions needed.
 
-## 2. Implement Retry Logic with Backoff [pending]
+## 2. Implement Basic Retry Logic [pending]
 ### Dependencies: 12.1
-### Description: Develop mechanisms to automatically retry failed operations using exponential backoff strategies.
+### Description: Develop simple retry mechanisms for failed operations using basic retry counts.
 ### Details:
-Integrate retry logic into critical workflows, ensuring retries are logged and respect system limits to avoid cascading failures.
+Add simple retry logic: retry failed operations up to 3 times with 5-second delays. No exponential backoff complexity needed for personal Linux maintenance.
 
-## 3. Add Rollback Mechanisms [pending]
+## 3. Remove Complex Rollback Mechanisms [pending]
 ### Dependencies: 12.5
-### Description: Introduce rollback procedures to revert system state in case of unrecoverable errors.
+### Description: Eliminate complex rollback procedures in favor of simple error reporting and user decision-making.
 ### Details:
-Design and implement transactional or compensating actions to restore previous state when operations fail after partial completion.
+Remove complex transactional rollback logic. For personal Linux maintenance, clear error messages and user control are more appropriate than automatic rollback.
 
-## 4. Provide Diagnostics and Error Classification [pending]
+## 4. Simplify Diagnostics and Error Classification [pending]
 ### Dependencies: 12.1
-### Description: Enhance error handling with detailed diagnostics and categorize errors for easier troubleshooting.
+### Description: Provide basic error information without complex classification or diagnostics.
 ### Details:
-Capture stack traces, context, and metadata for each error; classify errors by type, severity, and recoverability.
+Capture basic error information: what failed, simple reason why. No complex stack traces, metadata, or error categorization needed.
 
-## 5. Integrate with State Recovery [pending]
+## 5. Remove State Recovery Complexity [pending]
 ### Dependencies: 12.7, 12.3
-### Description: Ensure error handling mechanisms interact correctly with state management and recovery processes.
+### Description: Eliminate complex state management and recovery in favor of simple operation status tracking.
 ### Details:
-Coordinate rollback and retry logic with state recovery modules to maintain data consistency and system reliability.
+Remove complex state recovery mechanisms. Simple status tracking (last run time, success/failure) is sufficient for personal maintenance tasks.
 
-## 6. Test Error Scenarios [pending]
+## 6. Test Basic Error Scenarios [pending]
 ### Dependencies: 12.8
-### Description: Develop and execute tests to simulate various error conditions and validate error handling behavior.
+### Description: Develop and execute tests to validate simple error handling behavior.
 ### Details:
-Create unit, integration, and end-to-end tests covering common and edge-case failures, including retries and rollbacks.
+Create focused tests covering common failure scenarios, retry behavior, and clear error messaging. Keep tests simple and practical.
 
-## 7. Validate Rollback [pending]
+## 7. Remove Complex Rollback Testing [pending]
 ### Dependencies: None
-### Description: Verify that rollback mechanisms correctly restore system state after failures.
+### Description: Eliminate complex rollback testing in favor of simple error message validation.
 ### Details:
-Test rollback logic under different failure scenarios to ensure no residual side effects or data inconsistencies remain.
+Remove complex rollback test scenarios. Focus on testing that error messages are clear and operations fail gracefully.
 
-## 8. Document Error Handling Patterns [pending]
+## 8. Document Simple Error Handling Patterns [pending]
 ### Dependencies: None
-### Description: Create comprehensive documentation outlining error handling strategies, patterns, and usage guidelines.
+### Description: Create basic documentation outlining simple error handling approach and patterns.
 ### Details:
-Detail standardized error reporting, retry and rollback logic, diagnostics, and integration points for future maintainability.
+Document simple error handling: success/fail/skip messages, basic retry logic, clear error reporting. Keep documentation focused and practical.
 

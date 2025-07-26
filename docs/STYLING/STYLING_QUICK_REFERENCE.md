@@ -13,10 +13,10 @@ box_bottom "color"
 
 ### Colors
 ```bash
-get_color "success"    # ✅ Green
-get_color "error"      # ❌ Red  
-get_color "warning"    # ! Yellow
-get_color "info"       # 💡 Blue
+get_color "success"    # ✅ Green (bright green in colorblind mode)
+get_color "error"      # ❌ Red (pure red in colorblind mode)
+get_color "warning"    # ! Yellow (golden yellow in colorblind mode)
+get_color "info"       # 💡 Blue (bright blue in colorblind mode)
 get_color "accent_cyan"    # Headers
 get_color "accent_magenta" # Emphasis
 ```
@@ -27,6 +27,8 @@ get_box_width          # Dynamic width (60-120 chars)
 get_terminal_width     # Current terminal width
 get_display_width "text" # Unicode-aware width
 fix_emojis "text"      # Replace problematic emojis
+is_colorblind_mode     # Check if colorblind mode is active
+get_colorblind_indicator "status" # Get text indicator
 ```
 
 ## Status Icons
@@ -83,12 +85,41 @@ box_line "warning" "!  Warnings" "$warning_count"
 - Include space after emojis: `"✅ Task"`
 - Use consistent icon spacing
 - Handle errors gracefully with fallbacks
+- Consider accessibility with colorblind mode
+- Use text indicators when appropriate
 
 ### ❌ Don't
 - Hard-code color escape sequences
 - Use inconsistent spacing
 - Ignore terminal capabilities
 - Mix different styling approaches
+
+## Accessibility
+
+### Colorblind Mode
+```bash
+# Check if colorblind mode is active
+if is_colorblind_mode; then
+    # Use high-contrast colors and text indicators
+    echo "$(get_colorblind_indicator "success") Task completed"
+fi
+
+# Create accessible status line
+create_accessible_status_line "success" "Task completed" "45"
+# Automatically includes text indicators when colorblind mode is enabled
+```
+
+### Activation
+```bash
+# Immediate use
+./upkep.sh --colorblind
+
+# Persistent setting
+./upkep.sh colorblind on
+
+# Session-only
+UPKEP_COLORBLIND=1 ./upkep.sh
+```
 
 ## Troubleshooting
 

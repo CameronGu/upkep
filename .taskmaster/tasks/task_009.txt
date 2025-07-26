@@ -1,11 +1,11 @@
 # Task ID: 9
-# Title: Develop System Cleanup Modules
+# Title: Develop Basic System Cleanup Modules
 # Status: pending
 # Dependencies: 7, 3
 # Priority: high
-# Description: Implement cleanup modules for apt autoremove, apt clean, and extensible custom cleanup scripts.
+# Description: Implement simple cleanup modules for apt autoremove, apt clean, and basic custom cleanup scripts.
 # Details:
-Create cleanup.sh in modules/core/. Support additional cleanup operations via user modules. Ensure interface compliance. Allow users to add custom scripts in modules/user/.
+Create cleanup.sh in modules/core/ with basic apt autoremove and apt clean operations. Support simple additional cleanup operations via user modules in modules/user/. Ensure interface compliance with run_cleanup() function. Keep user customization simple - no complex script management.
 
 # Test Strategy:
-Test cleanup operations, including custom user scripts. Validate error handling and reporting.
+Test cleanup operations including basic user scripts. Validate error handling and clear reporting.

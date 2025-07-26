@@ -1,11 +1,11 @@
 # Task ID: 15
-# Title: Write Documentation and Usage Examples
+# Title: Write Clear User Documentation
 # Status: pending
 # Dependencies: 5, 11
 # Priority: medium
-# Description: Produce comprehensive documentation, including API docs, module development guides, and usage examples.
+# Description: Produce clear, user-focused documentation covering essential usage, configuration, and module creation for Linux users.
 # Details:
-Use Markdown for docs. Cover CLI usage, configuration, module creation, troubleshooting, and contribution guidelines. Provide example modules and configurations. Generate man pages with help2man. Ensure docs are accessible and up-to-date.
+Use Markdown for documentation following existing patterns. Cover essential CLI usage (run/status/config commands), basic configuration, simple module creation, and common troubleshooting. Provide practical examples and simple configurations. Focus on Linux users running personal/development machines. Keep documentation concise and actionable.
 
 # Test Strategy:
-Manual review and automated link checks. Validate examples by running them as tests.
+Manual review for clarity and accuracy. Validate examples by running them as tests. Ensure documentation matches actual functionality.

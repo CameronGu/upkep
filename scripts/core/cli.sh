@@ -6,6 +6,63 @@
 # CLI version
 CLI_VERSION="2.0.0"
 
+# Colorblind mode management
+handle_colorblind_mode() {
+    local action="$1"
+
+    case "$action" in
+        "on"|"enable"|"true"|"1")
+            export UPKEP_COLORBLIND=1
+            set_config "colorblind" "true"
+            echo "✅ Colorblind mode enabled"
+            echo "   High-contrast colors and text indicators are now active"
+            echo "   This preference has been saved to your configuration"
+            ;;
+        "off"|"disable"|"false"|"0")
+            unset UPKEP_COLORBLIND
+            set_config "colorblind" "false"
+            echo "✅ Colorblind mode disabled"
+            echo "   Standard colors are now active"
+            echo "   This preference has been saved to your configuration"
+            ;;
+        "status"|"check")
+            if is_colorblind_mode; then
+                echo "✅ Colorblind mode is currently ENABLED"
+                echo "   High-contrast colors and text indicators are active"
+            else
+                echo "ℹ️  Colorblind mode is currently DISABLED"
+                echo "   Standard colors are active"
+            fi
+            echo ""
+            echo "To change this setting:"
+            echo "  upkep colorblind on    # Enable colorblind mode"
+            echo "  upkep colorblind off   # Disable colorblind mode"
+            ;;
+        *)
+            echo "Usage: upkep colorblind <action>"
+            echo ""
+            echo "Manage colorblind accessibility mode"
+            echo ""
+            echo "Actions:"
+            echo "  on, enable, true, 1    Enable colorblind mode"
+            echo "  off, disable, false, 0 Disable colorblind mode"
+            echo "  status, check          Show current status"
+            echo ""
+            echo "Description:"
+            echo "  Colorblind mode provides high-contrast colors and text indicators"
+            echo "  for users with color vision deficiencies. When enabled:"
+            echo "  - Uses bright, distinct colors (bright green, pure red, etc.)"
+            echo "  - Adds text indicators like [SUCCESS], [ERROR], [WARNING]"
+            echo "  - Maintains emoji indicators for additional visual cues"
+            echo ""
+            echo "Examples:"
+            echo "  upkep colorblind on     # Enable for better accessibility"
+            echo "  upkep colorblind off    # Disable to use standard colors"
+            echo "  upkep colorblind status # Check current setting"
+            ;;
+    esac
+}
+
 # Show help information
 show_help() {
     local command="${1:-}"
@@ -134,6 +191,9 @@ show_help() {
             echo "  upkep test-module apt_update"
             echo "  upkep test-module cleanup --dry-run"
             ;;
+        "colorblind")
+            handle_colorblind_mode "help"
+            ;;
         *)
             echo "upKep - Linux System Maintenance Tool"
             echo "Version: $CLI_VERSION"
@@ -148,6 +208,7 @@ show_help() {
             echo "  create-module    Create a new module"
             echo "  validate-module  Validate a module"
             echo "  test-module      Test a module"
+            echo "  colorblind       Manage colorblind accessibility mode"
             echo "  help             Show this help message"
             echo ""
             echo "For detailed help on a command, use: upkep help <command>"
@@ -207,6 +268,9 @@ parse_args() {
             ;;
         "test-module")
             execute_test_module_command "${options[@]}"
+            ;;
+        "colorblind")
+            handle_colorblind_mode "${options[0]:-}"
             ;;
         "")
             show_help
