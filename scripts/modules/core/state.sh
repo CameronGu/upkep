@@ -35,8 +35,7 @@ show_current_status() {
     DAYS_SINCE_UPDATE=$(( (NOW - UPDATE_LAST_RUN) / 86400 ))
     DAYS_SINCE_CLEANUP=$(( (NOW - CLEANUP_LAST_RUN) / 86400 ))
     DAYS_SINCE_SCRIPT=$(( (NOW - SCRIPT_LAST_RUN) / 86400 ))
-    draw_box "$BLUE" "CURRENT STATUS" \
-        "Last update : $DAYS_SINCE_UPDATE day(s) ago" \
-        "Last cleanup: $DAYS_SINCE_CLEANUP day(s) ago" \
-        "Last script run: $DAYS_SINCE_SCRIPT day(s) ago"
+    draw_box "Last update : $DAYS_SINCE_UPDATE day(s) ago" "CURRENT STATUS" "$BLUE"
+    draw_box "Last cleanup: $DAYS_SINCE_CLEANUP day(s) ago" "" "$BLUE"
+    draw_box "Last script run: $DAYS_SINCE_SCRIPT day(s) ago" "" "$BLUE"
 }

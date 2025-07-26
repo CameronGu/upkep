@@ -9,7 +9,7 @@ echo
 # All emojis used in the project (from DESIGN.md and visual_check.sh)
 emojis=(
     # Status icons
-    "✅" "❌" "⚠️" "⏳" "🔄" "⏭️" "📋" "🎯"
+    "✅" "❌" "❗" "⏳" "🔄" "⏭️" "📋" "🎯"
 
     # Timing and info
     "⏰" "⏱️" "📊" "💡" "🔧" "📦" "🗑️" "🔍"
@@ -68,7 +68,7 @@ for test_string in "${problematic_tests[@]}"; do
 
     # Test in a box to see visual alignment
     echo "  Box output:"
-    box_text_line "warning" "$test_string"
+    draw_box "$test_string" "TEST" "warning"
     echo
 done
 
@@ -79,7 +79,7 @@ echo
 status_tests=(
     "✅ Task completed successfully"
     "❌ Task failed to complete"
-    "⚠️  Task needs attention"
+    "❗ Task needs attention"
     "⏳ Task is waiting"
     "🔄 Task is running"
     "⏭️  Task was skipped"
@@ -90,7 +90,21 @@ status_tests=(
 echo "Testing all status icons in consistent format:"
 for test_string in "${status_tests[@]}"; do
     echo "Testing: '$test_string'"
-    box_text_line "info" "$test_string"
+    draw_box "$test_string" "STATUS TEST" "info"
+done
+
+echo
+echo "=== Testing Component System with Emojis ==="
+echo
+
+# Test emojis using the component system
+echo "Testing emojis with component system:"
+emoji_keys=("success" "error" "warning" "pending" "running" "skip" "new" "action")
+for key in "${emoji_keys[@]}"; do
+    emoji_comp=$(make_emoji_component "$key")
+    text_comp=$(make_text_component "Test with $key emoji")
+    line=$(compose_line 0 "$emoji_comp" "$text_comp")
+    echo "  $line"
 done
 
 echo
@@ -98,34 +112,41 @@ echo "=== Summary of Problematic Emojis ==="
 echo
 
 # Identify and list problematic emojis
-echo "Problematic emojis (display width > char count + 1):"
-problematic_found=false
-
+problematic_emojis=()
 for emoji in "${emojis[@]}"; do
     char_count=${#emoji}
     display_width=$(get_display_width "$emoji")
     difference=$((display_width - char_count))
 
     if [[ $difference -gt 1 ]]; then
-        echo "  $emoji: $char_count chars, $display_width display width (diff: $difference)"
-        problematic_found=true
+        problematic_emojis+=("$emoji")
     fi
 done
 
-if [[ "$problematic_found" == "false" ]]; then
-    echo "  None found! All emojis have normal width characteristics."
+if [[ ${#problematic_emojis[@]} -gt 0 ]]; then
+    echo "Problematic emojis (display width > char count + 1):"
+    for emoji in "${problematic_emojis[@]}"; do
+        char_count=${#emoji}
+        display_width=$(get_display_width "$emoji")
+        difference=$((display_width - char_count))
+        echo "  $emoji: $char_count chars, $display_width display width (diff: $difference)"
+    done
+else
+    echo "No problematic emojis found!"
 fi
 
 echo
 echo "=== Recommendations ==="
 echo
 
-if [[ "$problematic_found" == "true" ]]; then
+if [[ ${#problematic_emojis[@]} -gt 0 ]]; then
     echo "For problematic emojis, consider these alternatives:"
     echo "  ⏱️  → ⏰ (simpler clock emoji)"
     echo "  ⏭️  → ⏸️ (pause emoji)"
     echo "  🎯 → 🎪 (target emoji)"
     echo "  📋 → 📝 (clipboard emoji)"
+else
+    echo "All emojis are working well with the current system!"
 fi
 
 echo "=== Test Complete ==="

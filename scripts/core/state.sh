@@ -132,10 +132,9 @@ show_current_status() {
     local days_since_cleanup=$(( (now - CLEANUP_LAST_RUN) / 86400 ))
     local days_since_script=$(( (now - SCRIPT_LAST_RUN) / 86400 ))
 
-    draw_box "$BLUE" "CURRENT STATUS" \
-        "Last update : $days_since_update day(s) ago" \
-        "Last cleanup: $days_since_cleanup day(s) ago" \
-        "Last script run: $days_since_script day(s) ago"
+    draw_box "Last update : $days_since_update day(s) ago" "CURRENT STATUS" "$BLUE"
+    draw_box "Last cleanup: $days_since_cleanup day(s) ago" "" "$BLUE"
+    draw_box "Last script run: $days_since_script day(s) ago" "" "$BLUE"
 }
 
 # Backup corrupted state file

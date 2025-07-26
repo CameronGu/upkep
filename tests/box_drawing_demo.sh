@@ -22,50 +22,52 @@ echo -e "Error color: $(get_color "error")This is error text${RESET}"
 echo -e "Info color: $(get_color "info")This is info text${RESET}"
 echo
 
-# Demonstrate box_top centering
-echo "1. Box Top Centering:"
+# Demonstrate box drawing with titles
+echo "1. Box Drawing with Titles:"
 echo "Title: 'SHORT TITLE'"
-box_top "accent_cyan" "SHORT TITLE"
+draw_box "This is a test message" "SHORT TITLE" "success"
 echo
 
 echo "Title: 'VERY LONG TITLE THAT MIGHT OVERFLOW'"
-box_top "accent_cyan" "VERY LONG TITLE THAT MIGHT OVERFLOW"
+draw_box "This is a test message" "VERY LONG TITLE THAT MIGHT OVERFLOW" "warning"
 echo
 
 echo "Title: 'MEDIUM TITLE'"
-box_top "accent_cyan" "MEDIUM TITLE"
+draw_box "This is a test message" "MEDIUM TITLE" "info"
 echo
 
-# Demonstrate box_text_line padding
-echo "2. Box Text Line Padding:"
+# Demonstrate different content lengths
+echo "2. Box Content Length Examples:"
 echo "Short text:"
-box_text_line "success" "Short text"
+draw_box "Short text" "CONTENT TEST" "success"
 echo
 
 echo "Medium text:"
-box_text_line "success" "This is a medium length text line"
+draw_box "This is a medium length text line" "CONTENT TEST" "success"
 echo
 
 echo "Long text (should wrap or truncate):"
-box_text_line "success" "This is a very long text line that might exceed the box width and should be handled appropriately"
+draw_box "This is a very long text line that might exceed the box width and should be handled appropriately" "CONTENT TEST" "success"
 echo
 
-# Demonstrate box_line alignment
-echo "3. Box Line Left/Right Alignment:"
-echo "Short left, short right:"
-box_line "info" "Left" "Right"
+# Demonstrate component-based line creation
+echo "3. Component-Based Line Creation:"
+echo "Simple line:"
+emoji_comp=$(make_emoji_component "success")
+text_comp=$(make_text_component "Task completed")
+simple_line=$(compose_line 0 "$emoji_comp" "$text_comp")
+echo "$simple_line"
 echo
 
-echo "Long left, short right:"
-box_line "info" "Very long left text" "Right"
+echo "Colored line:"
+color_comp=$(make_color_component "success")
+colored_line=$(compose_line 0 "$color_comp" "$emoji_comp" "$text_comp")
+echo "$colored_line"
 echo
 
-echo "Short left, long right:"
-box_line "info" "Left" "Very long right text"
-echo
-
-echo "Equal length:"
-box_line "info" "Module" "Status"
+echo "Padded line (target width 40):"
+padded_line=$(compose_line 40 "$emoji_comp" "$text_comp")
+echo "'$padded_line'"
 echo
 
 # Demonstrate complete boxes
@@ -73,41 +75,58 @@ echo "4. Complete Box Examples:"
 echo
 
 echo "Success Box:"
-draw_box "success" "OPERATION COMPLETE" \
-    "✅ Task completed successfully" \
-    "⏱️  Execution time: 45 seconds" \
-    "📊 12 items processed"
+draw_box "Task completed successfully" "OPERATION COMPLETE" "success"
 echo
 
 echo "Warning Box:"
-draw_box "warning" "ATTENTION REQUIRED" \
-    "⚠️  Some items need attention" \
-    "🔍 Check the logs for details" \
-    "💡 Consider running --fix"
+draw_box "Some items need attention" "ATTENTION REQUIRED" "warning"
 echo
 
 echo "Error Box:"
-draw_box "error" "OPERATION FAILED" \
-    "❌ Task failed to complete" \
-    "🔍 Error: Network timeout" \
-    "💡 Check your connection"
+draw_box "Task failed to complete" "OPERATION FAILED" "error"
 echo
 
-# Demonstrate table structure
-echo "5. Table Structure:"
+# Demonstrate table structure using component system
+echo "5. Table Structure Using Component System:"
 echo
 
-box_top "accent_cyan" "SYSTEM STATUS TABLE"
-box_line "accent_cyan" "Module" "Status" "Last Run"
-box_line "accent_cyan" "─────" "──────" "────────"
-box_line "accent_cyan" "APT" "✅ Done" "2 days ago"
-box_line "accent_cyan" "Snap" "⚠️ Due" "Now"
-box_line "accent_cyan" "Flatpak" "❌ Failed" "1 week ago"
-box_line "accent_cyan" "Cleanup" "📋 New" "Never"
-box_bottom "accent_cyan"
+# Create a simple table using components
+echo "Component-based table:"
+header_components=(
+    "$(make_text_component "Module")"
+    "$(make_spacing_component "2")"
+    "$(make_text_component "Status")"
+    "$(make_spacing_component "2")"
+    "$(make_text_component "Count")"
+)
+header_line=$(compose_line 50 "${header_components[@]}")
+echo "$header_line"
+
+# Table rows
+row1_components=(
+    "$(make_emoji_component "success")"
+    "$(make_text_component "APT")"
+    "$(make_spacing_component "2")"
+    "$(make_text_component "Updated")"
+    "$(make_spacing_component "2")"
+    "$(make_text_component "45")"
+)
+row1_line=$(compose_line 50 "${row1_components[@]}")
+echo "$row1_line"
+
+row2_components=(
+    "$(make_emoji_component "warning")"
+    "$(make_text_component "Snap")"
+    "$(make_spacing_component "2")"
+    "$(make_text_component "Held")"
+    "$(make_spacing_component "2")"
+    "$(make_text_component "3")"
+)
+row2_line=$(compose_line 50 "${row2_components[@]}")
+echo "$row2_line"
 echo
 
-# Demonstrate spacing calculations
+# Demonstrate spacing calculation
 echo "6. Spacing Calculation Examples:"
 echo
 
@@ -118,79 +137,41 @@ echo "Available content width: $((box_width - 2))"
 echo
 
 echo "Example 1: Title centering"
-title=" TEST TITLE "
-title_len=${#title}
-left=$(( (box_width - title_len) / 2 ))
-right=$(( box_width - left - title_len ))
-echo "Title: '$title'"
-echo "Title length: $title_len"
-echo "Left padding: $left"
-echo "Right padding: $right"
-echo "Total: $((left + title_len + right)) = $box_width"
+echo "Title: ' TEST TITLE '"
+echo "Title length: 12"
+echo "Left padding: $(((box_width - 12) / 2))"
+echo "Right padding: $(((box_width - 12) / 2))"
 echo
 
-echo "Example 2: Text line padding"
-text="Sample text"
-padding=$((box_width - 2))
-echo "Text: '$text'"
-echo "Text length: ${#text}"
-echo "Required padding: $padding"
-echo "Total line length: $((2 + ${#text} + padding)) = $((box_width + ${#text}))"
-echo
-
-echo "Example 3: Left/right alignment"
-left_text="Left"
-right_text="Right"
-inner=$((box_width - 2))
-pad=$(( inner - ${#left_text} - ${#right_text} ))
-echo "Left text: '$left_text' (${#left_text} chars)"
-echo "Right text: '$right_text' (${#right_text} chars)"
-echo "Inner width: $inner"
-echo "Padding needed: $pad"
-echo "Total: $((2 + ${#left_text} + pad + ${#right_text})) = $box_width"
+echo "Example 2: Component width calculation"
+emoji_comp=$(make_emoji_component "success")
+text_comp=$(make_text_component "Sample text")
+emoji_width=$(get_component_width "$emoji_comp")
+text_width=$(get_component_width "$text_comp")
+echo "Emoji component width: $emoji_width"
+echo "Text component width: $text_width"
+echo "Total component width: $((emoji_width + text_width))"
 echo
 
 # Demonstrate responsive behavior
 echo "7. Responsive Behavior:"
 echo
 
-echo "Current terminal width: $(get_terminal_width)"
-echo "Current box width: $(get_box_width)"
-echo
-
-# Show what happens with different terminal sizes
-echo "If terminal was 50 characters wide:"
-TERM_WIDTH_SAVE=$TERM
-export TERM="dumb"
-small_width=$(get_box_width)
-echo "Box width would be: $small_width"
-export TERM="$TERM_WIDTH_SAVE"
-echo
-
-echo "If terminal was 150 characters wide:"
-export TERM="xterm-256color"
-large_width=$(get_box_width)
-echo "Box width would be: $large_width"
-export TERM="$TERM_WIDTH_SAVE"
+current_terminal=$(get_terminal_width)
+current_box=$(get_box_width)
+echo "Current terminal width: $current_terminal"
+echo "Current box width: $current_box"
 echo
 
 # Demonstrate color fallback
 echo "8. Color Fallback Demonstration:"
 echo
 
-echo "Current color support: $(detect_color_support)"
+current_color_support=$(detect_color_support)
+echo "Current color support: $current_color_support"
 echo "Success color code: $(get_color "success")"
 echo "Warning color code: $(get_color "warning")"
 echo "Error color code: $(get_color "error")"
-echo
-
-# Show what happens with no color support
-echo "Simulating no color support:"
-original_term="$TERM"
-export TERM="dumb"
-echo "Color support: $(detect_color_support)"
-echo "Success color code: '$(get_color "success")'"
-export TERM="$original_term"
 echo
 
 echo "=== Box Drawing Demonstration Complete ==="
@@ -198,7 +179,6 @@ echo
 echo "Key Takeaways:"
 echo "• Box width adapts to terminal size (60-120 characters)"
 echo "• Title centering divides remaining space equally"
-echo "• Text lines use left-aligned padding to fill width"
-echo "• Left/right alignment calculates padding between elements"
+echo "• Component system provides flexible line composition"
 echo "• Color system provides graceful fallback for limited terminals"
 echo "• All calculations ensure proper alignment and spacing"

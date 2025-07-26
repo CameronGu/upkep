@@ -181,4 +181,4 @@ echo "$(create_status_line "warning" "Some packages were held back")"
 echo "$(create_status_line "error" "Failed to update repository")"
 echo
 
-echo "=== Test Complete ===" 
+echo "=== Test Complete ==="
