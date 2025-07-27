@@ -205,7 +205,7 @@ format_status() {
 ### Details:
 
 
-## 11. Add user-friendly colorblind mode activation [pending]
+## 11. Add user-friendly colorblind mode activation [done]
 ### Dependencies: None
 ### Description: Implement a simple command-line flag or interactive prompt to enable colorblind mode without requiring shell configuration edits
 ### Details:
@@ -217,4 +217,36 @@ Create a UX-focused solution for colorblind mode activation that doesn't require
 4. Configuration file setting that persists user preference
 
 The solution should be discoverable, simple to use, and follow upkep's principle of user-focused design. Consider adding a help message that mentions the accessibility feature.
+
+## 12. Fix visual display generation errors and spacing issues [pending]
+### Dependencies: None
+### Description: Address specific visual display bugs in multi-column spacing, emoji padding, text wrapping, and box width calculations
+### Details:
+Fix the following visual display generation errors identified in testing:
+
+1. **Multi-column auto spacing function evaluation**:
+   - Investigate and fix the column spacing algorithm in the table generation functions
+   - Ensure proper alignment across all table components
+
+2. **Emoji spacing errors in test_modular_system.sh**:
+   - In "Testing Emoji Map and Basic Functions" section, the running, stats, and suggestions rows are improperly padding column 2 by 1 position to the left
+   - The emoji spacing details in the emoji array likely have an error
+   - Use test_all_emojis.sh to test all emojis for accurate spacing
+   - Fix the emoji width calculation function to properly handle different emoji character widths
+
+3. **Box drawing demo issues in box_drawing_demo.sh**:
+   - **Long test wrap problem**: The "Long test (should wrap or truncate)" box has a wrap problem where the border should remain in the correct place and only the inner text should wrap
+   - **Title overflow issue**: The title "VERY LONG TITLE THAT MIGHT OVERFLOW" is longer than the body text box. The longer of the two should determine the box width
+
+**Implementation approach**:
+- Review and fix the multi-column spacing algorithm in utils.sh
+- Update emoji width calculation to handle all Unicode emoji characters correctly
+- Implement proper text wrapping that preserves box borders
+- Fix box width calculation to use the maximum width of title or content
+- Add comprehensive tests to verify fixes work across different terminal sizes and content types
+
+**Files to modify**:
+- scripts/modules/core/utils.sh (spacing and box drawing functions)
+- scripts/modules/core/ascii_art.sh (emoji handling)
+- Any other files containing table or box drawing logic
 

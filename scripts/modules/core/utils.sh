@@ -1185,12 +1185,256 @@ draw_box() {
     echo -e "${color_code}${bottom_border}${reset_code}"
 }
 
-# Draw a colored status box
+# =============================================================================
+# ENHANCED EXECUTION SUMMARY BOXES
+# =============================================================================
+
+# Draw an enhanced execution summary box with multi-line content
+draw_execution_summary_box() {
+    local status="$1"
+    local title="$2"
+    shift 2
+    local content_lines=("$@")
+
+    # Map status to color using the modular system COLOR_MAP
+    local color=""
+    case "$status" in
+        "success") color="success" ;;
+        "error") color="error" ;;
+        "warning") color="warning" ;;
+        "info") color="info" ;;
+        "pending") color="pending" ;;
+        "running") color="running" ;;
+        *) color="info" ;;
+    esac
+
+    # Calculate box width
+    local width=$(get_box_width)
+
+    # Build top border with title
+    local top_border=""
+    if [[ -n "$title" ]]; then
+        # Get emoji and calculate total title width
+        local emoji=$(get_emoji "$status")
+        local emoji_width=$(get_emoji_width "$status")
+        local title_with_emoji="$emoji $title"
+        local title_width=$(get_text_width "$title_with_emoji")
+
+        # Calculate padding for centering
+        local total_padding=$((width - title_width - 4))  # Account for borders and dashes
+        if [[ $total_padding -gt 0 ]]; then
+            local left_pad=$((total_padding / 2))
+            local right_pad=$((total_padding - left_pad))
+
+            top_border="┌"
+            for ((i=0; i<left_pad; i++)); do
+                top_border="${top_border}─"
+            done
+            top_border="${top_border}─ $title_with_emoji ─"
+            for ((i=0; i<right_pad; i++)); do
+                top_border="${top_border}─"
+            done
+            top_border="${top_border}┐"
+        else
+            # Fallback for very short width
+            top_border="┌─ $title_with_emoji ─┐"
+        fi
+    else
+        # Simple top border without title
+        top_border="┌"
+        for ((i=0; i<width-2; i++)); do
+            top_border="${top_border}─"
+        done
+        top_border="${top_border}┐"
+    fi
+
+    # Build content lines with proper emoji handling
+    local content_lines_formatted=()
+    for line in "${content_lines[@]}"; do
+        if [[ -n "$line" ]]; then
+            # Process the line to handle emojis properly
+            local processed_line=$(process_line_for_emojis "$line")
+            local content_line="│ $processed_line"
+            local content_width=$(get_text_width "$processed_line")
+            local padding_needed=$((width - content_width - 3))  # Account for "│ " and "│"
+
+            if [[ $padding_needed -gt 0 ]]; then
+                for ((i=0; i<padding_needed; i++)); do
+                    content_line="${content_line} "
+                done
+            fi
+            content_line="${content_line}│"
+            content_lines_formatted+=("$content_line")
+        else
+            # Empty line for spacing
+            local empty_line="│"
+            for ((i=0; i<width-2; i++)); do
+                empty_line="${empty_line} "
+            done
+            empty_line="${empty_line}│"
+            content_lines_formatted+=("$empty_line")
+        fi
+    done
+
+    # Build bottom border
+    local bottom_border="└"
+    for ((i=0; i<width-2; i++)); do
+        bottom_border="${bottom_border}─"
+    done
+    bottom_border="${bottom_border}┘"
+
+    # Output using the modular system with COLOR_MAP
+    local components_top=(
+        "$(make_color_component "$color")"
+        "$(make_text_component "$top_border")"
+        "$(make_color_component "reset")"
+    )
+    compose_line "$width" "${components_top[@]}"
+
+    # Output content lines
+    for content_line in "${content_lines_formatted[@]}"; do
+        local components_content=(
+            "$(make_color_component "$color")"
+            "$(make_text_component "$content_line")"
+            "$(make_color_component "reset")"
+        )
+        compose_line "$width" "${components_content[@]}"
+    done
+
+    # Output bottom border
+    local components_bottom=(
+        "$(make_color_component "$color")"
+        "$(make_text_component "$bottom_border")"
+        "$(make_color_component "reset")"
+    )
+    compose_line "$width" "${components_bottom[@]}"
+}
+
+# Helper function to process lines and handle emojis properly
+process_line_for_emojis() {
+    local line="$1"
+
+    # Replace common emoji patterns with proper emoji components
+    # This is a simple implementation - in a full system, you'd want more sophisticated parsing
+    line="${line//✅/$(get_emoji "success")}"
+    line="${line//❌/$(get_emoji "error")}"
+    line="${line//⚠️/$(get_emoji "warning")}"
+    line="${line//⏳/$(get_emoji "pending")}"
+    line="${line//🔄/$(get_emoji "running")}"
+    line="${line//💡/$(get_emoji "info")}"
+    line="${line//📦/📦}"  # Package emoji
+    line="${line//⏱️/⏱️}"  # Timer emoji
+    line="${line//📅/📅}"  # Calendar emoji
+    line="${line//⏭️/⏭️}"  # Skip emoji
+    line="${line//🔍/🔍}"  # Search emoji
+    line="${line//💾/💾}"  # Save emoji
+
+    echo "$line"
+}
+
+# Draw a success execution summary box
+draw_success_summary_box() {
+    local title="$1"
+    local message="$2"
+    local details="${3:-}"
+    local count="${4:-}"
+
+    local content_lines=()
+    content_lines+=("$message")
+
+    if [[ -n "$details" ]]; then
+        content_lines+=("")
+        content_lines+=("$details")
+    fi
+
+    if [[ -n "$count" ]]; then
+        content_lines+=("")
+        content_lines+=("Total: $count")
+    fi
+
+    draw_execution_summary_box "success" "$title" "${content_lines[@]}"
+}
+
+# Draw an error execution summary box
+draw_error_summary_box() {
+    local title="$1"
+    local message="$2"
+    local details="${3:-}"
+    local count="${4:-}"
+
+    local content_lines=()
+    content_lines+=("$message")
+
+    if [[ -n "$details" ]]; then
+        content_lines+=("")
+        content_lines+=("$details")
+    fi
+
+    if [[ -n "$count" ]]; then
+        content_lines+=("")
+        content_lines+=("Failed: $count")
+    fi
+
+    draw_execution_summary_box "error" "$title" "${content_lines[@]}"
+}
+
+# Draw a warning execution summary box
+draw_warning_summary_box() {
+    local title="$1"
+    local message="$2"
+    local details="${3:-}"
+    local count="${4:-}"
+
+    local content_lines=()
+    content_lines+=("$message")
+
+    if [[ -n "$details" ]]; then
+        content_lines+=("")
+        content_lines+=("$details")
+    fi
+
+    if [[ -n "$count" ]]; then
+        content_lines+=("")
+        content_lines+=("Held: $count")
+    fi
+
+    draw_execution_summary_box "warning" "$title" "${content_lines[@]}"
+}
+
+# Draw an info execution summary box
+draw_info_summary_box() {
+    local title="$1"
+    local message="$2"
+    local details="${3:-}"
+    local count="${4:-}"
+
+    local content_lines=()
+    content_lines+=("$message")
+
+    if [[ -n "$details" ]]; then
+        content_lines+=("")
+        content_lines+=("$details")
+    fi
+
+    if [[ -n "$count" ]]; then
+        content_lines+=("")
+        content_lines+=("Count: $count")
+    fi
+
+    draw_execution_summary_box "info" "$title" "${content_lines[@]}"
+}
+
+# =============================================================================
+# LEGACY COMPATIBILITY - Enhanced draw_status_box
+# =============================================================================
+
+# Enhanced draw_status_box with backward compatibility
 draw_status_box() {
     local status="$1"
     local text="$2"
     local title="${3:-}"
 
+    # For backward compatibility, use the simple single-line version
     # Map status to color
     local color=""
     case "$status" in
@@ -1402,4 +1646,307 @@ create_component_header_row() {
     )
 
     compose_line "$target_width" "${components[@]}"
+}
+
+# =============================================================================
+# HIERARCHICAL TABLE FUNCTIONS - Module Overview Table with Hierarchical Display
+# =============================================================================
+
+# Create a hierarchical table row with proper indentation
+create_hierarchical_row() {
+    local target_width="$1"
+    local indent_level="$2"  # 0 = category header, 1 = first child, 2 = last child
+    local module="$3"
+    local last_run="$4"
+    local status_type="$5"
+    local status_text="$6"
+    local next_due="$7"
+
+    # Calculate column widths based on typical content
+    local module_width=20
+    local last_run_width=12
+    local status_width=10
+    local next_due_width=10
+
+    # Create indentation prefix
+    local indent_prefix=""
+    case "$indent_level" in
+        0)  # Category header - no indentation
+            indent_prefix=""
+            ;;
+        1)  # First child - ├─ prefix
+            indent_prefix="├─ "
+            ;;
+        2)  # Last child - └─ prefix
+            indent_prefix="└─ "
+            ;;
+        *)  # Default to no indentation
+            indent_prefix=""
+            ;;
+    esac
+
+    # Pad each column to its target width
+    local padded_module=$(printf "%-${module_width}s" "${indent_prefix}${module}")
+    local padded_last_run=$(printf "%-${last_run_width}s" "$last_run")
+    local padded_status=$(printf "%-${status_width}s" "$(get_emoji "$status_type") $status_text")
+    local padded_next_due=$(printf "%-${next_due_width}s" "$next_due")
+
+    local components=(
+        "$(make_text_component "$padded_module")"
+        "$(make_spacing_component "2")"
+        "$(make_text_component "$padded_last_run")"
+        "$(make_spacing_component "2")"
+        "$(make_color_component "$status_type")"
+        "$(make_text_component "$padded_status")"
+        "$(make_color_component "reset")"
+        "$(make_spacing_component "2")"
+        "$(make_text_component "$padded_next_due")"
+    )
+
+    compose_line "$target_width" "${components[@]}"
+}
+
+# Create a category header row for module groups
+create_category_header() {
+    local target_width="$1"
+    local category_name="$2"
+
+    # Calculate column widths
+    local module_width=20
+    local last_run_width=12
+    local status_width=10
+    local next_due_width=10
+
+    # Pad category name to module column width
+    local padded_category=$(printf "%-${module_width}s" "$category_name")
+    local empty_last_run=$(printf "%-${last_run_width}s" "")
+    local empty_status=$(printf "%-${status_width}s" "")
+    local empty_next_due=$(printf "%-${next_due_width}s" "")
+
+    local components=(
+        "$(make_color_component "accent_cyan")"
+        "$(make_color_component "bold")"
+        "$(make_text_component "$padded_category")"
+        "$(make_color_component "reset")"
+        "$(make_spacing_component "2")"
+        "$(make_text_component "$empty_last_run")"
+        "$(make_spacing_component "2")"
+        "$(make_text_component "$empty_status")"
+        "$(make_spacing_component "2")"
+        "$(make_text_component "$empty_next_due")"
+    )
+
+    compose_line "$target_width" "${components[@]}"
+}
+
+# Create a bordered table with Unicode box-drawing characters
+create_bordered_table() {
+    local title="$1"
+    local width="${2:-0}"
+    shift 2
+    local rows=("$@")
+
+    # Calculate table width if not provided
+    if [[ $width -eq 0 ]]; then
+        width=$(get_terminal_width)
+        # Ensure minimum width for table content
+        if [[ $width -lt 80 ]]; then
+            width=80
+        fi
+    fi
+
+    # Calculate content width (table width minus borders)
+    local content_width=$((width - 4))  # Account for left and right borders
+
+    # Build top border with title
+    local top_border=""
+    if [[ -n "$title" ]]; then
+        # Title box: ╭─ Title ─╮
+        local title_with_spaces=$((${#title} + 2))
+        local title_padding=$((content_width - title_with_spaces))
+        if [[ $title_padding -gt 0 ]]; then
+            local left_pad=$((title_padding / 2))
+            local right_pad=$((title_padding - left_pad))
+            top_border="╭"
+            for ((i=0; i<left_pad; i++)); do
+                top_border="${top_border}─"
+            done
+            top_border="${top_border}─ $title ─"
+            for ((i=0; i<right_pad; i++)); do
+                top_border="${top_border}─"
+            done
+            top_border="${top_border}╮"
+        else
+            top_border="╭─ $title ─╮"
+        fi
+    else
+        # Simple box: ╭─────╮
+        top_border="╭"
+        for ((i=0; i<content_width; i++)); do
+            top_border="${top_border}─"
+        done
+        top_border="${top_border}╮"
+    fi
+
+    # Build header separator
+    local header_separator="├"
+    for ((i=0; i<content_width; i++)); do
+        header_separator="${header_separator}─"
+    done
+    header_separator="${header_separator}┤"
+
+    # Build bottom border
+    local bottom_border="╰"
+    for ((i=0; i<content_width; i++)); do
+        bottom_border="${bottom_border}─"
+    done
+    bottom_border="${bottom_border}╯"
+
+    # Output table with colors
+    local color_code=$(get_color "accent_cyan")
+    local reset_code="\033[0m"
+
+    echo -e "${color_code}${top_border}${reset_code}"
+
+    # Output header row
+    if [[ ${#rows[@]} -gt 0 ]]; then
+        echo -e "${color_code}│${reset_code} ${rows[0]} ${color_code}│${reset_code}"
+
+        # Output header separator if there are data rows
+        if [[ ${#rows[@]} -gt 1 ]]; then
+            echo -e "${color_code}${header_separator}${reset_code}"
+        fi
+
+        # Output data rows
+        for ((i=1; i<${#rows[@]}; i++)); do
+            echo -e "${color_code}│${reset_code} ${rows[$i]} ${color_code}│${reset_code}"
+        done
+    fi
+
+    echo -e "${color_code}${bottom_border}${reset_code}"
+}
+
+# Create a complete module overview table with hierarchical display
+create_module_overview_table() {
+    local title="${1:-SYSTEM MAINTENANCE STATUS}"
+    local width="${2:-0}"
+
+    # Calculate table width if not provided
+    if [[ $width -eq 0 ]]; then
+        width=$(get_terminal_width)
+        # Ensure minimum width for table content
+        if [[ $width -lt 80 ]]; then
+            width=80
+        fi
+    fi
+
+    # Calculate content width (table width minus borders and padding)
+    local content_width=$((width - 6))  # Account for borders and padding
+
+    # Create header row
+    local header_row=$(create_aligned_header_row "$content_width" "Module" "Last Run" "Status" "Next Due")
+
+    # Build the complete table structure
+    local table_rows=("$header_row")
+
+    # Example data structure - this would be populated with actual module data
+    # Package Updates category
+    table_rows+=("$(create_category_header "$content_width" "Package Updates")")
+    table_rows+=("$(create_hierarchical_row "$content_width" "1" "APT" "2 days ago" "success" "Done" "5 days")")
+    table_rows+=("$(create_hierarchical_row "$content_width" "1" "Snap" "2 days ago" "success" "Done" "5 days")")
+    table_rows+=("$(create_hierarchical_row "$content_width" "2" "Flatpak" "6 days ago" "warning" "Due" "Now")")
+
+    # System Cleanup category
+    table_rows+=("$(create_category_header "$content_width" "System Cleanup")")
+    table_rows+=("$(create_hierarchical_row "$content_width" "1" "Package Cache" "1 day ago" "success" "Done" "2 days")")
+    table_rows+=("$(create_hierarchical_row "$content_width" "2" "Temp Files" "4 days ago" "warning" "Due" "Now")")
+
+    # Custom Modules category
+    table_rows+=("$(create_category_header "$content_width" "Custom Modules")")
+    table_rows+=("$(create_hierarchical_row "$content_width" "2" "Docker Cleanup" "Never" "info" "New" "Setup")")
+
+    # Create the bordered table
+    create_bordered_table "$title" "$width" "${table_rows[@]}"
+}
+
+# Create a module overview table with custom data
+create_custom_module_overview_table() {
+    local title="${1:-SYSTEM MAINTENANCE STATUS}"
+    local width="${2:-0}"
+    shift 2
+    local categories=("$@")
+
+    # Calculate table width if not provided
+    if [[ $width -eq 0 ]]; then
+        width=$(get_terminal_width)
+        # Ensure minimum width for table content
+        if [[ $width -lt 80 ]]; then
+            width=80
+        fi
+    fi
+
+    # Calculate content width (table width minus borders and padding)
+    local content_width=$((width - 6))  # Account for borders and padding
+
+    # Create header row
+    local header_row=$(create_aligned_header_row "$content_width" "Module" "Last Run" "Status" "Next Due")
+
+    # Build the complete table structure
+    local table_rows=("$header_row")
+
+    # Process each category
+    for category in "${categories[@]}"; do
+        # Parse category data (format: "CategoryName:Module1:status1:Module2:status2:...")
+        IFS=':' read -ra category_parts <<< "$category"
+        local category_name="${category_parts[0]}"
+
+        # Add category header
+        table_rows+=("$(create_category_header "$content_width" "$category_name")")
+
+        # Process modules in this category
+        local module_count=$((${#category_parts[@]} - 1))
+        for ((i=1; i<${#category_parts[@]}; i+=4)); do
+            local module="${category_parts[$i]}"
+            local last_run="${category_parts[$i+1]:-Never}"
+            local status_type="${category_parts[$i+2]:-info}"
+            local status_text="${category_parts[$i+3]:-New}"
+            local next_due="${category_parts[$i+4]:-Setup}"
+
+            # Determine indentation level (1 for first, 2 for last)
+            local indent_level="1"
+            if [[ $i -eq $((module_count - 3)) ]]; then
+                indent_level="2"  # Last module in category
+            fi
+
+            table_rows+=("$(create_hierarchical_row "$content_width" "$indent_level" "$module" "$last_run" "$status_type" "$status_text" "$next_due")")
+        done
+    done
+
+    # Create the bordered table
+    create_bordered_table "$title" "$width" "${table_rows[@]}"
+}
+
+# Helper function to add a category to the module overview table
+add_category_to_table() {
+    local category_name="$1"
+    local target_width="$2"
+
+    # Add category header
+    local category_row=$(create_category_header "$target_width" "$category_name")
+    echo "$category_row"
+}
+
+# Helper function to add a module row to the table
+add_module_to_table() {
+    local indent_level="$1"  # 0 = category, 1 = first child, 2 = last child
+    local module="$2"
+    local last_run="$3"
+    local status_type="$4"
+    local status_text="$5"
+    local next_due="$6"
+    local target_width="$7"
+
+    # Add module row with proper indentation
+    local module_row=$(create_hierarchical_row "$target_width" "$indent_level" "$module" "$last_run" "$status_type" "$status_text" "$next_due")
+    echo "$module_row"
 }

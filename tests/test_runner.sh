@@ -82,6 +82,8 @@ test_order=(
     "test_enhanced_styling.sh"
     "test_formatting.sh"
     "test_summary_box.sh"
+    "test_execution_summary_boxes.sh"
+    "test_hierarchical_tables.sh"
     "test_dark_theme_simple.sh"
     "test_colorblind_mode.sh"
 
