@@ -11,242 +11,240 @@ Implement the Taskmaster-inspired visual design as specified in docs/DESIGN.md, 
 Visual inspection and automated snapshot tests for CLI output. Test accessibility with different terminal themes. Verify implementation against the specifications in docs/DESIGN.md. Test all component variants and output formats.
 
 # Subtasks:
-## 1. Implement base styling system using tput and ANSI escape codes [done]
+## 1. Implement Core Layout Builder Components [pending]
 ### Dependencies: None
-### Description: 
+### Description: Develop the four foundational scripts in scripts/core/ (box_builder.sh, layout_loader.sh, width_helpers.py, palette.sh) according to the APIs and behaviors defined in layout_builder_spec.md v1.2, ensuring support for Unicode/ASCII rendering, responsive widths, and centralized color/icon palettes.
 ### Details:
+Ensure each script matches the spec, supports both Unicode and ASCII fallback, and is compatible with Bash 5 and Python stdlib only. Validate that the palette and icon maps are centralized and accessible by the builder.
 
+## 2. Bridge Legacy Formatter to Layout Builder [pending]
+### Dependencies: 6.1
+### Description: Create a compatibility layer in utils.sh so that legacy create_box() and related calls proxy to the new Layout Builder, emitting deprecation warnings and ensuring seamless transition.
+### Details:
+Implement proxy logic and deprecation warnings. Maintain temporary support for legacy call-sites while refactoring proceeds.
 
-## 2. Create terminal-first dark theme with semantic color palette [done]
+## 3. Integrate Real-Time Progress Indicators and Status Icons [pending]
+### Dependencies: 6.1
+### Description: Re-implement spinner and progress-bar components to render within Layout Builder boxes, supporting in-place updates (TTY), static dots (no-TTY), nested steps, and color/emoji status icons sourced from the centralized palette.
+### Details:
+Ensure progress indicators and status icons are fully integrated, support both Unicode and ASCII modes, and honor colorblind-friendly palettes.
+
+## 4. Enable Multi-Format and Accessible Output [pending]
+### Dependencies: 6.1
+### Description: Implement machine-readable output modes (--output json|yaml), ensure helpers render_json and render_yaml pretty-print the same data structure as the builder, and finalize colorblind-friendly palettes with WCAG-AA contrast compliance.
+### Details:
+Support toggling palettes by flag or config, and provide ASCII fallback when UPKEP_ASCII=1 or locale is non-UTF-8. Validate output structure and accessibility.
+
+## 5. Refactor Legacy Call-Sites and Update Documentation [pending]
+### Dependencies: 6.2, 6.3, 6.4
+### Description: Refactor all legacy formatter call-sites to use JSON descriptors for the Layout Builder, update README, STYLING_SYSTEM_GUIDE.md, and templates, and ensure all tests and demos pass with the new system.
+### Details:
+Remove all lingering references to the component-string formatter, update documentation and examples, and ensure full regression QA with existing and new tests.
+
+## 6. Create box_builder.sh with DSL primitives [pending]
 ### Dependencies: None
-### Description: 
+### Description: Implement the core DSL primitives (box_new, row_new, box_render, row_add_cell, box_add_row) and helper functions (make_text, make_emoji, make_color, fit_cell) as specified in layout_builder_spec.md §4
 ### Details:
-<info added on 2025-07-22T20:48:19.454Z>
-Implement the terminal-first dark theme as specified in docs/DESIGN.md Section 2.1, using the following color palette:
+Create scripts/core/box_builder.sh with:
+- DSL primitives: box_new, row_new, box_render, row_add_cell, box_add_row
+- Token helpers: make_text, make_emoji, make_color (with reset emitting ANSI 0)
+- Cell fitting: fit_cell for wrap/ellipsis overflow
+- Border styles: major, minor, emphasis with Unicode/ASCII fallback
+- Width calculation integration with width_helpers.py
 
-Base Colors:
-- PRIMARY_BG="#1a1a1a" (Deep black background)
-- PRIMARY_FG="#f8f8f2" (High-contrast white text)
-- ACCENT_CYAN="#8be9fd" (Headers, section dividers)
-- ACCENT_MAGENTA="#bd93f9" (Progress, emphasis)
-
-Semantic Status Colors:
-- SUCCESS_GREEN="#50fa7b" (Completed tasks, successful operations)
-- WARNING_YELLOW="#f1fa8c" (Skipped tasks, pending actions)
-- ERROR_RED="#ff5555" (Failed operations, critical issues)
-- INFO_BLUE="#6272a4" (Informational content, metadata)
-
-Include colorblind-friendly alternatives as specified in Section 9.2 for accessibility, with appropriate contrast ratios and alternative visual indicators beyond color alone.
-
-Update scripts/modules/core/utils.sh with these enhanced color definitions, ensuring compatibility with both modern terminals supporting 24-bit color and legacy terminals with limited color support.
-</info added on 2025-07-22T20:48:19.454Z>
-
-## 3. Develop module overview tables with hierarchical display [pending]
+## 7. Create layout_loader.sh with JSON processing [pending]
 ### Dependencies: None
-### Description: 
+### Description: Implement JSON → tokens → builder pipeline with width caching, SIGWINCH trapping, and responsive layout algorithms as specified in layout_builder_spec.md §3
 ### Details:
-<info added on 2025-07-22T20:48:46.916Z>
-Implement the Module Overview Table component that displays system maintenance status in a structured, hierarchical format. The table should:
+Create scripts/core/layout_loader.sh with:
+- JSON descriptor parsing and validation
+- Terminal width caching with SIGWINCH trap
+- Column sizing algorithm (natural width → proportional distribution)
+- Overflow handling (wrap vs ellipsis)
+- Minimum 80-column enforcement
+- Integration with box_builder.sh DSL
 
-- Use box-drawing characters to create a visually appealing bordered table
-- Support hierarchical indentation with ├─ and └─ characters for nested operations
-- Include columns for Module, Last Run, Status, and Next Due information
-- Implement color-coded status indicators (green for success, yellow for due, red for failed)
-- Format timestamps in a time-relative manner (e.g., "2 days ago", "Now", "5 days")
-- Adapt to different terminal widths (80-140 characters) per responsive design requirements
-
-Create the necessary drawing functions in scripts/modules/core/utils.sh that handle:
-- Table border generation with appropriate Unicode box-drawing characters
-- Dynamic column width calculation based on terminal size
-- Header and row formatting with proper alignment and padding
-- Status indicator colorization using terminal escape sequences
-- Support for nested module representation with proper indentation
-
-The implementation should follow the example structure provided in the design document and conform to the component library specifications in Section 10.1.
-</info added on 2025-07-22T20:48:46.916Z>
-
-## 4. Implement execution summary boxes (success/warning/error variants) [pending]
+## 8. Create width_helpers.py for Unicode width calculation [pending]
 ### Dependencies: None
-### Description: 
+### Description: Implement wcwidth-based display width helper for accurate Unicode character width calculation, supporting emoji and multi-byte characters
 ### Details:
-<info added on 2025-07-22T20:49:02.338Z>
-Implement execution summary boxes for success, warning, and error states following the design specifications in docs/DESIGN.md Section 3.2. Create a draw_status_box() function in utils.sh that renders bordered boxes with:
+Create scripts/core/width_helpers.py with:
+- wcwidth integration for accurate Unicode width calculation
+- Support for emoji, combining characters, and multi-byte sequences
+- Python std-lib only (no external dependencies)
+- Integration with layout_loader.sh for column sizing
+- Test coverage for edge cases (zero-width, double-width characters)
 
-1. Success Box (Green):
-   - Title with operation name
-   - Success message with count of completed actions
-   - Execution time measurement
-   - Package/item details with version information
-   - Next scheduled run information
-
-2. Warning/Skip Box (Yellow):
-   - Skip reason clearly stated
-   - Configured interval information
-   - Override instructions for manual execution
-   - Status-aware formatting with warning emoji (⚠️)
-
-3. Error Box (Red):
-   - Error title and summary
-   - Detailed error message
-   - Troubleshooting suggestions
-   - Log file paths for further investigation
-   - Error code when available
-
-All boxes should maintain consistent formatting with:
-- Color-coded borders and text based on status
-- Appropriate emoji indicators (✅, ⚠️, ❌)
-- Information presented in logical hierarchy
-- Proper spacing and alignment
-- Unicode box-drawing characters for borders
-
-The function should accept parameters for box type, title, and content details to generate appropriate output based on execution context.
-</info added on 2025-07-22T20:49:02.338Z>
-
-## 5. Create real-time progress indicators and step-by-step feedback [pending]
+## 9. Create palette.sh with centralized color and emoji maps [pending]
 ### Dependencies: None
-### Description: 
+### Description: Implement centralized semantic color and emoji palettes with colorblind-friendly alternatives, supporting runtime palette switching via environment variables
 ### Details:
+Create scripts/core/palette.sh with:
+- EMOJI_MAP_DEFAULT and EMOJI_MAP_CB (colorblind) arrays
+- COLOR_MAP_DEFAULT and COLOR_MAP_CB arrays with semantic mappings
+- choose_palette() function for runtime palette selection
+- Support for UPKEP_COLORBLIND environment variable
+- Integration with STATUS_ICONS from existing system
+- WCAG-AA contrast compliance (≥ 4.5:1 ratio)
 
-
-## 6. Enhance ASCII branding and section headers via ascii_art.sh [pending]
+## 10. Implement legacy bridge in utils.sh [pending]
 ### Dependencies: None
-### Description: 
+### Description: Create compatibility layer in utils.sh so legacy create_box() and related calls proxy to the new Layout Builder with deprecation warnings
 ### Details:
+Modify scripts/modules/core/utils.sh to:
+- Proxy create_box() and create_summary_box() to new Layout Builder
+- Emit deprecation warnings for legacy calls
+- Maintain temporary compatibility until v3.1
+- Preserve existing BOX_* glyph variables for drop-in compatibility
+- Ensure seamless transition for existing scripts
 
-
-## 7. Implement status icon system with comprehensive mapping [pending]
+## 11. Re-implement progress indicators for Layout Builder [pending]
 ### Dependencies: None
-### Description: 
+### Description: Update spinner and progress-bar components to render inside Layout Builder boxes with proper Unicode/ASCII support and quiet mode handling
 ### Details:
-<info added on 2025-07-22T20:49:15.994Z>
-declare -A STATUS_ICONS=(
-    ["success"]="✅"
-    ["failed"]="❌" 
-    ["warning"]="⚠️"
-    ["pending"]="⏳"
-    ["running"]="🔄"
-    ["paused"]="⏸️"
-    ["skip"]="⏭️"
-    ["new"]="📋"
-    ["timing"]="⏱️"
-    ["stats"]="📊"
-    ["suggestion"]="💡"
-    ["action"]="🎯"
-    ["config"]="🔧"
-    ["package"]="📦"
-    ["cleanup"]="🗑️"
-    ["details"]="🔍"
-)
+Update progress indicator implementation to:
+- Render spinners and progress bars inside Layout Builder boxes
+- Support Braille spinner frames (⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏) at 100ms cadence
+- Provide ASCII fallback (~) for colorblind mode
+- Implement 50-cell progress bars (█/░) with style inheritance
+- Handle quiet/no-TTY mode with static dots
+- Ensure cursor visibility and proper cleanup
 
-declare -A STATUS_COLORS=(
-    ["success"]="green"
-    ["failed"]="red"
-    ["warning"]="yellow"
-    ["pending"]="blue"
-    ["running"]="cyan"
-    ["paused"]="magenta"
-    ["skip"]="white"
-    ["new"]="blue"
-    ["timing"]="cyan"
-    ["stats"]="blue"
-    ["suggestion"]="green"
-    ["action"]="yellow"
-    ["config"]="magenta"
-    ["package"]="blue"
-    ["cleanup"]="red"
-    ["details"]="cyan"
-)
-
-# Function to format status with icon, color and text
-format_status() {
-    local status="$1"
-    local message="${2:-}"
-    local icon="${STATUS_ICONS[$status]:-}"
-    local color="${STATUS_COLORS[$status]:-white}"
-    
-    # Apply color using tput or ANSI escape codes
-    case "$color" in
-        "green")  color_code=$(tput setaf 2) ;;
-        "red")    color_code=$(tput setaf 1) ;;
-        "yellow") color_code=$(tput setaf 3) ;;
-        "blue")   color_code=$(tput setaf 4) ;;
-        "cyan")   color_code=$(tput setaf 6) ;;
-        "magenta") color_code=$(tput setaf 5) ;;
-        "white")  color_code=$(tput setaf 7) ;;
-        *)        color_code=$(tput setaf 7) ;;
-    esac
-    
-    reset_code=$(tput sgr0)
-    
-    # Format with consistent spacing
-    if [ -n "$message" ]; then
-        echo "${color_code}${icon} ${message}${reset_code}"
-    else
-        echo "${color_code}${icon}${reset_code}"
-    fi
-}
-</info added on 2025-07-22T20:49:15.994Z>
-
-## 8. Add multi-format output support (human-readable, JSON, YAML) [pending]
+## 12. Create comprehensive Bats test suite [pending]
 ### Dependencies: None
-### Description: 
+### Description: Implement acceptance tests covering emoji-width alignment, color-bleed prevention, wrapping vs ellipsis, SIGWINCH resize handling, spinner cadence, ASCII mode, and palette toggle functionality
 ### Details:
+Create tests/layout_*.bats with test cases:
+- emoji_width: Icons align in 3-row table
+- color_bleed: Reset after each cell; borders remain default color
+- wrap_vs_ellipsis: Cell overflow obeys descriptor
+- composite_mixed: Color switches inside composite cells
+- sigwinch_resize: Re-render widths 80 → 120
+- spinner_cadence: 10 frames ≈ 1s (100ms each)
+- ascii_mode: Render using ASCII fallback
+- palette_toggle: Render twice with CB env-var flip
 
-
-## 9. Ensure accessibility with colorblind-friendly palettes [pending]
+## 13. Refactor legacy formatter call-sites to JSON descriptors [pending]
 ### Dependencies: None
-### Description: 
+### Description: Update all existing formatter call-sites throughout the codebase to use JSON descriptors for the Layout Builder instead of legacy component-string formatting
 ### Details:
+Refactor all legacy formatter usage to:
+- Replace draw_box, create_status_line, create_box calls with JSON descriptors
+- Update module overview tables to use Layout Builder JSON format
+- Convert execution summary boxes to JSON-driven rendering
+- Update ASCII art and branding components
+- Ensure all visual components use the new builder system
+- Maintain temporary proxy compatibility during transition
 
-
-## 10. Follow the 4-phase implementation roadmap from docs/DESIGN.md [pending]
+## 14. Tag repository v0.2.0-pre-refactor [pending]
 ### Dependencies: None
-### Description: 
+### Description: Create git tag v0.2.0-pre-refactor before the first commit touching legacy formatter code to mark the pre-refactor state
 ### Details:
+Create git tag to mark the pre-refactor state:
+- Tag as v0.2.0-pre-refactor before any legacy code changes
+- Document the tag purpose in commit message
+- Ensure clean state before beginning Layout Builder migration
+- Provide rollback point if needed during refactoring
 
-
-## 11. Add user-friendly colorblind mode activation [done]
+## 15. Update documentation and examples [pending]
 ### Dependencies: None
-### Description: Implement a simple command-line flag or interactive prompt to enable colorblind mode without requiring shell configuration edits
+### Description: Update README examples, docs/STYLING_SYSTEM_GUIDE.md, and any templates that embed boxes/tables to reflect the new Layout Builder system
 ### Details:
-Create a UX-focused solution for colorblind mode activation that doesn't require users to edit their shell configuration. Options to consider:
+Update documentation to reflect Layout Builder:
+- Update README.md with new JSON-driven examples
+- Revise docs/STYLING_SYSTEM_GUIDE.md for Layout Builder usage
+- Update any template files that embed boxes/tables
+- Create examples/update_module.sh showing JSON-driven box identical to spec snippet
+- Document migration path from legacy formatter
+- Update configuration examples and usage patterns
 
-1. Command-line flag: --colorblind or -c
-2. Interactive prompt on first run asking about accessibility preferences
-3. Simple subcommand: upkep colorblind on/off
-4. Configuration file setting that persists user preference
-
-The solution should be discoverable, simple to use, and follow upkep's principle of user-focused design. Consider adding a help message that mentions the accessibility feature.
-
-## 12. Fix visual display generation errors and spacing issues [pending]
+## 16. Implement real-time progress reporter functions [pending]
 ### Dependencies: None
-### Description: Address specific visual display bugs in multi-column spacing, emoji padding, text wrapping, and box width calculations
+### Description: Create progress_start, progress_step, progress_end functions that emit in-place updates (TTY) or appended lines (no-TTY), supporting nested steps and STATUS_ICONS integration
 ### Details:
-Fix the following visual display generation errors identified in testing:
+Implement real-time progress reporting:
+- progress_start: Initialize progress context with TTY detection
+- progress_step: Emit in-place updates (TTY) or appended lines (no-TTY)
+- progress_end: Clean up progress context and restore cursor
+- Support nested steps with proper indentation
+- Integrate with STATUS_ICONS from palette.sh
+- Handle both interactive and non-interactive terminals
+- Ensure proper cleanup on interruption
 
-1. **Multi-column auto spacing function evaluation**:
-   - Investigate and fix the column spacing algorithm in the table generation functions
-   - Ensure proper alignment across all table components
+## 17. Port ASCII branding to branding.sh with JSON output [pending]
+### Dependencies: None
+### Description: Port ascii_art.sh to branding.sh, exposing draw_brand_header and draw_section_header functions that emit JSON consumed by the Layout Builder, honoring UPKEP_ASCII and colorblind palette
+### Details:
+Create scripts/modules/core/branding.sh with:
+- Port existing ASCII art functionality from ascii_art.sh
+- draw_brand_header: Emit JSON for upKep branding header
+- draw_section_header: Emit JSON for section headers
+- Honor UPKEP_ASCII environment variable for ASCII fallback
+- Support colorblind palette via palette.sh integration
+- Ensure proper Unicode/ASCII rendering compatibility
+- Maintain existing ASCII art quality and styling
 
-2. **Emoji spacing errors in test_modular_system.sh**:
-   - In "Testing Emoji Map and Basic Functions" section, the running, stats, and suggestions rows are improperly padding column 2 by 1 position to the left
-   - The emoji spacing details in the emoji array likely have an error
-   - Use test_all_emojis.sh to test all emojis for accurate spacing
-   - Fix the emoji width calculation function to properly handle different emoji character widths
+## 18. Integrate STATUS_ICONS with centralized palette [pending]
+### Dependencies: None
+### Description: Move existing STATUS_ICONS and STATUS_COLORS maps into palette.sh as the single source of truth, ensuring the Layout Builder consumes unified icon and color definitions
+### Details:
+Integrate STATUS_ICONS with centralized palette:
+- Move STATUS_ICONS and STATUS_COLORS from utils.sh to palette.sh
+- Ensure Layout Builder uses unified icon and color definitions
+- Maintain backward compatibility with existing STATUS_ICONS usage
+- Support both default and colorblind palette variants
+- Update all references to use centralized palette system
+- Ensure semantic consistency across all visual components
 
-3. **Box drawing demo issues in box_drawing_demo.sh**:
-   - **Long test wrap problem**: The "Long test (should wrap or truncate)" box has a wrap problem where the border should remain in the correct place and only the inner text should wrap
-   - **Title overflow issue**: The title "VERY LONG TITLE THAT MIGHT OVERFLOW" is longer than the body text box. The longer of the two should determine the box width
+## 19. Add machine-readable output support [pending]
+### Dependencies: None
+### Description: Implement --output json|yaml CLI option with render_json and render_yaml helpers that pretty-print the same data structure passed to the Layout Builder
+### Details:
+Add machine-readable output support:
+- Implement --output json|yaml CLI flag parsing
+- Create render_json helper for pretty-printed JSON output
+- Create render_yaml helper for pretty-printed YAML output
+- Ensure output structure matches data passed to Layout Builder
+- Support both human-readable and machine-readable modes
+- Maintain consistent data structure across output formats
+- Add appropriate content-type headers for machine output
 
-**Implementation approach**:
-- Review and fix the multi-column spacing algorithm in utils.sh
-- Update emoji width calculation to handle all Unicode emoji characters correctly
-- Implement proper text wrapping that preserves box borders
-- Fix box width calculation to use the maximum width of title or content
-- Add comprehensive tests to verify fixes work across different terminal sizes and content types
+## 20. Finalize colorblind palettes with WCAG-AA compliance [pending]
+### Dependencies: None
+### Description: Ensure colorblind palettes meet WCAG-AA contrast requirements (≥ 4.5:1 ratio), support palette toggling by flag or persisted config, and create snapshot tests to prove identical structure and safe colors
+### Details:
+Finalize colorblind accessibility:
+- Ensure WCAG-AA contrast ratio ≥ 4.5:1 for all colorblind palette colors
+- Support palette toggling via UPKEP_COLORBLIND flag or persisted config
+- Create snapshot tests to verify identical structure across palettes
+- Validate safe colors for all visual components
+- Test palette switching at runtime without restart
+- Document accessibility compliance and testing procedures
+- Ensure semantic meaning preserved in colorblind mode
 
-**Files to modify**:
-- scripts/modules/core/utils.sh (spacing and box drawing functions)
-- scripts/modules/core/ascii_art.sh (emoji handling)
-- Any other files containing table or box drawing logic
+## 21. Run comprehensive regression QA and fix edge cases [pending]
+### Dependencies: None
+### Description: Execute all existing demos and tests (box_drawing_demo.sh, test_modular_system.sh) against the new Layout Builder, patch any residual spacing/emoji/wrap issues, and ensure no TODOs remain
+### Details:
+Comprehensive regression testing:
+- Run box_drawing_demo.sh against new Layout Builder
+- Execute test_modular_system.sh with new system
+- Fix any residual spacing, emoji, or text wrapping issues
+- Ensure all existing visual components work correctly
+- Verify no TODOs or incomplete implementations remain
+- Test edge cases: very long text, mixed Unicode, terminal resize
+- Validate all existing functionality preserved
+- Ensure shellcheck and bats tests pass
+
+## 22. Follow 4-phase implementation roadmap from docs/DESIGN.md [pending]
+### Dependencies: None
+### Description: Implement the visual feedback system following the 4-phase roadmap outlined in docs/DESIGN.md, ensuring proper sequencing and integration of all Layout Builder components
+### Details:
+Follow the 4-phase implementation roadmap:
+- Phase 1: Core Layout Builder infrastructure (box_builder.sh, layout_loader.sh, width_helpers.py, palette.sh)
+- Phase 2: Integration and compatibility layer (legacy bridge, progress indicators, status icons)
+- Phase 3: Enhanced features (real-time progress, branding, machine-readable output)
+- Phase 4: Quality assurance and documentation (testing, accessibility, documentation updates)
+- Ensure proper dependency management and sequencing between phases
+- Validate each phase completion before proceeding to next
 
