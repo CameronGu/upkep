@@ -1,6 +1,6 @@
-# upKep UI & Layout Design — Unified Reference (v3.0.1)
+# upKep UI & Layout Design — Unified Reference (v3.0.2)
 
-*Last updated 2025‑07‑29 – incorporates gap‑report fixes & utils parity*
+*Last updated 2025‑07‑30 – incorporates Rich Visual Examples*
 
 ---
 
@@ -119,6 +119,152 @@ upkep config [...]        # settings wizard / edit
 ```
 
 Contextual suggestions & interactive filters mirror v2.0 behaviour.
+
+---
+
+## 7.5 Rich Visual Examples
+
+The Layout Builder produces sophisticated, beautiful output that matches the visual quality of Taskmaster. Here are detailed examples of the intended visual design:
+
+### Module Overview Table (Hierarchical)
+
+```bash
+╭─────────────── SYSTEM MAINTENANCE STATUS ────────────────╮
+│ Module                │ Last Run    │ Status  │ Next Due │
+├───────────────────────┼─────────────┼─────────┼──────────┤
+│ Package Updates       │             │         │          │
+│ ├─ APT                │ 2 days ago  │ ✅ Done │ 5 days   │
+│ ├─ Snap               │ 2 days ago  │ ✅ Done │ 5 days   │
+│ └─ Flatpak            │ 6 days ago  │ ⚠️  Due │ Now      │
+│ System Cleanup        │             │         │          │
+│ ├─ Package Cache      │ 1 day ago    │ ✅ Done │ 2 days   │
+│ └─ Temp Files         │ 4 days ago  │ ⚠️  Due │ Now      │
+│ Custom Modules        │             │         │          │
+│ └─ Docker Cleanup     │ Never       │ 📋 New  │ Setup    │
+╰───────────────────────┴─────────────┴─────────┴──────────╯
+```
+
+### Execution Summary Boxes
+
+**Success Box:**
+```bash
+╭─────────────────── APT UPDATE COMPLETE ───────────────────╮
+│                                                           │
+│ ✅ 12 packages updated successfully                       │
+│ ⏱️  Execution time: 42 seconds                            │
+│ 📦 Updates: firefox (91.0), git (2.34), python3 (3.9.7)   │
+│ 🔄 3 packages held back due to dependencies               │
+│                                                           │
+│ Next update due: 5 days (based on 7-day interval)         │
+╰───────────────────────────────────────────────────────────╯
+```
+
+**Warning Box:**
+```bash
+╭─────────────────── FLATPAK UPDATE SKIPPED ────────────────╮
+│                                                           │
+│ ⚠️  Skipped - Last update was 2 days ago                  │
+│ 📅 Configured interval: 7 days                            │
+│ ⏭️  Next update scheduled: 5 days from now                │
+│                                                           │
+│ Use --force to override interval checking                 │
+╰───────────────────────────────────────────────────────────╯
+```
+
+**Error Box:**
+```bash
+╭──────────────────── SNAP UPDATE FAILED ───────────────────╮
+│                                                           │
+│ ❌ Failed to refresh snaps                                │
+│ ⏱️  Execution time: 15 seconds                            │
+│ 🔍 Error: network timeout during download                 │
+│ 💡 Suggestion: Check internet connection and retry        │
+│                                                           │
+│ View detailed logs: ~/.upkep/logs/snap_update.log         │
+╰───────────────────────────────────────────────────────────╯
+```
+
+### Progress Indicators
+
+**Real-time Execution:**
+```bash
+🔄 Updating APT repositories...
+├─ Reading package lists... ✅ Done
+├─ Building dependency tree... 🔄 In progress
+└─ Reading state information... ⏳ Waiting
+
+📦 Installing updates (12 packages)...
+██████████▓▓▓▓▓▓▓▓▓▓ 52% (6/12) - Installing firefox...
+```
+
+**Step-by-Step Results:**
+```bash
+🔧 System Cleanup Operations:
+├─ 🗑️  Removing unused packages... ✅ 23 packages removed
+├─ 🧹 Cleaning package cache... ✅ 147MB freed  
+├─ 📁 Emptying temp directories... ⚠️ 2 files skipped (in use)
+└─ 🔄 Updating locate database... ✅ Complete
+
+📊 Total space freed: 231MB
+```
+
+### Dashboard Status Display
+
+```bash
+╭───────────────────── upKep System Status ─────────────────────╮
+│                                                               │
+│ 🖥️  System: Ubuntu 22.04 LTS │ 🖥️ Last run: 2 hours ago       │
+│ 💾 Disk: 89.4GB free         │ 📊 Total modules: 7            │
+│                                                               │
+╰───────────────────────────────────────────────────────────────╯
+
+⚡ Quick Actions:
+├─ upkep run           # Run all due operations
+├─ upkep run --force   # Force run all operations  
+├─ upkep status        # Show detailed status
+└─ upkep config        # Configure settings
+
+🎯 Due Now (2):
+├─ Flatpak Update      │ Last run: 8 days ago
+└─ Docker Cleanup      │ Last run: Never
+
+✅ Recent Success (3):
+├─ APT Update          │ 12 packages updated (2 hours ago)
+├─ Package Cleanup     │ 23 packages removed (2 hours ago)
+└─ System Files        │ 147MB freed (2 hours ago)
+```
+
+### ASCII Art Header
+
+```bash
+                                888 88P                  
+            8888 8888 888 888e  888 8P   ,e e,  888 888e  
+            8888 8888 888  888b 888 K   d88 88b 888  888b 
+            Y888 888P 888  888P 888 8b  888   , 888  888P 
+             "88 88"  888 888"  888 88b  "YeeP" 888 888"  
+                      888                       888      
+                      888                       888      
+                        -upKep Linux Maintainer-
+                              by CameronGu
+```
+
+### Section Headers & Dividers
+
+```bash
+═══════════════════ PACKAGE UPDATES ═══════════════════
+
+─────────────────── System Cleanup ───────────────────
+
+▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ EXECUTION RESULTS ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+```
+
+**Visual Design Principles:**
+- **Rich Unicode borders** with proper corner characters
+- **Semantic color coding** for immediate status recognition
+- **Hierarchical information** with clear visual grouping
+- **Emoji icons** for quick visual scanning
+- **Proper spacing** and alignment for readability
+- **Consistent visual language** across all components
 
 ---
 
