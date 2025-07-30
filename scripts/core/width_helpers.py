@@ -55,16 +55,31 @@ def wcwidth(char: str) -> int:
         # Check for specific Unicode ranges
         code_point = ord(char)
         
-        # Emoji ranges (double-width)
+        # Check for variation selectors (zero width)
+        if 0xFE00 <= code_point <= 0xFE0F:
+            return 0
+        
+        # Comprehensive emoji ranges (double-width)
         if (0x1F600 <= code_point <= 0x1F64F or  # Emoticons
             0x1F300 <= code_point <= 0x1F5FF or  # Miscellaneous Symbols and Pictographs
             0x1F680 <= code_point <= 0x1F6FF or  # Transport and Map Symbols
             0x1F1E0 <= code_point <= 0x1F1FF or  # Regional Indicator Symbols
             0x2600 <= code_point <= 0x26FF or    # Miscellaneous Symbols
             0x2700 <= code_point <= 0x27BF or    # Dingbats
-            0xFE00 <= code_point <= 0xFE0F or    # Variation Selectors
             0x1F900 <= code_point <= 0x1F9FF or  # Supplemental Symbols and Pictographs
-            0x1F018 <= code_point <= 0x1F270):   # Various emoji ranges
+            0x1F018 <= code_point <= 0x1F270 or  # Various emoji ranges
+            0x23F0 <= code_point <= 0x23FF or    # Technical Symbols (includes ⏱)
+            0x231A <= code_point <= 0x231B or    # Miscellaneous Technical (includes ⌚)
+            0x2194 <= code_point <= 0x2199 or    # Arrows (includes ↔)
+            0x21A9 <= code_point <= 0x21AA or    # Arrows (includes ↩)
+            0x2934 <= code_point <= 0x2935 or    # Arrows (includes ⤴)
+            0x2B05 <= code_point <= 0x2B07 or    # Arrows (includes ⬅)
+            0x2B1B <= code_point <= 0x2B1C or    # Geometric Shapes (includes ⬛)
+            0x2B50 <= code_point <= 0x2B50 or    # White Medium Star
+            0x3030 <= code_point <= 0x3030 or    # Wavy Dash
+            0x303D <= code_point <= 0x303D or    # Part Alternation Mark
+            0x3297 <= code_point <= 0x3299 or    # Circled Ideographs
+            0x3299 <= code_point <= 0x3299):     # Circled Ideograph Secret
             return 2
         
         # Default to single width
@@ -88,22 +103,8 @@ def string_width(text: str) -> int:
     if not text:
         return 0
     
-    # Special cases for known emoji with width issues
-    # -1 position (border inset by 1): need width 1 instead of 2
-    if text in ("ℹ️", "ℹ", "⚠️", "⚠", "⚙️", "🖥️", "⏱️"):
-        return 1
-    
-    # +2 position (border extends by 2): need width 4 instead of 2
-    if text in ("🏳️‍🌈"):
-        return 4
-        
-    # -1 position (border inset by 1): need width 1 instead of 2
-    if text in ("🀄"):
-        return 1
-    
-    # Standard width 2 emojis
-    if text in ("⚡", "📋", "📊", "💡", "💾", "🖥", "⏳", "🔄", "📦", "🧹", "🆕", "❗", "❌", "✅"):
-        return 2
+    # Let wcwidth handle all characters automatically
+    # No special cases needed - the Unicode ranges in wcwidth should cover all emojis
     
     return sum(wcwidth(char) for char in text)
 

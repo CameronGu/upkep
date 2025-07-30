@@ -80,7 +80,7 @@ ascii_title_rozzo() {
 }
 
 
-ascii_title() {
+ascii_title_centered() {
     # Font Name: Rozzo
     echo -e "${BLUE}"
     echo "                                888 88P                  "
@@ -93,5 +93,21 @@ ascii_title() {
     echo -e "                        ${CYAN}${BOLD}-upKep Linux Maintainer-${RESET}${CYAN}"
     echo -e "                              ${GRAY}by CameronGu${RESET}"
     echo "                                                 "
+    echo ""
+}
+
+ascii_title() {
+    # Font Name: Rozzo
+    echo -e "${BLUE}"
+    echo "                    888 88P                  "
+    echo "8888 8888 888 888e  888 8P   ,e e,  888 888e  "
+    echo "8888 8888 888  888b 888 K   d88 88b 888  888b "
+    echo "Y888 888P 888  888P 888 8b  888   , 888  888P "
+    echo " \"88 88\"  888 888\"  888 88b  \"YeeP\" 888 888\"  "
+    echo "          888                       888      "
+    echo "          888                       888      "
+    echo -e "            ${CYAN}${BOLD}-upKep Linux Maintainer-${RESET}${CYAN}"
+    echo -e "                  ${GRAY}by CameronGu${RESET}"
+    echo "                                     "
     echo ""
 }
