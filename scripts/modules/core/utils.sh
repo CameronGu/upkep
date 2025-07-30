@@ -1950,3 +1950,243 @@ add_module_to_table() {
     local module_row=$(create_hierarchical_row "$target_width" "$indent_level" "$module" "$last_run" "$status_type" "$status_text" "$next_due")
     echo "$module_row"
 }
+
+# =============================================================================
+# LEGACY BRIDGE - Layout Builder Compatibility Layer
+# =============================================================================
+# 
+# This section provides compatibility for existing scripts using legacy box functions.
+# These functions proxy to the new Layout Builder system with deprecation warnings.
+# Legacy support will be maintained until v3.1, then deprecated in v3.2.
+#
+# DEPRECATION SCHEDULE:
+# - v3.0.x: Legacy functions work with deprecation warnings
+# - v3.1.x: Legacy functions emit stronger warnings
+# - v3.2.x: Legacy functions removed
+#
+# MIGRATION GUIDE:
+# - Replace draw_box() calls with JSON descriptors + render_layout_from_json()
+# - Replace create_themed_status_box() with box_new() + box_render() DSL
+# - Use new palette system for consistent colors and emoji
+# =============================================================================
+
+# Source the new Layout Builder components
+_layout_builder_source() {
+    local script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../core" && pwd)"
+    if [[ -f "${script_dir}/palette.sh" ]]; then
+        source "${script_dir}/palette.sh" 2>/dev/null || true
+    fi
+    if [[ -f "${script_dir}/box_builder.sh" ]]; then
+        source "${script_dir}/box_builder.sh" 2>/dev/null || true
+    fi
+    if [[ -f "${script_dir}/layout_loader.sh" ]]; then
+        source "${script_dir}/layout_loader.sh" 2>/dev/null || true
+    fi
+}
+
+# Legacy bridge: create_box() - Proxy to new Layout Builder
+create_box() {
+    local title="${1:-}"
+    local style="${2:-info}"
+    local width="${3:-0}"
+    
+    # Emit deprecation warning
+    echo "WARNING: create_box() is deprecated. Use box_new() + box_render() from Layout Builder instead." >&2
+    echo "  Migration: box_id=\$(box_new width title style); box_render \$box_id" >&2
+    
+    # Source Layout Builder if available
+    _layout_builder_source
+    
+    # Proxy to new system if available
+    if command -v box_new >/dev/null 2>&1 && command -v box_render >/dev/null 2>&1; then
+        if [[ "$width" == "0" ]]; then
+            width=$((COLUMNS - 2))
+        fi
+        local box_id
+        box_id=$(box_new "$width" "$title" "$style")
+        box_render "$box_id"
+    else
+        # Fallback to legacy implementation
+        echo "Layout Builder not available, using legacy fallback" >&2
+        draw_box "" "$title" "$style" "$width"
+    fi
+}
+
+# Legacy bridge: create_summary_box() - Proxy to new Layout Builder
+create_summary_box() {
+    local status="$1"
+    local title="$2"
+    local message="$3"
+    local width="${4:-0}"
+    
+    # Emit deprecation warning
+    echo "WARNING: create_summary_box() is deprecated. Use JSON descriptors + render_layout_from_json() instead." >&2
+    echo "  Migration: Use JSON layout descriptors with the new Layout Builder" >&2
+    
+    # Source Layout Builder if available
+    _layout_builder_source
+    
+    # Proxy to new system if available
+    if command -v render_layout_from_json >/dev/null 2>&1; then
+        if [[ "$width" == "0" ]]; then
+            width=$((COLUMNS - 2))
+        fi
+        
+        # Create JSON descriptor
+        local json_descriptor="{
+            \"title\": \"$title\",
+            \"style\": \"$status\",
+            \"width\": $width,
+            \"rows\": [
+                {
+                    \"cells\": [
+                        {\"emoji\": \"$status\"},
+                        {\"text\": \"$message\"}
+                    ]
+                }
+            ]
+        }"
+        
+        echo "$json_descriptor" | render_layout_from_stdin
+    else
+        # Fallback to legacy implementation
+        echo "Layout Builder not available, using legacy fallback" >&2
+        create_themed_status_box "$status" "$title" "$message" "$width"
+    fi
+}
+
+# Legacy bridge: draw_status_box() - Proxy to new Layout Builder
+draw_status_box() {
+    local text="$1"
+    local title="${2:-}"
+    local color="${3:-info}"
+    local width="${4:-0}"
+    
+    # Emit deprecation warning
+    echo "WARNING: draw_status_box() is deprecated. Use box_new() + box_render() from Layout Builder instead." >&2
+    echo "  Migration: box_id=\$(box_new width title style); box_render \$box_id" >&2
+    
+    # Source Layout Builder if available
+    _layout_builder_source
+    
+    # Proxy to new system if available
+    if command -v box_new >/dev/null 2>&1 && command -v box_render >/dev/null 2>&1; then
+        if [[ "$width" == "0" ]]; then
+            width=$((COLUMNS - 2))
+        fi
+        
+        local box_id
+        box_id=$(box_new "$width" "$title" "$color")
+        
+        # Add content row
+        local row_id
+        row_id=$(row_new)
+        row_add_cell "$row_id" "$(make_text "$text")"
+        box_add_row "$box_id" "$row_id"
+        
+        box_render "$box_id"
+    else
+        # Fallback to legacy implementation
+        echo "Layout Builder not available, using legacy fallback" >&2
+        draw_box "$text" "$title" "$color" "$width"
+    fi
+}
+
+# Legacy bridge: create_status_line() - Enhanced to use new palette
+create_status_line() {
+    local status="$1"
+    local message="$2"
+    local count="${3:-}"
+    
+    # Source Layout Builder if available for palette
+    _layout_builder_source
+    
+    # Use new palette system if available
+    if command -v format_status >/dev/null 2>&1; then
+        if [[ -n "$count" ]]; then
+            format_status "$status" "$message ($count)"
+        else
+            format_status "$status" "$message"
+        fi
+    else
+        # Fallback to legacy implementation
+        local emoji=""
+        local color=""
+        
+        case "$status" in
+            "success")
+                emoji="✅"
+                color="success"
+                ;;
+            "error")
+                emoji="❌"
+                color="error"
+                ;;
+            "warning")
+                emoji="❗"
+                color="warning"
+                ;;
+            "info")
+                emoji="ℹ️"
+                color="info"
+                ;;
+            "running")
+                emoji="🔄"
+                color="accent_cyan"
+                ;;
+            *)
+                emoji="•"
+                color="accent_cyan"
+                ;;
+        esac
+        
+        local color_code
+        color_code=$(get_color "$color")
+        local reset_code="\033[0m"
+        
+        if [[ -n "$count" ]]; then
+            echo -e "${color_code}${emoji} ${message} (${count})${reset_code}"
+        else
+            echo -e "${color_code}${emoji} ${message}${reset_code}"
+        fi
+    fi
+}
+
+# Preserve existing BOX_* glyph variables for drop-in compatibility
+# These will be used by legacy functions when Layout Builder is not available
+BOX_TOP_LEFT="┌"
+BOX_TOP_RIGHT="┐"
+BOX_BOTTOM_LEFT="└"
+BOX_BOTTOM_RIGHT="┘"
+BOX_HORIZONTAL="─"
+BOX_VERTICAL="│"
+BOX_TOP_LEFT_DOUBLE="╭"
+BOX_TOP_RIGHT_DOUBLE="╮"
+BOX_BOTTOM_LEFT_DOUBLE="╰"
+BOX_BOTTOM_RIGHT_DOUBLE="╯"
+BOX_HORIZONTAL_DOUBLE="─"
+BOX_VERTICAL_DOUBLE="│"
+
+# Legacy compatibility: STATUS_ICONS (preserved for existing scripts)
+declare -Ag STATUS_ICONS=(
+    [success]="✅"
+    [error]="❌"
+    [warning]="❗"
+    [info]="ℹ️"
+    [running]="🔄"
+    [pending]="⏳"
+)
+
+# Legacy compatibility: STATUS_COLORS (preserved for existing scripts)
+declare -Ag STATUS_COLORS=(
+    [success]="success"
+    [error]="error"
+    [warning]="warning"
+    [info]="info"
+    [running]="accent_cyan"
+    [pending]="accent_magenta"
+)
+
+# =============================================================================
+# END LEGACY BRIDGE
+# =============================================================================
