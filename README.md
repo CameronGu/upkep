@@ -10,6 +10,7 @@ A modular, extensible system maintenance tool for Linux that automates common ma
 - **State Management**: Persistent state tracking for modules and global operations
 - **Configuration Management**: YAML-based configuration with validation
 - **Enhanced Visual Interface**: Terminal-first design with semantic colors, dynamic boxes, and Unicode-aware alignment
+- **Emoji Rendering**: Optimized emoji palette with consistent double-width rendering across all terminals
 - **Accessibility**: Colorblind-friendly mode with high-contrast colors and text indicators
 - **AI Integration**: AI prompt generation for module development
 - **Extensible**: Easy to create custom modules with templates

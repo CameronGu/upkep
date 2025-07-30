@@ -206,7 +206,7 @@ Linux system maintenance involves managing multiple package managers (APT, Snap,
 
 #### NFR-3: Usability
 - **NFR-3.1**: Simple, intuitive command-line interface
-- **NFR-3.2**: Clear visual feedback and status indicators
+- **NFR-3.2**: Clear visual feedback and status indicators with optimized emoji rendering
 - **NFR-3.3**: Comprehensive help and documentation
 - **NFR-3.4**: Interactive configuration and setup
 - **NFR-3.5**: Consistent behavior across different environments

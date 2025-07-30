@@ -151,7 +151,7 @@ The Layout Builder produces sophisticated, beautiful output that matches the vis
 ╭─────────────────── APT UPDATE COMPLETE ───────────────────╮
 │                                                           │
 │ ✅ 12 packages updated successfully                       │
-│ ⏱️  Execution time: 42 seconds                            │
+│ ⏰  Execution time: 42 seconds                            │
 │ 📦 Updates: firefox (91.0), git (2.34), python3 (3.9.7)   │
 │ 🔄 3 packages held back due to dependencies               │
 │                                                           │
@@ -164,7 +164,7 @@ The Layout Builder produces sophisticated, beautiful output that matches the vis
 ╭─────────────────── FLATPAK UPDATE SKIPPED ────────────────╮
 │                                                           │
 │ ⚠️  Skipped - Last update was 2 days ago                  │
-│ 📅 Configured interval: 7 days                            │
+│ ℹ️  Configured interval: 7 days                            │
 │ ⏭️  Next update scheduled: 5 days from now                │
 │                                                           │
 │ Use --force to override interval checking                 │
@@ -176,8 +176,8 @@ The Layout Builder produces sophisticated, beautiful output that matches the vis
 ╭──────────────────── SNAP UPDATE FAILED ───────────────────╮
 │                                                           │
 │ ❌ Failed to refresh snaps                                │
-│ ⏱️  Execution time: 15 seconds                            │
-│ 🔍 Error: network timeout during download                 │
+│ ⏰  Execution time: 15 seconds                            │
+│ ℹ️  Error: network timeout during download                 │
 │ 💡 Suggestion: Check internet connection and retry        │
 │                                                           │
 │ View detailed logs: ~/.upkep/logs/snap_update.log         │
@@ -334,3 +334,68 @@ Structured logging via `log_message()` in `utils.sh`.
 * Runtime stack: Bash 5 + Python 3 std‑lib only.
 * Builder recalculates widths on every resize; emits `\e[0m` after each render.
 * Colour‑blind mode selectable without restart (per render eval).
+
+---
+
+## 14 Emoji Rendering & Unicode Handling
+
+### 14.1 Unicode Width Calculation
+
+The Layout Builder uses Python's `wcwidth` library for accurate Unicode character width calculation, ensuring proper alignment across all terminal environments:
+
+- **Double-width characters**: Most emojis, CJK characters (width = 2)
+- **Single-width characters**: Latin characters, symbols (width = 1)  
+- **Zero-width characters**: Combining marks, variation selectors (width = 0)
+
+### 14.2 Emoji Palette Optimization
+
+The system includes a carefully curated emoji palette optimized for consistent rendering. All emojis are tested for double-width rendering and terminal compatibility:
+
+| Semantic Key | Emoji | Unicode | Width | Notes |
+|-------------|-------|---------|-------|-------|
+| `success` | ✅ | U+2705 | 2 | Check mark |
+| `error` | ❌ | U+274C | 2 | Cross mark |
+| `warning` | ❗ | U+2757 | 2 | Exclamation |
+| `running` | 🔄 | U+1F504 | 2 | Rotating arrows |
+| `pending` | ⏳ | U+23F3 | 2 | Hourglass |
+| `info` | ❓ | U+2753 | 2 | Question mark (replaced ℹ️) |
+| `skip` | ↪️ | U+21AA | 2 | Curved arrow (replaced ⏭️) |
+| `new` | 🆕 | U+1F195 | 2 | NEW button |
+| `timing` | ⏰ | U+23F0 | 2 | Alarm clock (replaced ⏱️) |
+| `stats` | 📊 | U+1F4CA | 2 | Bar chart |
+| `suggestion` | 💡 | U+1F4A1 | 2 | Light bulb |
+| `action` | ⚡ | U+26A1 | 2 | Lightning |
+| `config` | ⚙️ | U+2699 | 2 | Gear |
+| `package` | 📦 | U+1F4E6 | 2 | Package |
+| `cleanup` | 🧹 | U+1F9F9 | 2 | Broom |
+| `details` | 📋 | U+1F4CB | 2 | Clipboard |
+
+### 14.3 Terminal Compatibility
+
+**Known Issues & Solutions:**
+- **Composite emojis**: Some emojis with variation selectors render inconsistently
+- **Terminal-specific rendering**: Different terminals may render the same emoji differently
+- **Font dependencies**: Emoji rendering quality depends on terminal font support
+
+**Emoji Replacements Made:**
+The following emojis were replaced due to terminal rendering inconsistencies:
+- `ℹ️` (INFORMATION SOURCE + VARIATION SELECTOR-16) → `❓` (QUESTION MARK)
+- `⏭️` (FAST FORWARD + VARIATION SELECTOR-16) → `↪️` (CURVED ARROW)
+- `⏱️` (STOPWATCH + VARIATION SELECTOR-16) → `⏰` (ALARM CLOCK)
+
+These replacements ensure consistent double-width rendering across all terminal environments.
+
+**Best Practices:**
+- All emojis are tested for consistent double-width rendering
+- Problematic emojis are replaced with more reliable alternatives
+- The system gracefully handles terminal-specific rendering differences
+
+### 14.4 Colorblind Support
+
+Colorblind mode replaces emojis with simple ASCII symbols:
+- `success` → `✔`
+- `error` → `✖` 
+- `warning` → `!`
+- `info` → `i`
+- `skip` → `>`
+- And more...
