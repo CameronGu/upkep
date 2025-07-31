@@ -67,6 +67,18 @@ make_text() { local text="$1"; echo "text;${text}"; }
 make_emoji() { local emoji_key="$1"; echo "emoji;${emoji_key}"; }
 make_color() { local color_key="$1"; echo "color;${color_key}"; }
 
+# Create a composite cell with mixed content (text, colors, emojis)
+make_composite() {
+    local composite_data="$1"
+    echo "composite;${composite_data}"
+}
+
+# HTML-like composite cell creation
+make_html() {
+    local html_content="$1"
+    echo "html;${html_content}"
+}
+
 # Helper: get display width using width_helpers.py
 get_display_width() {
     python3 "$SCRIPT_DIR/width_helpers.py" width "$1"
@@ -77,33 +89,81 @@ calculate_composite_width() {
     local composite_data="$1"
     local total_width=0
     
-    # Parse composite structure (JSON-like format)
-    # Example: {"composite": [{"text":"Hello"}, {"color":"red"}, {"text":"World"}]}
-    # We need to extract only the content elements and sum their widths
+    # Parse composite data (format: "text:value|color:value|text:value")
+    local -a tokens
+    IFS='|' read -ra tokens <<< "$composite_data"
     
-    # For now, implement a simple parser that looks for text and emoji elements
-    # This is a simplified version - in a full implementation, you'd want proper JSON parsing
+    for token in "${tokens[@]}"; do
+        local token_type="${token%%:*}"
+        local token_value="${token#*:}"
+        
+        case "$token_type" in
+            "text")
+                total_width=$((total_width + $(get_display_width "$token_value")))
+                ;;
+            "emoji")
+                local emoji_content=$(get_emoji "$token_value")
+                total_width=$((total_width + $(get_display_width "$emoji_content")))
+                ;;
+            "color"|"reset")
+                # Formatting elements don't contribute to width
+                ;;
+        esac
+    done
     
-    # Extract text elements from composite
-    local text_content=""
-    if [[ "$composite_data" =~ text.*\"([^\"]+)\" ]]; then
-        text_content="${BASH_REMATCH[1]}"
-    fi
+    echo "$total_width"
+}
+
+# Helper: calculate width of HTML-like content (excluding formatting)
+calculate_html_width() {
+    local html_content="$1"
+    local total_width=0
     
-    # Extract emoji elements from composite
-    local emoji_content=""
-    if [[ "$composite_data" =~ emoji.*\"([^\"]+)\" ]]; then
-        emoji_content=$(get_emoji "${BASH_REMATCH[1]}")
-    fi
+    # Parse HTML-like tags and extract only content elements
+    local remaining="$html_content"
     
-    # Calculate total width of content elements
-    if [[ -n "$text_content" ]]; then
-        total_width=$((total_width + $(get_display_width "$text_content")))
-    fi
-    
-    if [[ -n "$emoji_content" ]]; then
-        total_width=$((total_width + $(get_display_width "$emoji_content")))
-    fi
+    while [[ -n "$remaining" ]]; do
+        # Check for opening tag
+        if [[ "$remaining" =~ ^\<([^>]+)\>(.*)$ ]]; then
+            local tag="${BASH_REMATCH[1]}"
+            local after_tag="${BASH_REMATCH[2]}"
+            
+            # Handle different tag types
+            if [[ "$tag" =~ ^color=([a-zA-Z]+)$ ]]; then
+                # Color tag - doesn't contribute to width
+                remaining="$after_tag"
+                
+            elif [[ "$tag" =~ ^emoji=([a-zA-Z]+)$ ]]; then
+                # Emoji tag - contributes to width
+                local emoji_content=$(get_emoji "${BASH_REMATCH[1]}")
+                total_width=$((total_width + $(get_display_width "$emoji_content")))
+                remaining="$after_tag"
+                
+            elif [[ "$tag" == "reset" ]]; then
+                # Reset tag - doesn't contribute to width
+                remaining="$after_tag"
+                
+            elif [[ "$tag" =~ ^/([a-zA-Z]+)$ ]]; then
+                # Closing tag - doesn't contribute to width
+                remaining="$after_tag"
+                
+            else
+                # Unknown tag - treat as text
+                total_width=$((total_width + ${#tag} + 2))  # +2 for < >
+                remaining="$after_tag"
+            fi
+            
+        elif [[ "$remaining" =~ ^([^<]+)(.*)$ ]]; then
+            # Plain text - contributes to width
+            local text="${BASH_REMATCH[1]}"
+            remaining="${BASH_REMATCH[2]}"
+            total_width=$((total_width + $(get_display_width "$text")))
+            
+        else
+            # No more content
+            break
+        fi
+    done
     
     echo "$total_width"
 }
@@ -115,7 +175,7 @@ strip_color_codes() {
     echo "$text" | sed 's/\x1b\[[0-9;]*m//g'
 }
 
-# Render a cell token (text/emoji/color)
+# Render a cell token (text/emoji/color/composite)
 render_cell_token() {
     local token="$1"; local cell_width="$2"; local box_color="$3"
     local token_type="${token%%;*}"; local token_value="${token#*;}"
@@ -131,6 +191,14 @@ render_cell_token() {
         if [[ -n "$color_code" ]]; then
             printf "\033[%sm" "$color_code"
         fi
+        return 0
+    elif [[ "$token_type" == "composite" ]]; then
+        # Render composite cell with mixed content
+        render_composite_cell "$token_value" "$cell_width" "$box_color"
+        return 0
+    elif [[ "$token_type" == "html" ]]; then
+        # Render HTML-like composite cell
+        render_html_cell "$token_value" "$cell_width" "$box_color"
         return 0
     else
         content="$token_value"
@@ -151,6 +219,145 @@ render_cell_token() {
     if [[ -n "$box_color" ]]; then
         printf "\033[%sm" "$box_color"
     fi
+}
+
+# Render a composite cell with mixed content
+render_composite_cell() {
+    local composite_data="$1"; local cell_width="$2"; local box_color="$3"
+    
+    # Parse composite data (format: "text:value|color:value|text:value")
+    local -a tokens
+    IFS='|' read -ra tokens <<< "$composite_data"
+    
+    local rendered_content=""
+    local current_color=""
+    
+    for token in "${tokens[@]}"; do
+        local token_type="${token%%:*}"
+        local token_value="${token#*:}"
+        
+        case "$token_type" in
+            "text")
+                # Apply current color if set
+                if [[ -n "$current_color" ]]; then
+                    printf "\033[%sm" "$current_color"
+                fi
+                printf "%s" "$token_value"
+                rendered_content="${rendered_content}${token_value}"
+                ;;
+            "emoji")
+                # Apply current color if set
+                if [[ -n "$current_color" ]]; then
+                    printf "\033[%sm" "$current_color"
+                fi
+                local emoji_content=$(get_emoji "$token_value")
+                printf "%s" "$emoji_content"
+                rendered_content="${rendered_content}${emoji_content}"
+                ;;
+            "color")
+                # Set color for next content
+                current_color=$(get_color "$token_value")
+                ;;
+            "reset")
+                # Reset color
+                current_color=""
+                printf "\033[0m"
+                ;;
+        esac
+    done
+    
+    # Calculate padding
+    local actual_width=$(get_display_width "$rendered_content")
+    local pad=$((cell_width - actual_width))
+    if (( pad > 0 )); then 
+        printf '%*s' "$pad" ""
+    fi
+    
+    # Reapply box color after rendering content
+    if [[ -n "$box_color" ]]; then
+        printf "\033[%sm" "$box_color"
+    fi
+}
+
+# Render HTML-like composite cell
+render_html_cell() {
+    local html_content="$1"; local cell_width="$2"; local box_color="$3"
+    
+    local rendered_content=""
+    local current_color=""
+    
+    # Parse HTML-like tags: <color=warning>text</color> or <emoji=success> or <reset>
+    # Use regex to find all tags and their content
+    local remaining="$html_content"
+    
+    while [[ -n "$remaining" ]]; do
+        # Check for opening tag
+        if [[ "$remaining" =~ ^\<([^>]+)\>(.*)$ ]]; then
+            local tag="${BASH_REMATCH[1]}"
+            local after_tag="${BASH_REMATCH[2]}"
+            
+            # Handle different tag types
+            if [[ "$tag" =~ ^color=([a-zA-Z]+)$ ]]; then
+                # Color tag: <color=warning>
+                current_color=$(get_color "${BASH_REMATCH[1]}")
+                if [[ -n "$current_color" ]]; then
+                    printf "\033[%sm" "$current_color"
+                fi
+                remaining="$after_tag"
+                
+            elif [[ "$tag" =~ ^emoji=([a-zA-Z]+)$ ]]; then
+                # Emoji tag: <emoji=success>
+                local emoji_content=$(get_emoji "${BASH_REMATCH[1]}")
+                printf "%s" "$emoji_content"
+                rendered_content="${rendered_content}${emoji_content}"
+                remaining="$after_tag"
+                
+            elif [[ "$tag" == "reset" ]]; then
+                # Reset tag: <reset>
+                current_color=""
+                printf "\033[0m"
+                remaining="$after_tag"
+                
+            elif [[ "$tag" =~ ^/([a-zA-Z]+)$ ]]; then
+                # Closing tag: </color>
+                local closing_tag="${BASH_REMATCH[1]}"
+                if [[ "$closing_tag" == "color" ]]; then
+                    # Reset color on closing color tag
+                    current_color=""
+                    printf "\033[0m"
+                fi
+                remaining="$after_tag"
+                
+            else
+                # Unknown tag, treat as text
+                printf "<%s>" "$tag"
+                rendered_content="${rendered_content}<${tag}>"
+                remaining="$after_tag"
+            fi
+            
+        elif [[ "$remaining" =~ ^([^<]+)(.*)$ ]]; then
+            # Plain text (no tags)
+            local text="${BASH_REMATCH[1]}"
+            remaining="${BASH_REMATCH[2]}"
+            
+            printf "%s" "$text"
+            rendered_content="${rendered_content}${text}"
+            
+        else
+            # No more content
+            break
+        fi
+    done
+    
+    # Calculate padding
+    local actual_width=$(get_display_width "$rendered_content")
+    local pad=$((cell_width - actual_width))
+    if (( pad > 0 )); then 
+        printf '%*s' "$pad" ""
+    fi
+    
+    # Don't reapply box color for HTML cells - let the content colors remain
+    # The box color will be applied by the calling function if needed
 }
 
 # Create a new box (stateless)
@@ -261,6 +468,10 @@ box_render() {
                     # For composite cells, calculate width of all content elements
                     # Parse the composite structure and sum only content widths
                     content=$(calculate_composite_width "$token_value")
+                    ;;
+                "html")
+                    # For HTML-like cells, calculate width of all content elements
+                    content=$(calculate_html_width "$token_value")
                     ;;
                 "color"|"format"|"reset")
                     # Formatting elements don't contribute to width

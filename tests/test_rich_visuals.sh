@@ -385,28 +385,27 @@ echo "├─ Package Cleanup     │ 23 packages removed (2 hours ago)"
 echo "└─ System Files        │ 147MB freed (2 hours ago)"
 echo
 
-# Test 10: Composite Cells with Mixed Colors
-echo "10. Composite Cells with Mixed Colors (should show color transitions):"
+# Test 10: HTML-like Composite Cells with Mixed Colors
+echo "10. HTML-like Composite Cells with Mixed Colors (should show color transitions):"
 echo "EXPECTED: Color transitions within cells, box color maintained"
 echo "COLOR: Info style (cyan borders), color transitions in content"
 
 # TODO: Replace hardcoded width with terminal width detection
-box_data=$(box_new 50 "COMPOSITE CELL TEST" info)
+box_data=$(box_new 50 "HTML COMPOSITE CELL TEST" info)
 
-# Composite cell with mixed colors
+# HTML-like composite cell with mixed colors
 row_data=$(row_new)
-row_data=$(row_add_cell "$row_data" "$(make_text 'Snap: ')")
-row_data=$(row_add_cell "$row_data" "$(make_color warning)")
-row_data=$(row_add_cell "$row_data" "$(make_text '3 held back')")
-row_data=$(row_add_cell "$row_data" "$(make_color reset)")
+row_data=$(row_add_cell "$row_data" "$(make_html 'Snap: <color=warning>3 held back</color>')")
 box_data=$(box_add_row "$box_data" "$row_data")
 
-# Another composite example
+# Another HTML-like composite example
 row_data=$(row_new)
-row_data=$(row_add_cell "$row_data" "$(make_text 'Status: ')")
-row_data=$(row_add_cell "$row_data" "$(make_color success)")
-row_data=$(row_add_cell "$row_data" "$(make_text 'OK')")
-row_data=$(row_add_cell "$row_data" "$(make_color reset)")
+row_data=$(row_add_cell "$row_data" "$(make_html 'Status: <color=success>OK</color>')")
+box_data=$(box_add_row "$box_data" "$row_data")
+
+# More complex HTML-like example with emojis
+row_data=$(row_new)
+row_data=$(row_add_cell "$row_data" "$(make_html '<emoji=warning> Warning: <color=error>Critical error</color> detected')")
 box_data=$(box_add_row "$box_data" "$row_data")
 
 box_render "$box_data"
